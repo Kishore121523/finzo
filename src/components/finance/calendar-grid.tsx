@@ -320,9 +320,6 @@ export const CalendarGrid = memo(function CalendarGrid({
                             <p className="text-sm font-medium text-white truncate">
                               {transaction.description}
                             </p>
-                            {transaction.status && (
-                              <p className="text-xs text-white/40 truncate">{transaction.status}</p>
-                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-0 ml-auto">

@@ -28,9 +28,6 @@ export const TransactionItem = memo(function TransactionItem({ transaction, onEd
         )}
         <div className="min-w-0">
           <p className="font-medium text-sm md:text-base text-white truncate">{transaction.description}</p>
-          {transaction.status && (
-            <p className="text-xs md:text-sm text-white/60 truncate">{transaction.status}</p>
-          )}
         </div>
       </div>
       <div className="flex items-center gap-2 md:gap-4 shrink-0">

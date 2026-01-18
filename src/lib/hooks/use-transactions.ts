@@ -171,7 +171,6 @@ export function useTransactions(currentDate: Date) {
       description: data.description,
       amount: data.amount,
       date: Timestamp.fromDate(data.date),
-      status: data.status || '',
       isRecurring: data.isRecurring || false,
     };
 
@@ -199,7 +198,6 @@ export function useTransactions(currentDate: Date) {
       const updateData: any = {};
       if (data.description !== undefined) updateData.description = data.description;
       if (data.amount !== undefined) updateData.amount = data.amount;
-      if (data.status !== undefined) updateData.status = data.status;
       // Note: We don't update date for recurring templates as it would change the start month
 
       await firestoreHelpers.updateDocument('transactions', originalId, updateData);
@@ -209,7 +207,6 @@ export function useTransactions(currentDate: Date) {
       if (data.description !== undefined) updateData.description = data.description;
       if (data.amount !== undefined) updateData.amount = data.amount;
       if (data.date !== undefined) updateData.date = Timestamp.fromDate(data.date);
-      if (data.status !== undefined) updateData.status = data.status;
       if (data.isRecurring !== undefined) updateData.isRecurring = data.isRecurring;
 
       await firestoreHelpers.updateDocument('transactions', id, updateData);

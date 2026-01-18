@@ -6,7 +6,6 @@ export interface Transaction {
   date: Timestamp;
   description: string;
   amount: number; // positive = income, negative = expense
-  status?: string;
   isRecurring: boolean;
   // For recurring transactions: stores the original month/year when recurring started (e.g., "2025-02")
   recurringStartMonth?: string;
@@ -21,6 +20,5 @@ export interface TransactionFormData {
   description: string;
   amount: number;
   date: Date;
-  status?: string;
   isRecurring?: boolean;
 }

@@ -7,7 +7,6 @@ export const transactionSchema = z.object({
     .refine((val) => val !== 0, 'Amount cannot be zero')
     .refine((val) => Math.abs(val) <= 1000000000, 'Amount is too large'),
   date: z.date(),
-  status: z.string().optional(),
   isRecurring: z.boolean().default(false),
 });
 

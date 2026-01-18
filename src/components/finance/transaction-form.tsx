@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { format } from 'date-fns';
+import { RefreshCw } from 'lucide-react';
 
 interface TransactionFormProps {
   open: boolean;
@@ -36,6 +37,7 @@ export function TransactionForm({
   const [loading, setLoading] = useState(false);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
   const [dateValue, setDateValue] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
 
   const {
     register,
@@ -49,7 +51,6 @@ export function TransactionForm({
       description: '',
       amount: 0,
       date: defaultDate || new Date(),
-      status: '',
       isRecurring: false,
     },
   });
@@ -65,27 +66,27 @@ export function TransactionForm({
         
         setTransactionType(type);
         setDateValue(dateString);
-        
+        setIsRecurring(transaction.isRecurring);
+
         reset({
           description: transaction.description,
           amount: absAmount,
           date: transactionDate,
-          status: transaction.status || '',
           isRecurring: transaction.isRecurring,
         });
       } else {
         // Adding new transaction - reset to defaults
         const newDate = defaultDate || new Date();
         const dateString = format(newDate, 'yyyy-MM-dd');
-        
+
         setTransactionType('expense');
         setDateValue(dateString);
-        
+        setIsRecurring(false);
+
         reset({
           description: '',
           amount: 0,
           date: newDate,
-          status: '',
           isRecurring: false,
         });
       }
@@ -99,7 +100,8 @@ export function TransactionForm({
       const finalAmount = transactionType === 'expense' ? -Math.abs(data.amount) : Math.abs(data.amount);
       await onSubmit({ ...data, amount: finalAmount });
       reset();
-      setTransactionType('expense'); // Reset to default
+      setTransactionType('expense');
+      setIsRecurring(false);
       onClose();
     } catch (error) {
       console.error('Error submitting transaction:', error);
@@ -110,7 +112,8 @@ export function TransactionForm({
 
   const handleClose = () => {
     reset();
-    setTransactionType('expense'); // Reset to default
+    setTransactionType('expense');
+    setIsRecurring(false);
     onClose();
   };
 
@@ -177,26 +180,50 @@ export function TransactionForm({
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="status" className="text-white/70 text-sm">Status (optional)</Label>
-              <Input
-                id="status"
-                {...register('status')}
-                placeholder="e.g., Pending, Completed"
-                className="bg-[#252525] border-[#363636] text-white placeholder:text-white/40 focus:ring-0 focus:border-[#4C4C4C] focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-xl"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                id="isRecurring"
-                type="checkbox"
-                {...register('isRecurring')}
-                className="h-5 w-5 rounded-md border-[#3C3C3C] bg-[#2C2C2C] text-[#03DAC6] focus:ring-0 focus:ring-offset-0 cursor-pointer"
-              />
-              <Label htmlFor="isRecurring" className="cursor-pointer text-white/70">
-                Recurring transaction (repeats monthly)
-              </Label>
+            {/* Recurring Toggle */}
+            <div
+              onClick={() => {
+                setIsRecurring(!isRecurring);
+                setValue('isRecurring', !isRecurring);
+              }}
+              className={`
+                relative flex items-center gap-4 p-4 rounded-xl cursor-pointer
+                transition-all duration-200 border md:mt-5
+                ${isRecurring
+                  ? 'bg-[#03DAC6]/10 border-[#03DAC6]/40'
+                  : 'bg-[#252525] border-[#363636] hover:border-[#4C4C4C]'
+                }
+              `}
+            >
+              <div className={`
+                flex items-center justify-center w-10 h-10 rounded-xl
+                transition-colors duration-200
+                ${isRecurring ? 'bg-[#03DAC6]/20' : 'bg-[#1E1E1E]'}
+              `}>
+                <RefreshCw className={`
+                  h-5 w-5 transition-colors duration-200
+                  ${isRecurring ? 'text-[#03DAC6]' : 'text-white/40'}
+                `} />
+              </div>
+              <div className="flex-1">
+                <p className={`font-medium text-sm transition-colors duration-200 ${isRecurring ? 'text-white' : 'text-white/70'}`}>
+                  Recurring Transaction
+                </p>
+                <p className="text-xs text-white/40 mt-0.5">
+                  Repeats on this day every month
+                </p>
+              </div>
+              {/* Toggle Switch */}
+              <div className={`
+                relative w-12 h-7 rounded-full transition-colors duration-200
+                ${isRecurring ? 'bg-[#03DAC6]' : 'bg-[#3C3C3C]'}
+              `}>
+                <div className={`
+                  absolute top-1 w-5 h-5 rounded-full bg-white shadow-md
+                  transition-all duration-200 ease-out
+                  ${isRecurring ? 'left-6' : 'left-1'}
+                `} />
+              </div>
             </div>
           </div>
 
