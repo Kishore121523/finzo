@@ -243,7 +243,7 @@ export function useTransactions(currentDate: Date) {
     if (!user) throw new Error('User not authenticated');
 
     // Find recurring templates matching the description and amount
-    const q = query(
+    const transactionQuery = query(
       collection(db, 'transactions'),
       where('userId', '==', user.uid),
       where('isRecurring', '==', true),
@@ -251,14 +251,32 @@ export function useTransactions(currentDate: Date) {
       where('amount', '==', amount)
     );
 
-    const snapshot = await getDocs(q);
+    const transactionSnapshot = await getDocs(transactionQuery);
 
-    if (snapshot.empty) return;
+    if (transactionSnapshot.empty) return;
+
+    // Collect transaction IDs to find linked tasks
+    const transactionIds = transactionSnapshot.docs.map(doc => doc.id);
 
     const batch = writeBatch(db);
-    snapshot.docs.forEach((docSnapshot) => {
+
+    // Delete the transactions
+    transactionSnapshot.docs.forEach((docSnapshot) => {
       batch.delete(docSnapshot.ref);
     });
+
+    // Find and delete linked tasks for each transaction
+    for (const transactionId of transactionIds) {
+      const tasksQuery = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid),
+        where('linkedTransactionId', '==', transactionId)
+      );
+      const tasksSnapshot = await getDocs(tasksQuery);
+      tasksSnapshot.docs.forEach((taskDoc) => {
+        batch.delete(taskDoc.ref);
+      });
+    }
 
     await batch.commit();
   };

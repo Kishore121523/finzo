@@ -19,7 +19,11 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Task, TaskStatus, TaskFormData } from '@/lib/types/task';
 import { useTasks } from '@/lib/hooks/use-tasks';
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  viewedDate: Date;
+}
+
+export function KanbanBoard({ viewedDate }: KanbanBoardProps) {
   const { tasks, loading, addTask, updateTask, deleteTask, reorderTasks, getTasksByStatus } =
     useTasks();
 
@@ -146,6 +150,7 @@ export function KanbanBoard() {
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteClick}
+            viewedDate={viewedDate}
           />
           <KanbanColumn
             title="In Progress"
@@ -154,6 +159,7 @@ export function KanbanBoard() {
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteClick}
+            viewedDate={viewedDate}
           />
           <KanbanColumn
             title="Done"
@@ -162,6 +168,7 @@ export function KanbanBoard() {
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteClick}
+            viewedDate={viewedDate}
           />
         </motion.div>
 
@@ -173,6 +180,7 @@ export function KanbanBoard() {
                 onEdit={() => {}}
                 onDelete={() => {}}
                 isDragOverlay
+                viewedDate={viewedDate}
               />
             </div>
           ) : null}

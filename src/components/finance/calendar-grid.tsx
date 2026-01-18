@@ -3,20 +3,21 @@
 import { memo, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction } from '@/lib/types/transaction';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameMonth, 
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
   isToday,
   getDay,
   startOfWeek,
   endOfWeek
 } from 'date-fns';
-import { Plus, ArrowUp, ArrowDown, TrendingUp, TrendingDown, RefreshCw, Edit, Trash2 } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, TrendingUp, TrendingDown, RefreshCw, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/components/providers/currency-provider';
+import { useTasks } from '@/lib/hooks/use-tasks';
 
 interface CalendarGridProps {
   currentDate: Date;
@@ -33,6 +34,8 @@ interface DayData {
   income: number;
   expense: number;
   isCurrentMonth: boolean;
+  hasOverdue: boolean;
+  overdueTransactions: Transaction[];
 }
 
 export const CalendarGrid = memo(function CalendarGrid({
@@ -47,6 +50,7 @@ export const CalendarGrid = memo(function CalendarGrid({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const { formatCurrency } = useCurrency();
+  const { isTransactionOverdue } = useTasks();
 
   const handleDeleteClick = (transaction: Transaction) => {
     setTransactionToDelete(transaction);
@@ -94,14 +98,18 @@ export const CalendarGrid = memo(function CalendarGrid({
     return days.map(date => {
       const dateKey = format(date, 'yyyy-MM-dd');
       const dayTransactions = transactionsByDate[dateKey] || [];
-      
+
       const income = dayTransactions
         .filter(t => t.amount > 0)
         .reduce((sum, t) => sum + t.amount, 0);
-      
+
       const expense = dayTransactions
         .filter(t => t.amount < 0)
         .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+      // Check for overdue recurring expenses
+      const overdueTransactions = dayTransactions.filter(t => isTransactionOverdue(t));
+      const hasOverdue = overdueTransactions.length > 0;
 
       return {
         date,
@@ -109,9 +117,11 @@ export const CalendarGrid = memo(function CalendarGrid({
         income,
         expense,
         isCurrentMonth: isSameMonth(date, currentDate),
+        hasOverdue,
+        overdueTransactions,
       };
     });
-  }, [currentDate, transactions]);
+  }, [currentDate, transactions, isTransactionOverdue]);
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -163,13 +173,19 @@ export const CalendarGrid = memo(function CalendarGrid({
               >
                 {/* Top section: Date and indicators */}
                 <div className="w-full flex items-start justify-between">
-                  <span className={`
-                    text-sm md:text-base font-bold
-                    ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
-                    ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
-                  `}>
-                    {format(day.date, 'd')}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className={`
+                      text-sm md:text-base font-bold
+                      ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
+                      ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
+                    `}>
+                      {format(day.date, 'd')}
+                    </span>
+                    {/* Overdue indicator */}
+                    {day.hasOverdue && day.isCurrentMonth && (
+                      <span className="flex items-center justify-center w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" title="Overdue payment" />
+                    )}
+                  </div>
 
                   {/* Income/Expense indicators */}
                   {hasActivity && day.isCurrentMonth && (
@@ -295,20 +311,34 @@ export const CalendarGrid = memo(function CalendarGrid({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {selectedDay.transactions.map((transaction, index) => (
+                    {selectedDay.transactions.map((transaction, index) => {
+                      const isOverdue = isTransactionOverdue(transaction);
+                      return (
                       <motion.div
                         key={transaction.id}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="relative flex items-center justify-between p-4 rounded-xl bg-[#2C2C2C]/50 border border-[#3C3C3C] group hover:bg-[#2C2C2C] transition-colors overflow-hidden"
+                        className={`
+                          relative flex items-center justify-between p-4 rounded-xl
+                          group hover:bg-[#2C2C2C] transition-colors overflow-hidden
+                          ${isOverdue
+                            ? 'bg-[#FF5252]/10 border border-[#FF5252]/40'
+                            : 'bg-[#2C2C2C]/50 border border-[#3C3C3C]'
+                          }
+                        `}
                       >
                         <div className="flex items-center gap-3 min-w-0 max-w-[65%]">
                           <div className={`
                             w-8 h-8 rounded-lg flex items-center justify-center shrink-0
-                            ${transaction.amount >= 0 ? 'bg-[#03DAC6]/10' : 'bg-[#CF6679]/10'}
+                            ${isOverdue
+                              ? 'bg-[#FF5252]/20'
+                              : transaction.amount >= 0 ? 'bg-[#03DAC6]/10' : 'bg-[#CF6679]/10'
+                            }
                           `}>
-                            {transaction.isRecurring ? (
+                            {isOverdue ? (
+                              <AlertCircle className="w-4 h-4 text-[#FF5252]" />
+                            ) : transaction.isRecurring ? (
                               <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`} />
                             ) : transaction.amount >= 0 ? (
                               <TrendingUp className="w-4 h-4 text-[#03DAC6]" />
@@ -317,9 +347,16 @@ export const CalendarGrid = memo(function CalendarGrid({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-white truncate">
-                              {transaction.description}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-white truncate">
+                                {transaction.description}
+                              </p>
+                              {isOverdue && (
+                                <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[#FF5252] text-white rounded">
+                                  Overdue
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-0 ml-auto">
@@ -350,7 +387,8 @@ export const CalendarGrid = memo(function CalendarGrid({
                           </div>
                         </div>
                       </motion.div>
-                    ))}
+                    );
+                    })}
                   </div>
                 )}
               </div>

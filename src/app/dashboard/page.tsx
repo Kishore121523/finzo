@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useMode } from '@/components/providers/mode-provider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTransactions } from '@/lib/hooks/use-transactions';
+import { useTasks } from '@/lib/hooks/use-tasks';
 import { MonthNavigator } from '@/components/finance/month-navigator';
 import { CalendarGrid } from '@/components/finance/calendar-grid';
 import { TransactionForm } from '@/components/finance/transaction-form';
@@ -23,6 +24,40 @@ export default function DashboardPage() {
 
   const { transactions, loading, balance, addTransaction, updateTransaction, deleteTransaction, deleteAllRecurring } =
     useTransactions(currentDate);
+  const { syncTasksFromRecurringExpenses } = useTasks();
+
+  // Track which transaction IDs we've synced to avoid duplicate syncs
+  const syncedTransactionIdsRef = useRef<Set<string>>(new Set());
+
+  // Sync tasks when recurring expenses change
+  useEffect(() => {
+    if (loading) return;
+
+    // Get today's month
+    const todayMonth = format(new Date(), 'yyyy-MM');
+
+    // Get recurring expenses (negative amounts with isRecurring)
+    const recurringExpenses = transactions.filter(
+      t => t.isRecurring && t.amount < 0
+    );
+
+    // Check if there are any new recurring expenses we haven't synced yet
+    const newExpenses = recurringExpenses.filter(t => {
+      const baseId = t.id.includes('-202') ? t.id.split('-202')[0] : t.id;
+      return !syncedTransactionIdsRef.current.has(baseId);
+    });
+
+    if (newExpenses.length > 0 || recurringExpenses.length > 0) {
+      // Mark all as synced
+      recurringExpenses.forEach(t => {
+        const baseId = t.id.includes('-202') ? t.id.split('-202')[0] : t.id;
+        syncedTransactionIdsRef.current.add(baseId);
+      });
+
+      // Sync (this will create new tasks or reset existing ones for the month)
+      syncTasksFromRecurringExpenses(recurringExpenses, todayMonth);
+    }
+  }, [transactions, loading, syncTasksFromRecurringExpenses]);
 
   // Calculate income and expense totals
   const { income, expense } = useMemo(() => {
@@ -193,7 +228,7 @@ export default function DashboardPage() {
             transition={pageTransition}
             className="h-[80vh] shrink-0 overflow-hidden"
           >
-            <KanbanBoard />
+            <KanbanBoard viewedDate={currentDate} />
           </motion.div>
         )}
       </AnimatePresence>

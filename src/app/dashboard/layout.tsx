@@ -6,9 +6,7 @@ import { CurrencySelector } from '@/components/layout/currency-selector';
 import { ModeProvider } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
-import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { UserAvatar } from '@/components/layout/user-avatar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -43,12 +41,18 @@ function DashboardNav() {
           <h1 className="text-xl md:text-2xl font-bold text-white">Finzo</h1>
           <ModeToggle />
         </div>
-        <div className="flex items-center gap-2 md:gap-4">
-          <CurrencySelector />
-          <div className="flex items-center gap-2 md:gap-3">
-            {user && <UserAvatar user={user} size={32} />}
-            <span className="hidden sm:inline text-sm text-white">{user?.displayName}</span>
-          </div>
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2C2C2C] border border-[#3C3C3C]">
+              {user && (
+                <div className="w-5 h-5 rounded-full bg-[#03DAC6]/10 flex items-center justify-center">
+                  <span className="text-xs font-semibold text-[#03DAC6]">
+                    {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <span className="hidden sm:inline text-[13px] text-white">{user?.displayName}</span>
+            </div>
+              <CurrencySelector />
           <button
             onClick={handleSignOut}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white"

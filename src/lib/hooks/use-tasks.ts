@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   collection,
   query,
@@ -9,11 +9,21 @@ import {
   onSnapshot,
   writeBatch,
   doc,
+  getDocs,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { firestoreHelpers } from '@/lib/firebase/firestore';
 import { Task, TaskFormData, TaskStatus } from '@/lib/types/task';
+import { Transaction } from '@/lib/types/transaction';
 import { useAuth } from '@/components/providers/auth-provider';
+
+// Helper to format year-month as string (e.g., "2025-02")
+function formatYearMonth(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
 
 export function useTasks() {
   const { user } = useAuth();
@@ -176,6 +186,154 @@ export function useTasks() {
     return tasks.filter((t) => t.status === status).sort((a, b) => a.order - b.order);
   };
 
+  // Get task linked to a specific transaction for a specific month
+  const getTaskForTransaction = useCallback((transactionId: string, month: string): Task | undefined => {
+    // Handle virtual transaction IDs (e.g., "abc123-2025-02")
+    const baseTransactionId = transactionId.includes('-202')
+      ? transactionId.split('-202')[0]
+      : transactionId;
+
+    return tasks.find(
+      (t) => t.linkedTransactionId === baseTransactionId && t.linkedMonth === month
+    );
+  }, [tasks]);
+
+  // Check if a recurring expense transaction is overdue
+  // Overdue = date has passed AND no task is marked as done
+  const isTransactionOverdue = useCallback((transaction: Transaction): boolean => {
+    // Only check recurring expenses (negative amounts)
+    if (!transaction.isRecurring || transaction.amount >= 0) {
+      return false;
+    }
+
+    const transactionDate = transaction.date.toDate();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // If date hasn't passed, not overdue
+    if (transactionDate >= today) {
+      return false;
+    }
+
+    // Get the month for this transaction
+    const month = formatYearMonth(transactionDate);
+
+    // Get the base transaction ID (handle virtual IDs)
+    const baseTransactionId = transaction.id.includes('-202')
+      ? transaction.id.split('-202')[0]
+      : transaction.id;
+
+    // Find linked task
+    const linkedTask = tasks.find(
+      (t) => t.linkedTransactionId === baseTransactionId && t.linkedMonth === month
+    );
+
+    // Overdue if no task exists or task is not done
+    return !linkedTask || linkedTask.status !== 'done';
+  }, [tasks]);
+
+  // Sync tasks from recurring expenses - creates ONE task per recurring expense (not per month)
+  // Also resets tasks to "To Do" at the start of each new month
+  const syncTasksFromRecurringExpenses = useCallback(async (
+    recurringExpenses: Transaction[],
+    currentMonth: string
+  ) => {
+    if (!user) return;
+
+    // Query all existing finance-linked tasks
+    const existingTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', user.uid),
+      where('linkedTransactionId', '!=', null)
+    );
+    const existingTasksSnapshot = await getDocs(existingTasksQuery);
+
+    // Map of linkedTransactionId -> task doc
+    const existingTasksMap = new Map<string, { id: string; data: any }>();
+    existingTasksSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.linkedTransactionId) {
+        existingTasksMap.set(data.linkedTransactionId, { id: doc.id, data });
+      }
+    });
+
+    const batch = writeBatch(db);
+    let changes = 0;
+
+    // Get current max order for new tasks
+    const todoTasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', user.uid),
+      where('status', '==', 'todo')
+    );
+    const todoTasksSnapshot = await getDocs(todoTasksQuery);
+    let maxOrder = -1;
+    todoTasksSnapshot.docs.forEach(doc => {
+      const order = doc.data().order || 0;
+      if (order > maxOrder) maxOrder = order;
+    });
+
+    for (const expense of recurringExpenses) {
+      // Only process recurring expenses (negative amounts)
+      if (!expense.isRecurring || expense.amount >= 0) {
+        continue;
+      }
+
+      // Get base transaction ID
+      const baseTransactionId = expense.id.includes('-202')
+        ? expense.id.split('-202')[0]
+        : expense.id;
+
+      // Calculate due date for current month
+      const expenseDate = expense.date.toDate();
+      const [year, month] = currentMonth.split('-').map(Number);
+      const lastDayOfMonth = new Date(year, month, 0).getDate();
+      const dayOfMonth = Math.min(expenseDate.getDate(), lastDayOfMonth);
+      const dueDate = new Date(year, month - 1, dayOfMonth);
+
+      const existingTask = existingTasksMap.get(baseTransactionId);
+
+      if (existingTask) {
+        // Task exists - check if we need to reset for new month
+        const taskMonth = existingTask.data.linkedMonth;
+
+        if (taskMonth !== currentMonth) {
+          // New month - reset task to "To Do" and update due date
+          const taskRef = doc(db, 'tasks', existingTask.id);
+          batch.update(taskRef, {
+            status: 'todo',
+            linkedMonth: currentMonth,
+            dueDate: Timestamp.fromDate(dueDate),
+            updatedAt: firestoreHelpers.now(),
+          });
+          changes++;
+        }
+      } else {
+        // Create new task (first time for this recurring expense)
+        const taskRef = doc(collection(db, 'tasks'));
+        batch.set(taskRef, {
+          userId: user.uid,
+          title: `Pay: ${expense.description}`,
+          description: `Recurring expense of ${Math.abs(expense.amount).toLocaleString()}`,
+          status: 'todo',
+          order: maxOrder + 1 + changes,
+          linkedTransactionId: baseTransactionId,
+          linkedMonth: currentMonth,
+          dueDate: Timestamp.fromDate(dueDate),
+          createdAt: firestoreHelpers.now(),
+          updatedAt: firestoreHelpers.now(),
+        });
+        changes++;
+      }
+    }
+
+    if (changes > 0) {
+      await batch.commit();
+    }
+
+    return changes;
+  }, [user]);
+
   return {
     tasks,
     loading,
@@ -184,5 +342,8 @@ export function useTasks() {
     deleteTask,
     reorderTasks,
     getTasksByStatus,
+    getTaskForTransaction,
+    isTransactionOverdue,
+    syncTasksFromRecurringExpenses,
   };
 }

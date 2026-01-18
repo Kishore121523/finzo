@@ -1,13 +1,13 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { TaskCard } from './task-card';
 import { Task, TaskStatus } from '@/lib/types/task';
-import { Plus, Circle, Clock, CheckCircle2 } from 'lucide-react';
+import { Plus, Circle, Clock, CheckCircle2, Wallet, ListTodo } from 'lucide-react';
 
 interface KanbanColumnProps {
   title: string;
@@ -16,6 +16,7 @@ interface KanbanColumnProps {
   onAddTask: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
+  viewedDate: Date;
 }
 
 const statusConfig = {
@@ -43,10 +44,18 @@ export const KanbanColumn = memo(function KanbanColumn({
   onAddTask,
   onEditTask,
   onDeleteTask,
+  viewedDate,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const config = statusConfig[status];
   const Icon = config.icon;
+
+  // Split tasks into finance-linked and regular tasks
+  const { linkedTasks, regularTasks } = useMemo(() => {
+    const linked = tasks.filter(t => t.linkedTransactionId);
+    const regular = tasks.filter(t => !t.linkedTransactionId);
+    return { linkedTasks: linked, regularTasks: regular };
+  }, [tasks]);
 
   return (
     <motion.div 
@@ -90,7 +99,7 @@ export const KanbanColumn = memo(function KanbanColumn({
           strategy={verticalListSortingStrategy}
         >
           {tasks.length === 0 ? (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-12 text-center"
@@ -110,16 +119,60 @@ export const KanbanColumn = memo(function KanbanColumn({
               </Button>
             </motion.div>
           ) : (
-            <div className="space-y-3">
-              {tasks.map((task, index) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onEdit={onEditTask}
-                  onDelete={onDeleteTask}
-                  index={index}
-                />
-              ))}
+            <div className="space-y-4">
+              {/* Finance-linked tasks section */}
+
+              {/* Regular tasks section */}
+              {regularTasks.length > 0 && (
+                <div>
+                  {linkedTasks.length > 0 && (
+                    <div className="flex items-center gap-2 mb-2 px-1">
+                      <ListTodo className="h-3 w-3 text-white/40" />
+                      <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
+                        Other Finance Tasks
+                      </span>
+                      <div className="flex-1 h-px bg-white/10" />
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    {regularTasks.map((task, index) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={onEditTask}
+                        onDelete={onDeleteTask}
+                        index={index + linkedTasks.length}
+                        viewedDate={viewedDate}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {linkedTasks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <Wallet className="h-3 w-3 text-[#03DAC6]/70" />
+                    <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
+                      From Finance
+                    </span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
+                  <div className="space-y-3">
+                    {linkedTasks.map((task, index) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onEdit={onEditTask}
+                        onDelete={onDeleteTask}
+                        index={index}
+                        viewedDate={viewedDate}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+             
             </div>
           )}
         </SortableContext>
