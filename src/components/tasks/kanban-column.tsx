@@ -1,13 +1,13 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { TaskCard } from './task-card';
 import { Task, TaskStatus } from '@/lib/types/task';
-import { Plus, Circle, Clock, CheckCircle2, Wallet, ListTodo } from 'lucide-react';
+import { Plus, Circle, Clock, CheckCircle2, RefreshCw, CreditCard } from 'lucide-react';
 
 interface KanbanColumnProps {
   title: string;
@@ -16,6 +16,7 @@ interface KanbanColumnProps {
   onAddTask: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
+  onAddToCalendar: (task: Task) => void;
   viewedDate: Date;
 }
 
@@ -44,6 +45,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   onAddTask,
   onEditTask,
   onDeleteTask,
+  onAddToCalendar,
   viewedDate,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -107,7 +109,7 @@ export const KanbanColumn = memo(function KanbanColumn({
               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
                 <Icon className="h-6 w-6 text-white/20" />
               </div>
-              <p className="text-sm text-white/40 mb-3">No tasks yet</p>
+              <p className="text-sm text-white/40 mb-3">No bills yet</p>
               <Button
                 variant="ghost"
                 size="sm"
@@ -115,62 +117,72 @@ export const KanbanColumn = memo(function KanbanColumn({
                 className="text-[#03DAC6] hover:text-[#03DAC6] hover:bg-[#03DAC6]/20"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Add task
+                Add bill
               </Button>
             </motion.div>
           ) : (
             <div className="space-y-4">
               {/* Finance-linked tasks section */}
 
-              {/* Regular tasks section */}
+              {/* One-time bills section (manually added) */}
               {regularTasks.length > 0 && (
                 <div>
                   {linkedTasks.length > 0 && (
                     <div className="flex items-center gap-2 mb-2 px-1">
-                      <ListTodo className="h-3 w-3 text-white/40" />
+                      <CreditCard className="h-3 w-3 text-[#BB86FC]/70" />
                       <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
-                        Other Finance Tasks
+                        One-time
                       </span>
                       <div className="flex-1 h-px bg-white/10" />
                     </div>
                   )}
                   <div className="space-y-3">
-                    {regularTasks.map((task, index) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onEdit={onEditTask}
-                        onDelete={onDeleteTask}
-                        index={index + linkedTasks.length}
-                        viewedDate={viewedDate}
-                      />
-                    ))}
+                    <AnimatePresence>
+                      {regularTasks.map((task, index) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onEdit={onEditTask}
+                          onDelete={onDeleteTask}
+                          onAddToCalendar={onAddToCalendar}
+                          index={index + linkedTasks.length}
+                          viewedDate={viewedDate}
+                        />
+                      ))}
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
+
+              {/* Recurring bills section (auto-generated from calendar) */}
               {linkedTasks.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2 px-1">
-                    <Wallet className="h-3 w-3 text-[#03DAC6]/70" />
+                    <RefreshCw className="h-3 w-3 text-[#03DAC6]/70" />
                     <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
-                      From Finance
+                      Recurring
                     </span>
                     <div className="flex-1 h-px bg-white/10" />
                   </div>
                   <div className="space-y-3">
-                    {linkedTasks.map((task, index) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onEdit={onEditTask}
-                        onDelete={onDeleteTask}
-                        index={index}
-                        viewedDate={viewedDate}
-                      />
-                    ))}
+                    <AnimatePresence>
+                      {linkedTasks.map((task, index) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onEdit={onEditTask}
+                          onDelete={onDeleteTask}
+                          onAddToCalendar={onAddToCalendar}
+                          index={index}
+                          viewedDate={viewedDate}
+                        />
+                      ))}
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
+
+              
 
              
             </div>

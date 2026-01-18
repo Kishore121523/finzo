@@ -81,6 +81,7 @@ export function useTasks() {
       userId: user.uid,
       title: data.title,
       description: data.description || '',
+      amount: data.amount,
       status: data.status,
       order: maxOrder + 1,
       createdAt: firestoreHelpers.now(),
@@ -93,9 +94,19 @@ export function useTasks() {
     const updateData: any = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
+    if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.status !== undefined) updateData.status = data.status;
 
     await firestoreHelpers.updateDocument('tasks', id, updateData);
+  };
+
+  // Mark a one-time bill as added to calendar
+  const markBillAddedToCalendar = async (id: string) => {
+    if (!user) throw new Error('User not authenticated');
+    await firestoreHelpers.updateDocument('tasks', id, {
+      addedToCalendar: true,
+      updatedAt: firestoreHelpers.now(),
+    });
   };
 
   const deleteTask = async (id: string) => {
@@ -294,16 +305,20 @@ export function useTasks() {
       const existingTask = existingTasksMap.get(baseTransactionId);
 
       if (existingTask) {
-        // Task exists - check if we need to reset for new month
+        // Task exists - check if we need to reset for new month or update amount
         const taskMonth = existingTask.data.linkedMonth;
+        const currentAmount = existingTask.data.amount || 0;
+        const newAmount = Math.abs(expense.amount);
 
-        if (taskMonth !== currentMonth) {
-          // New month - reset task to "To Do" and update due date
+        if (taskMonth !== currentMonth || currentAmount !== newAmount) {
+          // New month or amount changed - reset task and update details
           const taskRef = doc(db, 'tasks', existingTask.id);
           batch.update(taskRef, {
-            status: 'todo',
+            status: taskMonth !== currentMonth ? 'todo' : existingTask.data.status,
             linkedMonth: currentMonth,
             dueDate: Timestamp.fromDate(dueDate),
+            amount: newAmount,
+            title: expense.description,
             updatedAt: firestoreHelpers.now(),
           });
           changes++;
@@ -313,8 +328,9 @@ export function useTasks() {
         const taskRef = doc(collection(db, 'tasks'));
         batch.set(taskRef, {
           userId: user.uid,
-          title: `Pay: ${expense.description}`,
-          description: `Recurring expense of ${Math.abs(expense.amount).toLocaleString()}`,
+          title: expense.description,
+          description: '',
+          amount: Math.abs(expense.amount),
           status: 'todo',
           order: maxOrder + 1 + changes,
           linkedTransactionId: baseTransactionId,
@@ -345,5 +361,6 @@ export function useTasks() {
     getTaskForTransaction,
     isTransactionOverdue,
     syncTasksFromRecurringExpenses,
+    markBillAddedToCalendar,
   };
 }
