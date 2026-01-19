@@ -148,7 +148,7 @@ export default function DashboardPage() {
   const monthKey = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
 
   return (
-    <div className="flex h-[calc(100vh-73px)] flex-col bg-[#121212] overflow-hidden">
+    <div className="flex h-[calc(100vh-57px)] sm:h-[calc(100vh-65px)] md:h-[calc(100vh-73px)] flex-col bg-[#121212] overflow-hidden">
       <AnimatePresence mode="wait">
         {mode === 'finance' ? (
           <motion.div
@@ -226,7 +226,7 @@ export default function DashboardPage() {
             exit="exit"
             variants={pageVariants}
             transition={pageTransition}
-            className="h-[80vh] shrink-0 overflow-hidden"
+            className="h-full shrink-0 overflow-hidden"
           >
             <KanbanBoard viewedDate={currentDate} />
           </motion.div>

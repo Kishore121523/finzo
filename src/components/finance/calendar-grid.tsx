@@ -127,21 +127,22 @@ export const CalendarGrid = memo(function CalendarGrid({
 
   return (
     <>
-      <div className="h-full flex flex-col p-3 md:p-6 pb-8 md:pb-10 md:pt-3 bg-[#121212]">
+      <div className="h-full flex flex-col p-2 sm:p-3 md:p-6 pb-6 sm:pb-8 md:pb-10 md:pt-3 bg-[#121212]">
         {/* Week day headers */}
-        <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2">
-          {weekDays.map(day => (
-            <div 
-              key={day} 
-              className="text-center text-xs md:text-sm font-medium text-white/40 py-2"
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-1 md:gap-2 mb-1.5 sm:mb-2">
+          {weekDays.map((day, index) => (
+            <div
+              key={day}
+              className="text-center text-[10px] sm:text-xs md:text-sm font-medium text-white/40 py-1 sm:py-2"
             >
-              {day}
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{day.charAt(0)}</span>
             </div>
           ))}
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1 md:gap-2 flex-1 auto-rows-fr">
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-1 md:gap-2 flex-1 auto-rows-fr">
           {calendarDays.map((day, index) => {
             const hasActivity = day.transactions.length > 0;
             const netAmount = day.income - day.expense;
@@ -156,80 +157,105 @@ export const CalendarGrid = memo(function CalendarGrid({
                 transition={{ delay: index * 0.01, duration: 0.2 }}
                 onClick={() => day.isCurrentMonth && setSelectedDay(day)}
                 className={`
-                  relative group rounded-xl p-2 md:p-3 min-h-[80px] md:min-h-[100px]
-                  flex flex-col items-start justify-between overflow-hidden
-                  transition-all duration-200 ease-out
+                  relative group rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-3 min-h-[52px] sm:min-h-[80px] md:min-h-[100px]
+                  flex flex-col items-center sm:items-start justify-between sm:justify-between overflow-hidden
+                  transition-all duration-200 ease-out border
                   ${day.isCurrentMonth
                     ? hasActivity
                       ? netAmount >= 0
-                        ? 'bg-[#1E1E1E] hover:bg-[#1E1E1E] cursor-pointer border border-[#03DAC6]/30'
-                        : 'bg-[#1E1E1E] hover:bg-[#1E1E1E] cursor-pointer border border-[#CF6679]/30'
-                      : 'bg-[#1E1E1E] hover:bg-[#1E1E1E] cursor-pointer border border-[#2C2C2C]'
-                    : 'bg-[#0a0a0a]/50 cursor-default border border-transparent'
+                        ? 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C] sm:border-[#03DAC6]/30'
+                        : 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C] sm:border-[#CF6679]/30'
+                      : 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C]'
+                    : 'bg-[#0a0a0a]/50 cursor-default border-transparent'
                   }
-                  ${isToday(day.date) ? 'ring-2 ring-[#03DAC6] ring-offset-1 ring-offset-[#121212]' : ''}
-                  ${hasActivity && day.isCurrentMonth ? 'hover:scale-[1.02] hover:shadow-lg hover:shadow-black/30' : ''}
+                  ${isToday(day.date) ? 'ring-1 sm:ring-2 ring-[#03DAC6] ring-offset-1 ring-offset-[#121212]' : ''}
+                  ${hasActivity && day.isCurrentMonth ? 'sm:hover:scale-[1.02] hover:shadow-lg hover:shadow-black/30' : ''}
                 `}
               >
-                {/* Top section: Date and indicators */}
-                <div className="w-full flex items-start justify-between">
-                  <div className="flex items-center gap-1">
-                    <span className={`
-                      text-sm md:text-base font-bold
-                      ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
-                      ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
-                    `}>
-                      {format(day.date, 'd')}
-                    </span>
-                    {/* Overdue indicator */}
-                    {day.hasOverdue && day.isCurrentMonth && (
-                      <span className="flex items-center justify-center w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" title="Overdue payment" />
+                {/* Mobile: Compact layout with date and net amount */}
+                <div className="sm:hidden w-full h-full flex flex-col items-center justify-between py-0.5">
+                  {/* Date at top */}
+                  <span className={`
+                    text-[11px] font-bold
+                    ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
+                    ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
+                  `}>
+                    {format(day.date, 'd')}
+                  </span>
+
+                  {/* Net amount at bottom */}
+                  {hasActivity && day.isCurrentMonth ? (
+                    <div className="flex flex-col items-center">
+                      {day.hasOverdue && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252] animate-pulse mb-0.5" />
+                      )}
+                      <span className={`text-[9px] font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                        {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, { compact: true })}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[9px] text-transparent">-</span>
+                  )}
+                </div>
+
+                {/* Desktop: Full layout */}
+                <div className="hidden sm:flex w-full flex-col h-full justify-between">
+                  {/* Top section: Date and indicators */}
+                  <div className="w-full flex items-start justify-between">
+                    <div className="flex items-center gap-1">
+                      <span className={`
+                        text-sm md:text-base font-bold
+                        ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
+                        ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
+                      `}>
+                        {format(day.date, 'd')}
+                      </span>
+                      {day.hasOverdue && day.isCurrentMonth && (
+                        <span className="w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" />
+                      )}
+                    </div>
+
+                    {hasActivity && day.isCurrentMonth && (
+                      <div className="flex items-center gap-1.5 pt-1">
+                        {day.income > 0 && (
+                          <div className="flex items-center gap-0.5">
+                            <ArrowUp className="w-3 h-3 text-[#03DAC6]" />
+                            <span className="text-[10px] md:text-xs text-[#03DAC6] font-medium">
+                              {formatCurrency(day.income, { compact: true })}
+                            </span>
+                          </div>
+                        )}
+                        {day.expense > 0 && (
+                          <div className="flex items-center gap-0.5">
+                            <ArrowDown className="w-3 h-3 text-[#CF6679]" />
+                            <span className="text-[10px] md:text-xs text-[#CF6679] font-medium">
+                              {formatCurrency(day.expense, { compact: true })}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {/* Income/Expense indicators */}
+                  {/* Bottom section: Net total and transaction count */}
                   {hasActivity && day.isCurrentMonth && (
-                    <div className="flex items-center gap-1.5 pt-1">
-                      {day.income > 0 && (
-                        <div className="flex items-center gap-0.1">
-                          <ArrowUp className="w-3 h-3 text-[#03DAC6]" />
-                          <span className="text-[10px] md:text-xs text-[#03DAC6] font-medium">
-                            {formatCurrency(day.income, { compact: true })}
-                          </span>
-                        </div>
-                      )}
-                      {day.expense > 0 && (
-                        <div className="flex items-center gap-0.1">
-                          <ArrowDown className="w-3 h-3 text-[#CF6679]" />
-                          <span className="text-[10px] md:text-xs text-[#CF6679] font-medium">
-                            {formatCurrency(day.expense, { compact: true })}
-                          </span>
-                        </div>
-                      )}
+                    <div className="w-full flex items-end justify-between">
+                      <div className={`text-sm md:text-base font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                        {formatCurrency(Math.abs(netAmount), { compact: true })}
+                      </div>
+                      <div className="px-2 py-0.5 rounded-full bg-white/10">
+                        <span className="text-[9px] md:text-[10px] text-white/60 font-medium">
+                          {day.transactions.length} TXN
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Bottom section: Net total and transaction count */}
-                {hasActivity && day.isCurrentMonth && (
-                  <div className="w-full flex items-end justify-between">
-                    <div className={`text-sm md:text-base font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
-                      {formatCurrency(Math.abs(netAmount), { compact: true })}
-                    </div>
-                    
-                    {/* Transaction count badge */}
-                    <div className="w-auto h-auto px-2 py-0.5 rounded-full bg-white/10 flex items-center justify-center">
-                      <span className="text-[9px] md:text-[10px] text-white/60 font-medium">
-                        {day.transactions.length} TXN
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Hover add button */}
+                {/* Hover add button - only on non-touch devices */}
                 {day.isCurrentMonth && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute inset-0 bg-[#2C2C2C]/65 rounded-xl p-2" />
+                  <div className="absolute inset-0 hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 bg-[#2C2C2C]/65 rounded-xl" />
                     <Plus className="relative z-10 w-6 h-6 md:w-7 md:h-7 text-[#03DAC6]" />
                   </div>
                 )}

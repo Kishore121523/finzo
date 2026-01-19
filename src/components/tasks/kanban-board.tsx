@@ -181,7 +181,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="mx-auto flex max-w-7xl gap-4 md:gap-5 px-4 py-4 md:py-6 overflow-x-auto h-full"
+          className="mx-auto flex max-w-7xl gap-2 sm:gap-3 md:gap-5 px-2 sm:px-3 md:px-4 py-3 sm:py-4 md:py-6 overflow-x-auto h-full snap-x snap-mandatory sm:snap-none"
         >
           <KanbanColumn
             title="To Pay"

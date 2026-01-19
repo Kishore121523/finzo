@@ -33,22 +33,22 @@ function DashboardNav() {
   };
 
   return (
-    <nav className="border-b border-[#1F1F1F] bg-[#1E1E1E]">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:py-4">
-        <div className="flex items-center gap-3 md:gap-8">
-          <h1 className="text-xl md:text-2xl font-bold text-white">Finzo</h1>
+    <nav className="border-b border-[#1F1F1F] bg-[#1E1E1E] sticky top-0 z-40">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 md:py-4">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-8">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Finzo</h1>
           <ModeToggle />
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <div className="flex items-center gap-2 md:gap-3">
-            {user && <UserAvatar user={user} size={32} />}
-            <span className="hidden sm:inline text-sm text-white">{user?.displayName}</span>
+            {user && <UserAvatar user={user} size={28} className="sm:w-8 sm:h-8" />}
+            <span className="hidden md:inline text-sm text-white">{user?.displayName}</span>
           </div>
           <button
             onClick={handleSignOut}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white"
+            className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </button>
         </div>
       </div>
