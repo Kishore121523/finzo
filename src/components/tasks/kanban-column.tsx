@@ -64,7 +64,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: status === 'todo' ? 0 : status === 'in-progress' ? 0.1 : 0.2 }}
-      className="flex-shrink-0 w-[75vw] sm:w-auto sm:flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-[320px] flex flex-col h-full snap-center sm:snap-align-none"
+      className="shrink-0 w-[75vw] sm:w-auto sm:flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-[320px] flex flex-col h-full snap-center sm:snap-align-none"
     >
       {/* Column Header */}
       <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between px-0.5 sm:px-1">

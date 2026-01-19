@@ -7,9 +7,10 @@ import { useState } from 'react';
 interface UserAvatarProps {
   user: User;
   size?: number;
+  className?: string;
 }
 
-export function UserAvatar({ user, size = 32 }: UserAvatarProps) {
+export function UserAvatar({ user, size = 32, className = '' }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
 
   // Get first letter of name or email
@@ -27,7 +28,7 @@ export function UserAvatar({ user, size = 32 }: UserAvatarProps) {
   if (!user.photoURL || imageError) {
     return (
       <div
-        className="flex items-center justify-center rounded-full bg-[#BB86FC] text-black font-semibold"
+        className={`flex items-center justify-center rounded-full bg-[#BB86FC] text-black font-semibold ${className}`}
         style={{ width: size, height: size, fontSize: size * 0.5 }}
       >
         {getInitial()}
@@ -41,7 +42,7 @@ export function UserAvatar({ user, size = 32 }: UserAvatarProps) {
       alt={user.displayName || 'User'}
       width={size}
       height={size}
-      className="rounded-full"
+      className={`rounded-full ${className}`}
       unoptimized
       onError={() => setImageError(true)}
     />
