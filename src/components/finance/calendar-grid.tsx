@@ -128,7 +128,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 
   return (
     <>
-      <div className="h-full flex flex-col p-2 sm:p-3 md:p-6 pb-6 sm:pb-8 md:pb-10 md:pt-3 bg-[#121212]">
+      <div className="h-[65vh] sm:h-full flex flex-col p-3 sm:p-3 md:p-6 pb-6 sm:pb-8 md:pb-10 md:pt-3 bg-[#121212]">
         {/* Week day headers */}
         <div className="grid grid-cols-7 gap-1.5 sm:gap-1 md:gap-2 mb-1.5 sm:mb-2">
           {weekDays.map((day, index) => (
