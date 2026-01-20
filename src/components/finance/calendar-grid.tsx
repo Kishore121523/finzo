@@ -18,6 +18,7 @@ import { Plus, ArrowUp, ArrowDown, TrendingUp, TrendingDown, RefreshCw, Edit, Tr
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useTasks } from '@/lib/hooks/use-tasks';
+import { getCategoryInfo } from '@/lib/constants/categories';
 
 interface CalendarGridProps {
   currentDate: Date;
@@ -218,7 +219,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                     {hasActivity && day.isCurrentMonth && (
                       <div className="flex items-center gap-1.5 pt-1">
                         {day.income > 0 && (
-                          <div className="flex items-center gap-0.5">
+                          <div className="flex items-center gap-0">
                             <ArrowUp className="w-3 h-3 text-[#03DAC6]" />
                             <span className="text-[10px] md:text-xs text-[#03DAC6] font-medium">
                               {formatCurrency(day.income, { compact: true })}
@@ -226,7 +227,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                           </div>
                         )}
                         {day.expense > 0 && (
-                          <div className="flex items-center gap-0.5">
+                          <div className="flex items-center gap-0">
                             <ArrowDown className="w-3 h-3 text-[#CF6679]" />
                             <span className="text-[10px] md:text-xs text-[#CF6679] font-medium">
                               {formatCurrency(day.expense, { compact: true })}
@@ -383,6 +384,17 @@ export const CalendarGrid = memo(function CalendarGrid({
                                 </span>
                               )}
                             </div>
+                            {transaction.category && (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <div
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{ backgroundColor: getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').color }}
+                                />
+                                <span className="text-xs text-white/50 truncate">
+                                  {getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').label}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-0 ml-auto">

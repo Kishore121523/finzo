@@ -20,6 +20,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Task, TaskStatus, TaskFormData } from '@/lib/types/task';
 import { useTasks } from '@/lib/hooks/use-tasks';
 import { useTransactions } from '@/lib/hooks/use-transactions';
+import { ExpenseCategory } from '@/lib/constants/categories';
 
 interface KanbanBoardProps {
   viewedDate: Date;
@@ -129,7 +130,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
     setAddToCalendarOpen(true);
   }, []);
 
-  const handleConfirmAddToCalendar = useCallback(async (date: Date) => {
+  const handleConfirmAddToCalendar = useCallback(async (date: Date, category: ExpenseCategory) => {
     if (taskToAddToCalendar) {
       try {
         // Add transaction to calendar (as expense - negative amount)
@@ -145,6 +146,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
             amount: -(taskToAddToCalendar.amount || 0),
             date,
             isRecurring: false,
+            category,
           });
         }
         // Delete the bill from kanban after adding to calendar
@@ -181,7 +183,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="mx-auto flex max-w-7xl gap-2 sm:gap-3 md:gap-5 px-2 sm:px-3 md:px-4 py-3 sm:py-4 md:py-6 overflow-x-auto h-full snap-x snap-mandatory sm:snap-none"
+          className="mx-auto flex max-w-7xl gap-2 sm:gap-3 md:gap-5 px-2 sm:px-3 md:px-4 py-3 sm:py-4 md:py-6 overflow-x-auto h-full snap-x snap-mandatory sm:snap-none scrollbar-hide"
         >
           <KanbanColumn
             title="To Pay"

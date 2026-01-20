@@ -18,6 +18,14 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
+import { CategorySelect } from '@/components/ui/category-select';
+import {
+  EXPENSE_CATEGORY_GROUPS,
+  INCOME_CATEGORY_GROUPS,
+  DEFAULT_EXPENSE_CATEGORY,
+  DEFAULT_INCOME_CATEGORY,
+  Category,
+} from '@/lib/constants/categories';
 
 interface TransactionFormProps {
   open: boolean;
@@ -38,6 +46,7 @@ export function TransactionForm({
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
   const [dateValue, setDateValue] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
+  const [category, setCategory] = useState<Category>(DEFAULT_EXPENSE_CATEGORY);
 
   const {
     register,
@@ -52,6 +61,7 @@ export function TransactionForm({
       amount: 0,
       date: defaultDate || new Date(),
       isRecurring: false,
+      category: DEFAULT_EXPENSE_CATEGORY,
     },
   });
 
@@ -63,16 +73,19 @@ export function TransactionForm({
         const type = transaction.amount >= 0 ? 'income' : 'expense';
         const transactionDate = transaction.date.toDate();
         const dateString = format(transactionDate, 'yyyy-MM-dd');
-        
+        const existingCategory = transaction.category || (type === 'income' ? DEFAULT_INCOME_CATEGORY : DEFAULT_EXPENSE_CATEGORY);
+
         setTransactionType(type);
         setDateValue(dateString);
         setIsRecurring(transaction.isRecurring);
+        setCategory(existingCategory);
 
         reset({
           description: transaction.description,
           amount: absAmount,
           date: transactionDate,
           isRecurring: transaction.isRecurring,
+          category: existingCategory,
         });
       } else {
         // Adding new transaction - reset to defaults
@@ -82,12 +95,14 @@ export function TransactionForm({
         setTransactionType('expense');
         setDateValue(dateString);
         setIsRecurring(false);
+        setCategory(DEFAULT_EXPENSE_CATEGORY);
 
         reset({
           description: '',
           amount: 0,
           date: newDate,
           isRecurring: false,
+          category: DEFAULT_EXPENSE_CATEGORY,
         });
       }
     }
@@ -98,10 +113,11 @@ export function TransactionForm({
       setLoading(true);
       // Convert amount based on transaction type
       const finalAmount = transactionType === 'expense' ? -Math.abs(data.amount) : Math.abs(data.amount);
-      await onSubmit({ ...data, amount: finalAmount });
+      await onSubmit({ ...data, amount: finalAmount, category });
       reset();
       setTransactionType('expense');
       setIsRecurring(false);
+      setCategory(DEFAULT_EXPENSE_CATEGORY);
       onClose();
     } catch (error) {
       console.error('Error submitting transaction:', error);
@@ -114,7 +130,17 @@ export function TransactionForm({
     reset();
     setTransactionType('expense');
     setIsRecurring(false);
+    setCategory(DEFAULT_EXPENSE_CATEGORY);
     onClose();
+  };
+
+  // Handle transaction type change - update category to appropriate default
+  const handleTransactionTypeChange = (type: 'income' | 'expense') => {
+    setTransactionType(type);
+    // Reset to appropriate default category when switching types
+    const newCategory = type === 'income' ? DEFAULT_INCOME_CATEGORY : DEFAULT_EXPENSE_CATEGORY;
+    setCategory(newCategory);
+    setValue('category', newCategory);
   };
 
   return (
@@ -128,7 +154,7 @@ export function TransactionForm({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
           <div className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
             {/* Transaction Type Tabs */}
-            <Tabs value={transactionType} onValueChange={(value) => setTransactionType(value as 'income' | 'expense')}>
+            <Tabs value={transactionType} onValueChange={(value) => handleTransactionTypeChange(value as 'income' | 'expense')}>
               <TabsList className="grid w-full grid-cols-2 bg-[#252525] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
                 <TabsTrigger value="income" className="text-xs sm:text-sm">Income</TabsTrigger>
                 <TabsTrigger value="expense" className="text-xs sm:text-sm">Expense</TabsTrigger>
@@ -178,6 +204,20 @@ export function TransactionForm({
               {errors.date && (
                 <p className="text-xs sm:text-sm text-[#CF6679] mt-1">{errors.date.message}</p>
               )}
+            </div>
+
+            {/* Category Selector */}
+            <div className="space-y-1 sm:space-y-1.5">
+              <Label htmlFor="category" className="text-white/70 text-xs sm:text-sm">Category</Label>
+              <CategorySelect
+                value={category}
+                onValueChange={(value) => {
+                  setCategory(value);
+                  setValue('category', value);
+                }}
+                categoryGroups={transactionType === 'income' ? INCOME_CATEGORY_GROUPS : EXPENSE_CATEGORY_GROUPS}
+                placeholder="Select category"
+              />
             </div>
 
             {/* Recurring Toggle */}

@@ -77,7 +77,7 @@ export function useTasks() {
       ? Math.max(...tasksInStatus.map((t) => t.order))
       : -1;
 
-    await firestoreHelpers.addDocument('tasks', {
+    const taskData: any = {
       userId: user.uid,
       title: data.title,
       description: data.description || '',
@@ -85,7 +85,14 @@ export function useTasks() {
       status: data.status,
       order: maxOrder + 1,
       createdAt: firestoreHelpers.now(),
-    });
+    };
+
+    // Add category if provided
+    if (data.category) {
+      taskData.category = data.category;
+    }
+
+    await firestoreHelpers.addDocument('tasks', taskData);
   };
 
   const updateTask = async (id: string, data: Partial<TaskFormData>) => {
@@ -96,6 +103,7 @@ export function useTasks() {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.status !== undefined) updateData.status = data.status;
+    if (data.category !== undefined) updateData.category = data.category;
 
     await firestoreHelpers.updateDocument('tasks', id, updateData);
   };
@@ -326,7 +334,7 @@ export function useTasks() {
       } else {
         // Create new task (first time for this recurring expense)
         const taskRef = doc(collection(db, 'tasks'));
-        batch.set(taskRef, {
+        const taskData: any = {
           userId: user.uid,
           title: expense.description,
           description: '',
@@ -338,7 +346,14 @@ export function useTasks() {
           dueDate: Timestamp.fromDate(dueDate),
           createdAt: firestoreHelpers.now(),
           updatedAt: firestoreHelpers.now(),
-        });
+        };
+
+        // Copy category from the expense if it exists
+        if (expense.category) {
+          taskData.category = expense.category;
+        }
+
+        batch.set(taskRef, taskData);
         changes++;
       }
     }

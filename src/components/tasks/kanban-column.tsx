@@ -91,7 +91,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div
         ref={setNodeRef}
         className={`
-          flex-1 p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl transition-all duration-200 overflow-y-auto
+          flex-1 p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl transition-all duration-200 overflow-y-auto scrollbar-hide
           bg-[#1E1E1E] border border-[#2C2C2C]
           ${isOver ? 'ring-2 ring-[#03DAC6] bg-[#03DAC6]/5' : ''}
         `}
@@ -117,7 +117,7 @@ export const KanbanColumn = memo(function KanbanColumn({
                 className="text-[#03DAC6] hover:text-[#03DAC6] hover:bg-[#03DAC6]/20 text-xs sm:text-sm"
               >
                 <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-                Add bill
+                Add payment
               </Button>
             </motion.div>
           ) : (

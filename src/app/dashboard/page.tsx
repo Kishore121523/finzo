@@ -9,6 +9,7 @@ import { MonthNavigator } from '@/components/finance/month-navigator';
 import { CalendarGrid } from '@/components/finance/calendar-grid';
 import { TransactionForm } from '@/components/finance/transaction-form';
 import { KanbanBoard } from '@/components/tasks/kanban-board';
+import { InsightsView } from '@/components/insights/insights-view';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { addMonths, subMonths, format } from 'date-fns';
@@ -218,7 +219,7 @@ export default function DashboardPage() {
               defaultDate={defaultDate}
             />
           </motion.div>
-        ) : (
+        ) : mode === 'tasks' ? (
           <motion.div
             key="tasks"
             initial="initial"
@@ -229,6 +230,18 @@ export default function DashboardPage() {
             className="h-full shrink-0 overflow-hidden"
           >
             <KanbanBoard viewedDate={currentDate} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="insights"
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="h-full shrink-0 overflow-hidden"
+          >
+            <InsightsView transactions={transactions} currentDate={currentDate} />
           </motion.div>
         )}
       </AnimatePresence>

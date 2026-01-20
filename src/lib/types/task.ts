@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
+import { ExpenseCategory } from '@/lib/constants/categories';
 
 export type TaskStatus = 'todo' | 'in-progress' | 'done';
 
@@ -8,6 +9,7 @@ export interface Task {
   title: string;
   description?: string;
   amount: number; // Bill amount (always positive, stored as expense)
+  category?: ExpenseCategory; // Category for the expense
   status: TaskStatus;
   order: number;
   createdAt: Timestamp;
@@ -25,4 +27,5 @@ export interface TaskFormData {
   description?: string;
   amount: number;
   status: TaskStatus;
+  category?: ExpenseCategory;
 }

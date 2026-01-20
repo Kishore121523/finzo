@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Mode = 'finance' | 'tasks';
+type Mode = 'finance' | 'tasks' | 'insights';
 
 interface ModeContextType {
   mode: Mode;
@@ -18,7 +18,7 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Load mode from localStorage on mount
     const savedMode = localStorage.getItem('finzo-mode') as Mode;
-    if (savedMode === 'finance' || savedMode === 'tasks') {
+    if (savedMode === 'finance' || savedMode === 'tasks' || savedMode === 'insights') {
       setModeState(savedMode);
     }
   }, []);
@@ -29,8 +29,11 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleMode = () => {
-    const newMode = mode === 'finance' ? 'tasks' : 'finance';
-    setMode(newMode);
+    // Cycle through modes: finance -> tasks -> insights -> finance
+    const modes: Mode[] = ['finance', 'tasks', 'insights'];
+    const currentIndex = modes.indexOf(mode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setMode(modes[nextIndex]);
   };
 
   return (

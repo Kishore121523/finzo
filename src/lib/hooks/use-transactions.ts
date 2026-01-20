@@ -174,6 +174,11 @@ export function useTransactions(currentDate: Date) {
       isRecurring: data.isRecurring || false,
     };
 
+    // Add category if provided
+    if (data.category) {
+      transactionData.category = data.category;
+    }
+
     // If recurring, store the start month
     if (data.isRecurring) {
       transactionData.recurringStartMonth = formatYearMonth(data.date);
@@ -198,6 +203,7 @@ export function useTransactions(currentDate: Date) {
       const updateData: any = {};
       if (data.description !== undefined) updateData.description = data.description;
       if (data.amount !== undefined) updateData.amount = data.amount;
+      if (data.category !== undefined) updateData.category = data.category;
       // Note: We don't update date for recurring templates as it would change the start month
 
       await firestoreHelpers.updateDocument('transactions', originalId, updateData);
@@ -208,6 +214,7 @@ export function useTransactions(currentDate: Date) {
       if (data.amount !== undefined) updateData.amount = data.amount;
       if (data.date !== undefined) updateData.date = Timestamp.fromDate(data.date);
       if (data.isRecurring !== undefined) updateData.isRecurring = data.isRecurring;
+      if (data.category !== undefined) updateData.category = data.category;
 
       await firestoreHelpers.updateDocument('transactions', id, updateData);
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Task } from '@/lib/types/task';
 import { useCurrency } from '@/components/providers/currency-provider';
@@ -12,13 +12,20 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { DatePicker } from '@/components/ui/date-picker';
+import { CompactDatePicker } from '@/components/ui/compact-date-picker';
+import { Label } from '@/components/ui/label';
+import { CategorySelect } from '@/components/ui/category-select';
 import { CalendarPlus, Receipt } from 'lucide-react';
+import {
+  EXPENSE_CATEGORY_GROUPS,
+  DEFAULT_EXPENSE_CATEGORY,
+  ExpenseCategory,
+} from '@/lib/constants/categories';
 
 interface AddToCalendarModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (date: Date) => Promise<void>;
+  onConfirm: (date: Date, category: ExpenseCategory) => Promise<void>;
   task: Task | null;
 }
 
@@ -30,14 +37,22 @@ export function AddToCalendarModal({
 }: AddToCalendarModalProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState<ExpenseCategory>(DEFAULT_EXPENSE_CATEGORY);
   const { formatCurrency } = useCurrency();
+
+  // Initialize category from task when modal opens
+  useEffect(() => {
+    if (task) {
+      setCategory(task.category || DEFAULT_EXPENSE_CATEGORY);
+    }
+  }, [task]);
 
   const handleConfirm = async () => {
     if (!task) return;
 
     try {
       setLoading(true);
-      await onConfirm(selectedDate);
+      await onConfirm(selectedDate, category);
       onClose();
     } catch (error) {
       console.error('Error adding to calendar:', error);
@@ -48,6 +63,7 @@ export function AddToCalendarModal({
 
   const handleClose = () => {
     setSelectedDate(new Date());
+    setCategory(DEFAULT_EXPENSE_CATEGORY);
     onClose();
   };
 
@@ -55,7 +71,7 @@ export function AddToCalendarModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#1E1E1E] border-[#2C2C2C] text-white max-w-[92vw] sm:max-w-md p-0 gap-0 overflow-hidden rounded-xl sm:rounded-2xl" showCloseButton={false}>
+      <DialogContent className="bg-[#1E1E1E] border-[#2C2C2C] text-white max-w-[92vw] sm:max-w-md p-0 gap-0 rounded-xl sm:rounded-2xl overflow-hidden" showCloseButton={false}>
         <DialogHeader className="p-4 sm:p-5 md:p-6 border-b border-[#2C2C2C]">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[#03DAC6]/20 flex items-center justify-center">
@@ -100,12 +116,25 @@ export function AddToCalendarModal({
 
           {/* Date Picker */}
           <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-medium text-white/70">
+            <Label className="text-xs sm:text-sm font-medium text-white/70">
               Select Date
-            </label>
-            <DatePicker
+            </Label>
+            <CompactDatePicker
               value={selectedDate}
               onChange={setSelectedDate}
+            />
+          </div>
+
+          {/* Category Selector */}
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label className="text-xs sm:text-sm font-medium text-white/70">
+              Category
+            </Label>
+            <CategorySelect
+              value={category}
+              onValueChange={(value) => setCategory(value as ExpenseCategory)}
+              categoryGroups={EXPENSE_CATEGORY_GROUPS}
+              placeholder="Select category"
             />
           </div>
         </div>

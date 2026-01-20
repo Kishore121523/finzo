@@ -23,7 +23,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CategorySelect } from '@/components/ui/category-select';
 import { Circle, Clock, CheckCircle2 } from 'lucide-react';
+import {
+  EXPENSE_CATEGORY_GROUPS,
+  DEFAULT_EXPENSE_CATEGORY,
+  ExpenseCategory,
+} from '@/lib/constants/categories';
 
 interface TaskFormProps {
   open: boolean;
@@ -41,6 +47,7 @@ export function TaskForm({
   defaultStatus = 'todo',
 }: TaskFormProps) {
   const [loading, setLoading] = useState(false);
+  const [category, setCategory] = useState<ExpenseCategory>(DEFAULT_EXPENSE_CATEGORY);
   const { currency } = useCurrency();
 
   const {
@@ -57,6 +64,7 @@ export function TaskForm({
       description: '',
       amount: 0,
       status: defaultStatus,
+      category: DEFAULT_EXPENSE_CATEGORY,
     },
   });
 
@@ -64,18 +72,23 @@ export function TaskForm({
 
   useEffect(() => {
     if (task) {
+      const existingCategory = task.category || DEFAULT_EXPENSE_CATEGORY;
+      setCategory(existingCategory);
       reset({
         title: task.title,
         description: task.description || '',
         amount: task.amount || 0,
         status: task.status,
+        category: existingCategory,
       });
     } else {
+      setCategory(DEFAULT_EXPENSE_CATEGORY);
       reset({
         title: '',
         description: '',
         amount: 0,
         status: defaultStatus,
+        category: DEFAULT_EXPENSE_CATEGORY,
       });
     }
   }, [task, defaultStatus, reset]);
@@ -83,11 +96,12 @@ export function TaskForm({
   const handleFormSubmit = async (data: TaskFormData) => {
     try {
       setLoading(true);
-      await onSubmit(data);
+      await onSubmit({ ...data, category });
       reset();
+      setCategory(DEFAULT_EXPENSE_CATEGORY);
       onClose();
     } catch (error) {
-      console.error('Error submitting bill:', error);
+      console.error('Error submitting Payment:', error);
     } finally {
       setLoading(false);
     }
@@ -95,6 +109,7 @@ export function TaskForm({
 
   const handleClose = () => {
     reset();
+    setCategory(DEFAULT_EXPENSE_CATEGORY);
     onClose();
   };
 
@@ -103,7 +118,7 @@ export function TaskForm({
       <DialogContent className="bg-[#1E1E1E] border-[#2C2C2C] text-white max-w-[92vw] sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl sm:rounded-2xl" showCloseButton={false}>
         <DialogHeader className="p-4 sm:p-5 md:p-6 border-b border-[#2C2C2C]">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
-            {task ? 'Edit Bill' : 'Add Bill'}
+            {task ? 'Edit Payment' : 'Add Payment'}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col">
@@ -113,7 +128,7 @@ export function TaskForm({
               <Input
                 id="title"
                 {...register('title')}
-                placeholder="What is this bill for?"
+                placeholder="What is this Payment for?"
                 className="bg-[#252525] border-[#363636] text-white placeholder:text-white/40 focus:ring-0 focus:border-[#4C4C4C] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
               />
               {errors.title && (
@@ -135,6 +150,20 @@ export function TaskForm({
               {errors.amount && (
                 <p className="text-xs sm:text-sm text-[#CF6679] mt-1">{errors.amount.message}</p>
               )}
+            </div>
+
+            {/* Category Selector */}
+            <div className="space-y-1 sm:space-y-1.5">
+              <Label htmlFor="category" className="text-white/70 text-xs sm:text-sm">Category</Label>
+              <CategorySelect
+                value={category}
+                onValueChange={(value) => {
+                  setCategory(value as ExpenseCategory);
+                  setValue('category', value as ExpenseCategory);
+                }}
+                categoryGroups={EXPENSE_CATEGORY_GROUPS}
+                placeholder="Select category"
+              />
             </div>
 
             <div className="space-y-1 sm:space-y-1.5">
@@ -178,7 +207,7 @@ export function TaskForm({
               Cancel
             </Button>
             <Button type="submit" disabled={loading} className="flex-1 bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black font-semibold h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base">
-              {loading ? 'Saving...' : task ? 'Update Bill' : 'Add Bill'}
+              {loading ? 'Saving...' : task ? 'Update Payment' : 'Add Payment'}
             </Button>
           </DialogFooter>
         </form>

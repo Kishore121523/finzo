@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
+import { Category } from '@/lib/constants/categories';
 
 export interface Transaction {
   id: string;
@@ -6,6 +7,7 @@ export interface Transaction {
   date: Timestamp;
   description: string;
   amount: number; // positive = income, negative = expense
+  category?: Category; // Category for the transaction
   isRecurring: boolean;
   // For recurring transactions: stores the original month/year when recurring started (e.g., "2025-02")
   recurringStartMonth?: string;
@@ -21,4 +23,5 @@ export interface TransactionFormData {
   amount: number;
   date: Date;
   isRecurring?: boolean;
+  category?: Category;
 }

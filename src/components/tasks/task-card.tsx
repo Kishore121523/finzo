@@ -92,7 +92,7 @@ export const TaskCard = memo(function TaskCard({
 
   if (isDragOverlay) {
     return (
-      <div className="p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl bg-[#2C2C2C] border border-[#03DAC6]/50 shadow-2xl shadow-black/50">
+      <div className={`p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl bg-[#2C2C2C] shadow-2xl shadow-black/50 border ${task.linkedTransactionId ? 'border-[#03DAC6]/50' : 'border-[#BB86FC]/50'}`}>
         <div className="flex items-start gap-2 sm:gap-3">
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-xs sm:text-sm text-white leading-tight">{task.title}</h4>
@@ -127,7 +127,9 @@ export const TaskCard = memo(function TaskCard({
         transition-colors duration-150
         ${isOverdue
           ? 'bg-[#FF5252]/10 border border-[#FF5252]/40 hover:bg-[#FF5252]/15'
-          : 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#03DAC6]/30'
+          : task.linkedTransactionId
+            ? 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#03DAC6]/30'
+            : 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#BB86FC]/30'
         }
         ${isDragging ? 'opacity-40 shadow-lg shadow-black/30' : 'opacity-100'}
       `}
