@@ -10,10 +10,11 @@ import {
   Timestamp,
   writeBatch,
   getDocs,
+  doc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { firestoreHelpers } from '@/lib/firebase/firestore';
-import { Transaction, TransactionFormData } from '@/lib/types/transaction';
+import { Transaction, TransactionFormData, AmountChange } from '@/lib/types/transaction';
 import { useAuth } from '@/components/providers/auth-provider';
 
 // Helper to format year-month as string (e.g., "2025-02")
@@ -26,6 +27,33 @@ function formatYearMonth(date: Date): string {
 // Helper to compare year-month strings
 function isMonthOnOrAfter(viewingMonth: string, startMonth: string): boolean {
   return viewingMonth >= startMonth;
+}
+
+// Helper to get the effective amount for a specific month based on amount history
+// Returns the amount from the most recent change that is on or before the viewing month
+function getEffectiveAmount(
+  baseAmount: number,
+  amountHistory: AmountChange[] | undefined,
+  viewingMonth: string
+): number {
+  if (!amountHistory || amountHistory.length === 0) {
+    return baseAmount;
+  }
+
+  // Sort by effectiveFrom in descending order to find the most recent applicable change
+  const sortedHistory = [...amountHistory].sort((a, b) =>
+    b.effectiveFrom.localeCompare(a.effectiveFrom)
+  );
+
+  // Find the first change that is on or before the viewing month
+  for (const change of sortedHistory) {
+    if (viewingMonth >= change.effectiveFrom) {
+      return change.amount;
+    }
+  }
+
+  // If no applicable change found (viewing month is before all changes), use base amount
+  return baseAmount;
 }
 
 export function useTransactions(currentDate: Date) {
@@ -142,10 +170,18 @@ export function useTransactions(currentDate: Date) {
       const virtualDate = new Date(currentYear, currentMonth, dayOfMonth);
       virtualDate.setHours(templateDate.getHours(), templateDate.getMinutes(), templateDate.getSeconds());
 
+      // Get the effective amount for this specific month
+      const effectiveAmount = getEffectiveAmount(
+        template.amount,
+        template.amountHistory,
+        currentYearMonth
+      );
+
       const virtualTransaction: Transaction = {
         ...template,
         id: `${template.id}-${currentYearMonth}`, // Unique ID for this month's instance
         date: Timestamp.fromDate(virtualDate),
+        amount: effectiveAmount, // Use the effective amount for this month
         isVirtual: true,
       };
 
@@ -190,22 +226,50 @@ export function useTransactions(currentDate: Date) {
   const updateTransaction = async (id: string, data: Partial<TransactionFormData>) => {
     if (!user) throw new Error('User not authenticated');
 
-    // Check if this is a virtual transaction (ID contains year-month suffix)
-    const isVirtualId = id.includes('-202'); // Simple check for virtual IDs like "abc123-2025-02"
+    // Check if this is a virtual transaction (ID format: "templateId-YYYY-MM")
+    const virtualMatch = id.match(/^(.+)-(\d{4}-\d{2})$/);
 
-    if (isVirtualId) {
-      // Extract the original template ID
-      const originalId = id.split('-202')[0];
+    if (virtualMatch) {
+      // Extract the original template ID and the month being edited
+      const [, originalId, editMonth] = virtualMatch;
 
-      // For virtual transactions, we update the template itself
-      // This affects all months - if user wants month-specific edit,
-      // we'd need to create a new non-recurring transaction instead
+      // Find the template to get current data
+      const template = recurringTemplates.find(t => t.id === originalId);
+      if (!template) throw new Error('Recurring template not found');
+
       const updateData: any = {};
-      if (data.description !== undefined) updateData.description = data.description;
-      if (data.amount !== undefined) updateData.amount = data.amount;
-      if (data.category !== undefined) updateData.category = data.category;
-      // Note: We don't update date for recurring templates as it would change the start month
 
+      // Handle description and category - these apply to all months
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.category !== undefined) updateData.category = data.category;
+
+      // Handle amount changes - only apply from this month forward
+      if (data.amount !== undefined) {
+        const currentAmountHistory = template.amountHistory || [];
+        const startMonth = template.recurringStartMonth || formatYearMonth(template.date.toDate());
+
+        // Check if we're editing the start month
+        if (editMonth === startMonth) {
+          // Editing the start month - update the base amount
+          updateData.amount = data.amount;
+        } else {
+          // Editing a later month - add to amount history
+          // First, remove any existing entry for this exact month (in case of re-edit)
+          const filteredHistory = currentAmountHistory.filter(
+            (change) => change.effectiveFrom !== editMonth
+          );
+
+          // Add the new change
+          const newAmountHistory = [
+            ...filteredHistory,
+            { amount: data.amount, effectiveFrom: editMonth }
+          ];
+
+          updateData.amountHistory = newAmountHistory;
+        }
+      }
+
+      // Note: We don't update date for recurring templates as it would change the start month
       await firestoreHelpers.updateDocument('transactions', originalId, updateData);
     } else {
       // Regular transaction update
@@ -246,44 +310,29 @@ export function useTransactions(currentDate: Date) {
     }
   };
 
-  const deleteAllRecurring = async (description: string, amount: number) => {
+  const deleteAllRecurring = async (id: string) => {
     if (!user) throw new Error('User not authenticated');
 
-    // Find recurring templates matching the description and amount
-    const transactionQuery = query(
-      collection(db, 'transactions'),
-      where('userId', '==', user.uid),
-      where('isRecurring', '==', true),
-      where('description', '==', description),
-      where('amount', '==', amount)
-    );
-
-    const transactionSnapshot = await getDocs(transactionQuery);
-
-    if (transactionSnapshot.empty) return;
-
-    // Collect transaction IDs to find linked tasks
-    const transactionIds = transactionSnapshot.docs.map(doc => doc.id);
+    // Extract the template ID (handle both virtual IDs and direct template IDs)
+    const virtualMatch = id.match(/^(.+)-(\d{4}-\d{2})$/);
+    const templateId = virtualMatch ? virtualMatch[1] : id;
 
     const batch = writeBatch(db);
 
-    // Delete the transactions
-    transactionSnapshot.docs.forEach((docSnapshot) => {
-      batch.delete(docSnapshot.ref);
-    });
+    // Delete the recurring template
+    const templateRef = doc(db, 'transactions', templateId);
+    batch.delete(templateRef);
 
-    // Find and delete linked tasks for each transaction
-    for (const transactionId of transactionIds) {
-      const tasksQuery = query(
-        collection(db, 'tasks'),
-        where('userId', '==', user.uid),
-        where('linkedTransactionId', '==', transactionId)
-      );
-      const tasksSnapshot = await getDocs(tasksQuery);
-      tasksSnapshot.docs.forEach((taskDoc) => {
-        batch.delete(taskDoc.ref);
-      });
-    }
+    // Find and delete linked tasks for this transaction
+    const tasksQuery = query(
+      collection(db, 'tasks'),
+      where('userId', '==', user.uid),
+      where('linkedTransactionId', '==', templateId)
+    );
+    const tasksSnapshot = await getDocs(tasksQuery);
+    tasksSnapshot.docs.forEach((taskDoc) => {
+      batch.delete(taskDoc.ref);
+    });
 
     await batch.commit();
   };

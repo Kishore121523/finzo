@@ -111,8 +111,8 @@ export default function DashboardPage() {
     await deleteTransaction(id);
   }, [deleteTransaction]);
 
-  const handleDeleteAllRecurring = useCallback(async (description: string, amount: number) => {
-    await deleteAllRecurring(description, amount);
+  const handleDeleteAllRecurring = useCallback(async (id: string) => {
+    await deleteAllRecurring(id);
   }, [deleteAllRecurring]);
 
   const pageVariants = {
@@ -241,7 +241,7 @@ export default function DashboardPage() {
             transition={pageTransition}
             className="h-full shrink-0 overflow-hidden"
           >
-            <InsightsView transactions={transactions} currentDate={currentDate} />
+            <InsightsView currentDate={currentDate} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -25,7 +25,7 @@ interface CalendarGridProps {
   transactions: Transaction[];
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
-  onDeleteAllRecurring: (description: string, amount: number) => void;
+  onDeleteAllRecurring: (id: string) => void;
   onAddForDate: (date: Date) => void;
 }
 
@@ -62,7 +62,7 @@ export const CalendarGrid = memo(function CalendarGrid({
     if (transactionToDelete) {
       try {
         if (deleteAll && transactionToDelete.isRecurring) {
-          await onDeleteAllRecurring(transactionToDelete.description, transactionToDelete.amount);
+          await onDeleteAllRecurring(transactionToDelete.id);
         } else {
           await onDelete(transactionToDelete.id);
         }
