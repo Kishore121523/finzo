@@ -63,7 +63,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       formatted = new Intl.NumberFormat(currency.locale, {
         style: 'currency',
         currency: currency.code,
-        maximumFractionDigits: currency.code === 'JPY' ? 0 : 0,
+        maximumFractionDigits: currency.code === 'JPY' ? 0 : 2,
       }).format(absAmount);
     }
 
