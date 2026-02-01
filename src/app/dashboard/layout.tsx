@@ -55,12 +55,17 @@ function DashboardNav() {
             </div>
               <CurrencySelector />
           <NotificationToggle />
-          <button
-            onClick={handleSignOut}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          <div className="relative group">
+            <button
+              onClick={handleSignOut}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-[#2C2C2C] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              Sign out
+            </span>
+          </div>
         </div>
       </div>
     </nav>

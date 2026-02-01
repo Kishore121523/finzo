@@ -31,7 +31,7 @@ export function CurrencySelector() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2C2C2C] border border-[#3C3C3C] text-white text-sm hover:bg-[#3C3C3C] transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2C2C2C] border border-[#3C3C3C] text-white text-sm hover:bg-[#3C3C3C] transition-colors cursor-pointer"
       >
         <span className="font-medium text-[#03DAC6]">{currency.symbol}</span>
         <span className="hidden sm:inline text-white/60">{currency.code}</span>
