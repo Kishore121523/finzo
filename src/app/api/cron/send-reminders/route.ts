@@ -228,7 +228,7 @@ function generateEmailHtml(
             ${paymentsHtml}
 
             <!-- CTA Button -->
-            <a href="https://finzo.vercel.app/dashboard"
+            <a href="https://finzo-pi.vercel.app/dashboard"
                style="display: block; background: #03DAC6; color: #000000; text-decoration: none; padding: 14px 24px; border-radius: 12px; font-weight: 600; text-align: center; margin-top: 24px;">
               View in Finzo
             </a>
