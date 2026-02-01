@@ -7,6 +7,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { UserAvatar } from '@/components/layout/user-avatar';
+import { NotificationToggle } from '@/components/layout/notification-toggle';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -44,6 +45,7 @@ function DashboardNav() {
             {user && <UserAvatar user={user} size={28} className="sm:w-8 sm:h-8" />}
             <span className="hidden md:inline text-sm text-white">{user?.displayName}</span>
           </div>
+          <NotificationToggle />
           <button
             onClick={handleSignOut}
             className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white"

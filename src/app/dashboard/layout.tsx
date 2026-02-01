@@ -3,6 +3,7 @@
 import { ProtectedRoute } from '@/components/layout/protected-route';
 import { ModeToggle } from '@/components/layout/mode-toggle';
 import { CurrencySelector } from '@/components/layout/currency-selector';
+import { NotificationToggle } from '@/components/layout/notification-toggle';
 import { ModeProvider } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
@@ -53,6 +54,7 @@ function DashboardNav() {
               <span className="hidden sm:inline text-[13px] text-white">{user?.displayName}</span>
             </div>
               <CurrencySelector />
+          <NotificationToggle />
           <button
             onClick={handleSignOut}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white"

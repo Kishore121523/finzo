@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase/config';
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +30,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+
+      // Save user data to Firestore for email notifications
+      if (result.user) {
+        const userRef = doc(db, 'users', result.user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          // First time user - create profile with notifications enabled
+          await setDoc(userRef, {
+            email: result.user.email,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL,
+            emailNotifications: true,
+            createdAt: new Date(),
+          });
+        } else {
+          // Existing user - update email in case it changed
+          await setDoc(userRef, {
+            email: result.user.email,
+            displayName: result.user.displayName,
+            photoURL: result.user.photoURL,
+          }, { merge: true });
+        }
+      }
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;
