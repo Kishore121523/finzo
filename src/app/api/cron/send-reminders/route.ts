@@ -47,14 +47,10 @@ export async function GET(request: NextRequest) {
     const today = new Date();
     const todayIST = getISTDate(today);
     const todayDay = todayIST.getUTCDate();
+    const todayMonth = todayIST.getUTCMonth();
+    const todayYear = todayIST.getUTCFullYear();
     const tomorrowDay = todayDay + 1;
-    const currentMonth = `${todayIST.getUTCFullYear()}-${String(todayIST.getUTCMonth() + 1).padStart(2, '0')}`;
-
-    // Get all recurring transactions
-    const transactionsSnapshot = await adminDb
-      .collection('transactions')
-      .where('isRecurring', '==', true)
-      .get();
+    const currentMonth = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}`;
 
     // Group transactions by user
     const userTransactions: Map<string, {
@@ -63,7 +59,36 @@ export async function GET(request: NextRequest) {
       tomorrowPayments: Array<{ description: string; amount: number }>;
     }> = new Map();
 
-    for (const doc of transactionsSnapshot.docs) {
+    // Helper function to add user if not exists
+    async function ensureUser(userId: string): Promise<boolean> {
+      if (!userTransactions.has(userId)) {
+        const userDoc = await adminDb.collection('users').doc(userId).get();
+        const userData = userDoc.data();
+
+        if (!userData?.email) {
+          return false;
+        }
+
+        if (userData.emailNotifications === false) {
+          return false;
+        }
+
+        userTransactions.set(userId, {
+          email: userData.email,
+          todayPayments: [],
+          tomorrowPayments: [],
+        });
+      }
+      return true;
+    }
+
+    // 1. Get recurring transactions (income & expenses) due today or tomorrow
+    const recurringSnapshot = await adminDb
+      .collection('transactions')
+      .where('isRecurring', '==', true)
+      .get();
+
+    for (const doc of recurringSnapshot.docs) {
       const transaction = doc.data();
       const transactionDate = transaction.date.toDate();
       const dayOfMonth = getDayInIST(transactionDate);
@@ -74,13 +99,6 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Check if user has email notifications enabled (default to true for now)
-      // We'll add preferences later
-      const userId = transaction.userId;
-
-      // Get user email from the users collection or store it when they sign in
-      // For now, we'll need to fetch it from a users collection
-
       const isToday = dayOfMonth === todayDay;
       const isTomorrow = dayOfMonth === tomorrowDay;
 
@@ -88,25 +106,9 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      if (!userTransactions.has(userId)) {
-        // Try to get user email from users collection
-        const userDoc = await adminDb.collection('users').doc(userId).get();
-        const userData = userDoc.data();
-
-        if (!userData?.email) {
-          continue; // Skip if no email
-        }
-
-        // Check if notifications are enabled (default true)
-        if (userData.emailNotifications === false) {
-          continue;
-        }
-
-        userTransactions.set(userId, {
-          email: userData.email,
-          todayPayments: [],
-          tomorrowPayments: [],
-        });
+      const userId = transaction.userId;
+      if (!(await ensureUser(userId))) {
+        continue;
       }
 
       const userEntry = userTransactions.get(userId)!;
@@ -122,10 +124,45 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 2. Get one-time transactions scheduled for tomorrow only
+    // (Today's transactions are being logged in real-time, no need to remind)
+    const oneTimeSnapshot = await adminDb
+      .collection('transactions')
+      .where('isRecurring', '==', false)
+      .get();
+
+    for (const doc of oneTimeSnapshot.docs) {
+      const transaction = doc.data();
+      const transactionDate = transaction.date.toDate();
+      const txnDayIST = getDayInIST(transactionDate);
+      const txnMonthIST = getISTDate(transactionDate).getUTCMonth();
+      const txnYearIST = getISTDate(transactionDate).getUTCFullYear();
+
+      // Only include if scheduled for tomorrow
+      const isTomorrow = txnDayIST === tomorrowDay &&
+                         txnMonthIST === todayMonth &&
+                         txnYearIST === todayYear;
+
+      if (!isTomorrow) {
+        continue;
+      }
+
+      const userId = transaction.userId;
+      if (!(await ensureUser(userId))) {
+        continue;
+      }
+
+      const userEntry = userTransactions.get(userId)!;
+      userEntry.tomorrowPayments.push({
+        description: transaction.description,
+        amount: transaction.amount,
+      });
+    }
+
     // Send emails to each user
     const emailPromises: Promise<any>[] = [];
 
-    for (const [userId, userData] of userTransactions) {
+    for (const [, userData] of userTransactions) {
       if (userData.todayPayments.length === 0 && userData.tomorrowPayments.length === 0) {
         continue;
       }
@@ -160,11 +197,11 @@ export async function GET(request: NextRequest) {
 
 function getEmailSubject(todayPayments: Array<any>, tomorrowPayments: Array<any>): string {
   if (todayPayments.length > 0 && tomorrowPayments.length > 0) {
-    return `💰 Finzo: You have payments due today and tomorrow`;
+    return `💰 Finzo: You have transactions due today and tomorrow`;
   } else if (todayPayments.length > 0) {
-    return `💰 Finzo: You have ${todayPayments.length} payment${todayPayments.length > 1 ? 's' : ''} due today`;
+    return `💰 Finzo: ${todayPayments.length} transaction${todayPayments.length > 1 ? 's' : ''} due today`;
   } else {
-    return `💰 Finzo: Reminder - ${tomorrowPayments.length} payment${tomorrowPayments.length > 1 ? 's' : ''} due tomorrow`;
+    return `💰 Finzo: Reminder - ${tomorrowPayments.length} transaction${tomorrowPayments.length > 1 ? 's' : ''} due tomorrow`;
   }
 }
 
@@ -199,7 +236,7 @@ function generateEmailHtml(
                 <tr>
                   <td style="color: #FFFFFF; font-size: 14px;">${p.description}</td>
                   <td align="right" style="color: ${p.amount < 0 ? '#CF6679' : '#03DAC6'}; font-weight: 600; font-size: 14px;">
-                    ${p.amount < 0 ? '-' : '+'}${formatCurrency(p.amount)}
+                    ${p.amount < 0 ? '' : '+'}${formatCurrency(p.amount)}
                   </td>
                 </tr>
               </table>
@@ -228,7 +265,7 @@ function generateEmailHtml(
                 <tr>
                   <td style="color: #FFFFFF; font-size: 14px;">${p.description}</td>
                   <td align="right" style="color: ${p.amount < 0 ? '#CF6679' : '#03DAC6'}; font-weight: 600; font-size: 14px;">
-                    ${p.amount < 0 ? '-' : '+'}${formatCurrency(p.amount)}
+                    ${p.amount < 0 ? '' : '+'}${formatCurrency(p.amount)}
                   </td>
                 </tr>
               </table>
