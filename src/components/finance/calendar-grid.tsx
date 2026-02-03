@@ -321,7 +321,7 @@ export const CalendarGrid = memo(function CalendarGrid({
               </div>
 
               {/* Transactions list */}
-              <div className="p-5 md:p-6 max-h-[350px] overflow-y-auto">
+              <div className="p-5 md:p-6 max-h-[350px] overflow-y-auto scrollbar-hide">
                 {selectedDay.transactions.length === 0 ? (
                   <div className="text-center py-2">
                     <p className="text-white/40 mb-4">No transactions for this day</p>

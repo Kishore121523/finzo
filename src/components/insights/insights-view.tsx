@@ -220,9 +220,9 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
   const themeColor = viewType === 'expense' ? '#FF6B6B' : '#10B981';
 
   return (
-    <div className="flex flex-col h-full bg-[#121212]">
+    <div className="flex flex-col h-full bg-[#121212] overflow-hidden">
       {/* Type Toggle - Top */}
-      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 shrink-0">
+      <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
         <Tabs value={viewType} onValueChange={handleViewTypeChange}>
           <TabsList className="grid w-full grid-cols-2 bg-[#252525] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
             <TabsTrigger value="expense" className="text-xs sm:text-sm gap-1.5">
@@ -235,8 +235,8 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
         </Tabs>
       </div>
 
-      {/* Main Content - Scrollable */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-24 sm:pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {/* Main Content - Scrollable on mobile, overflow-hidden on desktop */}
+      <div className="flex-1 overflow-y-auto lg:overflow-hidden px-4 sm:px-6 pb-20 md:pb-6 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
         {categoryData.total === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
@@ -264,11 +264,11 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center lg:flex-row lg:justify-center lg:items-center lg:min-h-full lg:px-4">
+          <div className="flex flex-col items-center lg:h-full lg:flex-row lg:justify-center lg:items-center lg:px-4">
             {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
-            <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 w-full">
+            <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
               {/* Pie Chart */}
-              <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0 mx-auto lg:mx-0">
+              <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
                 {/* Outer glow ring */}
                 <div
                   className="absolute inset-0 rounded-full opacity-20 blur-xl"
@@ -365,7 +365,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
 
               {/* Categories Card */}
               <div
-                className="w-full sm:w-[480px] lg:w-[560px] min-h-[280px] sm:min-h-[400px] lg:min-h-[540px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-4 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
+                className="w-full min-h-[280px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-4 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
                 style={{
                   border: `1px solid ${selectedCategory ? selectedCategory.color : themeColor}20`,
                   boxShadow: `0 0 40px ${selectedCategory ? selectedCategory.color : themeColor}10, inset 0 1px 0 ${selectedCategory ? selectedCategory.color : themeColor}10`
