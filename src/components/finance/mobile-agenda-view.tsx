@@ -142,6 +142,16 @@ export const MobileAgendaView = memo(function MobileAgendaView({
     onBottomSheetChange?.(selectedDay !== null);
   }, [selectedDay, onBottomSheetChange]);
 
+  // Lock body scroll when bottom sheet is open
+  useEffect(() => {
+    if (selectedDay) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [selectedDay]);
+
   // Generate weeks for the month
   const weeks = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -387,88 +397,93 @@ export const MobileAgendaView = memo(function MobileAgendaView({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-[#1E1E1E] rounded-t-3xl flex flex-col max-h-[80vh]"
+              className="fixed left-0 right-0 z-50 bg-[#1E1E1E] rounded-t-3xl overflow-hidden"
+              style={{ bottom: '70px', height: '60vh', maxHeight: '500px' }}
             >
-              {/* Handle - draggable area */}
-              <div
-                className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing shrink-0"
-                onPointerDown={(e) => {
-                  const startY = e.clientY;
-                  const onMove = (moveEvent: PointerEvent) => {
-                    const deltaY = moveEvent.clientY - startY;
-                    if (deltaY > 100) {
-                      setSelectedDay(null);
+              <div className="h-full flex flex-col">
+                {/* Handle - draggable area */}
+                <div
+                  className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
+                  onPointerDown={(e) => {
+                    const startY = e.clientY;
+                    const onMove = (moveEvent: PointerEvent) => {
+                      const deltaY = moveEvent.clientY - startY;
+                      if (deltaY > 100) {
+                        setSelectedDay(null);
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', onUp);
+                      }
+                    };
+                    const onUp = () => {
                       document.removeEventListener('pointermove', onMove);
                       document.removeEventListener('pointerup', onUp);
-                    }
-                  };
-                  const onUp = () => {
-                    document.removeEventListener('pointermove', onMove);
-                    document.removeEventListener('pointerup', onUp);
-                  };
-                  document.addEventListener('pointermove', onMove);
-                  document.addEventListener('pointerup', onUp);
-                }}
-              >
-                <div className="w-10 h-1 rounded-full bg-white/20" />
-              </div>
-
-              {/* Header */}
-              <div className="px-5 pb-4 shrink-0">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-white">
-                      {isToday(selectedDay.date) ? 'Today' : format(selectedDay.date, 'EEEE')}
-                    </h3>
-                    <p className="text-sm text-white/50">{format(selectedDay.date, 'MMMM d, yyyy')}</p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedDay(null)}
-                    className="p-2 rounded-full hover:bg-white/10 text-white/60 cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Add Transaction Button - Always at top as CTA */}
-                <Button
-                  onClick={() => {
-                    onAddForDate(selectedDay.date);
-                    setSelectedDay(null);
+                    };
+                    document.addEventListener('pointermove', onMove);
+                    document.addEventListener('pointerup', onUp);
                   }}
-                  className="w-full bg-[#03DAC6] hover:bg-[#03DAC6]/80 text-black h-12 rounded-xl mt-4 font-semibold"
                 >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add Transaction
-                </Button>
-              </div>
-
-              {/* Day summary - only if has transactions */}
-              {selectedDay.transactions.length > 0 && (
-                <div className="px-5 pb-3 flex gap-3 shrink-0">
-                  <div className="flex-1 bg-[#03DAC6]/10 rounded-xl p-3">
-                    <div className="flex items-center gap-1.5">
-                      <TrendingUp className="w-3.5 h-3.5 text-[#03DAC6]" />
-                      <span className="text-[10px] text-white/50">Income</span>
-                    </div>
-                    <p className="text-lg font-bold text-[#03DAC6] mt-1">
-                      {formatCurrency(selectedDay.income)}
-                    </p>
-                  </div>
-                  <div className="flex-1 bg-[#CF6679]/10 rounded-xl p-3">
-                    <div className="flex items-center gap-1.5">
-                      <TrendingDown className="w-3.5 h-3.5 text-[#CF6679]" />
-                      <span className="text-[10px] text-white/50">Expense</span>
-                    </div>
-                    <p className="text-lg font-bold text-[#CF6679] mt-1">
-                      {formatCurrency(selectedDay.expense)}
-                    </p>
-                  </div>
+                  <div className="w-10 h-1 rounded-full bg-white/20" />
                 </div>
-              )}
 
-              {/* Transactions List - Scrollable */}
-              <div className="flex-1 overflow-y-auto overscroll-contain px-5 pb-8 min-h-0">
+                {/* Header */}
+                <div className="px-5 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">
+                        {isToday(selectedDay.date) ? 'Today' : format(selectedDay.date, 'EEEE')}
+                      </h3>
+                      <p className="text-sm text-white/50">{format(selectedDay.date, 'MMMM d, yyyy')}</p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedDay(null)}
+                      className="p-2 rounded-full hover:bg-white/10 text-white/60 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Add Transaction Button - Always at top as CTA */}
+                  <Button
+                    onClick={() => {
+                      onAddForDate(selectedDay.date);
+                      setSelectedDay(null);
+                    }}
+                    className="w-full bg-[#03DAC6] hover:bg-[#03DAC6]/80 text-black h-12 rounded-xl mt-4 font-semibold"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Transaction
+                  </Button>
+                </div>
+
+                {/* Day summary - only if has transactions */}
+                {selectedDay.transactions.length > 0 && (
+                  <div className="px-5 pb-3 flex gap-3">
+                    <div className="flex-1 bg-[#03DAC6]/10 rounded-xl p-3">
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-[#03DAC6]" />
+                        <span className="text-[10px] text-white/50">Income</span>
+                      </div>
+                      <p className="text-lg font-bold text-[#03DAC6] mt-1">
+                        {formatCurrency(selectedDay.income)}
+                      </p>
+                    </div>
+                    <div className="flex-1 bg-[#CF6679]/10 rounded-xl p-3">
+                      <div className="flex items-center gap-1.5">
+                        <TrendingDown className="w-3.5 h-3.5 text-[#CF6679]" />
+                        <span className="text-[10px] text-white/50">Expense</span>
+                      </div>
+                      <p className="text-lg font-bold text-[#CF6679] mt-1">
+                        {formatCurrency(selectedDay.expense)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Transactions List - Scrollable */}
+                <div 
+                  className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                >
                 {selectedDay.transactions.length === 0 ? (
                   <div className="text-center py-6">
                     <p className="text-white/40">No transactions yet for this day</p>
@@ -559,6 +574,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                     })}
                   </div>
                 )}
+              </div>
               </div>
             </motion.div>
           </>
