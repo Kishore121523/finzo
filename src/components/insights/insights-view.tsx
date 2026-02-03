@@ -12,8 +12,9 @@ import {
   DEFAULT_EXPENSE_CATEGORY,
   DEFAULT_INCOME_CATEGORY,
 } from '@/lib/constants/categories';
-import { TrendingDown, TrendingUp, Receipt, ChevronLeft, ChevronRight } from 'lucide-react';
-import { addMonths, subMonths, isSameMonth, startOfMonth } from 'date-fns';
+import { TrendingDown, TrendingUp, Receipt, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Transaction } from '@/lib/types/transaction';
+import { addMonths, subMonths, startOfMonth } from 'date-fns';
 
 // Bright color palette for categories - matching categories.ts
 const BRIGHT_EXPENSE_COLORS: Record<string, string> = {
@@ -98,23 +99,19 @@ interface CategoryData {
 export function InsightsView({ currentDate }: InsightsViewProps) {
   const [viewType, setViewType] = useState<'expense' | 'income'>('expense');
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
   const [insightsDate, setInsightsDate] = useState<Date>(() => startOfMonth(currentDate));
   const { formatCurrency } = useCurrency();
 
   // Fetch transactions for the insights month
   const { transactions } = useTransactions(insightsDate);
 
-  // Check if we can navigate to next month (don't allow future months)
-  const canGoNext = !isSameMonth(insightsDate, new Date());
-
   const handlePreviousMonth = () => {
     setInsightsDate(prev => subMonths(prev, 1));
   };
 
   const handleNextMonth = () => {
-    if (canGoNext) {
-      setInsightsDate(prev => addMonths(prev, 1));
-    }
+    setInsightsDate(prev => addMonths(prev, 1));
   };
 
   // Key for animating content when month changes
@@ -191,6 +188,34 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
     return segments;
   }, [categoryData.data]);
 
+  // Get transactions for selected category
+  const selectedCategoryTransactions = useMemo(() => {
+    if (!selectedCategory) return [];
+
+    const isExpense = viewType === 'expense';
+    const defaultCategory = isExpense ? DEFAULT_EXPENSE_CATEGORY : DEFAULT_INCOME_CATEGORY;
+
+    return transactions
+      .filter(t => {
+        const matchesType = isExpense ? t.amount < 0 : t.amount > 0;
+        const cat = t.category || defaultCategory;
+        return matchesType && cat === selectedCategory.id;
+      })
+      .sort((a, b) => b.date.toDate().getTime() - a.date.toDate().getTime());
+  }, [selectedCategory, transactions, viewType]);
+
+  // Clear selected category when view type changes
+  const handleViewTypeChange = (value: string) => {
+    setSelectedCategory(null);
+    setViewType(value as 'expense' | 'income');
+  };
+
+  // Handle category click
+  const handleCategoryClick = (cat: CategoryData) => {
+    setSelectedCategory(cat);
+    setHoveredCategory(null);
+  };
+
   const monthName = insightsDate.toLocaleString('default', { month: 'long', year: 'numeric' });
   const themeColor = viewType === 'expense' ? '#FF6B6B' : '#10B981';
 
@@ -198,7 +223,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
     <div className="flex flex-col h-full bg-[#121212] overflow-hidden">
       {/* Type Toggle - Top */}
       <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-        <Tabs value={viewType} onValueChange={(value) => setViewType(value as 'expense' | 'income')}>
+        <Tabs value={viewType} onValueChange={handleViewTypeChange}>
           <TabsList className="grid w-full grid-cols-2 bg-[#252525] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
             <TabsTrigger value="expense" className="text-xs sm:text-sm gap-1.5">
               Expenses
@@ -225,19 +250,14 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
             <div className="flex items-center gap-2 mt-2">
               <button
                 onClick={handlePreviousMonth}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <span className="text-sm text-white/30">{monthName}</span>
               <button
                 onClick={handleNextMonth}
-                disabled={!canGoNext}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  canGoNext
-                    ? 'hover:bg-white/10 text-white/40 hover:text-white'
-                    : 'text-white/10 cursor-not-allowed'
-                }`}
+                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -272,28 +292,36 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {pieSegments.map((segment) => (
-                        <motion.path
-                          key={segment.category.id}
-                          d={segment.path}
-                          fill={segment.color}
-                          initial={{ opacity: 0 }}
-                          animate={{
-                            opacity: hoveredCategory === null || hoveredCategory === segment.category.id ? 1 : 0.4,
-                            scale: hoveredCategory === segment.category.id ? 1.02 : 1,
-                          }}
-                          transition={{ duration: 0.2 }}
-                          className="cursor-pointer"
-                          style={{
-                            filter: hoveredCategory === segment.category.id
-                              ? `drop-shadow(0 0 8px ${segment.color})`
-                              : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                            transformOrigin: 'center',
-                          }}
-                          onMouseEnter={() => setHoveredCategory(segment.category.id)}
-                          onMouseLeave={() => setHoveredCategory(null)}
-                        />
-                      ))}
+                      {pieSegments.map((segment) => {
+                        const isActive = selectedCategory?.id === segment.category.id || hoveredCategory === segment.category.id;
+                        const isHighlighted = selectedCategory === null
+                          ? (hoveredCategory === null || hoveredCategory === segment.category.id)
+                          : selectedCategory.id === segment.category.id;
+
+                        return (
+                          <motion.path
+                            key={segment.category.id}
+                            d={segment.path}
+                            fill={segment.color}
+                            initial={{ opacity: 0 }}
+                            animate={{
+                              opacity: isHighlighted ? 1 : 0.3,
+                              scale: isActive ? 1.02 : 1,
+                            }}
+                            transition={{ duration: 0.2 }}
+                            className="cursor-pointer"
+                            style={{
+                              filter: isActive
+                                ? `drop-shadow(0 0 8px ${segment.color})`
+                                : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                              transformOrigin: 'center',
+                            }}
+                            onMouseEnter={() => setHoveredCategory(segment.category.id)}
+                            onMouseLeave={() => setHoveredCategory(null)}
+                            onClick={() => handleCategoryClick(segment.category)}
+                          />
+                        );
+                      })}
                     </motion.g>
                   </AnimatePresence>
 
@@ -339,100 +367,181 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
               <div
                 className="w-[85vw] h-[30vh] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-4 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
                 style={{
-                  border: `1px solid ${themeColor}20`,
-                  boxShadow: `0 0 40px ${themeColor}10, inset 0 1px 0 ${themeColor}10`
+                  border: `1px solid ${selectedCategory ? selectedCategory.color : themeColor}20`,
+                  boxShadow: `0 0 40px ${selectedCategory ? selectedCategory.color : themeColor}10, inset 0 1px 0 ${selectedCategory ? selectedCategory.color : themeColor}10`
                 }}
               >
                 {/* Subtle gradient overlay */}
                 <div
-                  className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl pointer-events-none"
-                  style={{ background: themeColor }}
+                  className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl pointer-events-none transition-colors duration-300"
+                  style={{ background: selectedCategory ? selectedCategory.color : themeColor }}
                 />
 
-                <div className="flex items-center justify-between mb-2 sm:mb-5">
-                  <h3 className="text-lg sm:text-xl font-semibold text-white">Categories</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handlePreviousMonth}
-                      className="p-1 sm:p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                    >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                    <span className="text-[10px] sm:text-base text-white/40">
-                      {monthName}
-                    </span>
-                    <button
-                      onClick={handleNextMonth}
-                      disabled={!canGoNext}
-                      className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
-                        canGoNext
-                          ? 'hover:bg-white/10 text-white/40 hover:text-white'
-                          : 'text-white/10 cursor-not-allowed'
-                      }`}
-                    >
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                  <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait">
+                  {selectedCategory ? (
+                    /* Transaction Details View */
                     <motion.div
-                      key={`categories-${monthKey}`}
-                      initial={{ opacity: 0, x: 20 }}
+                      key="transactions"
+                      initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.2 }}
-                      className="space-y-1 sm:space-y-2"
+                      exit={{ opacity: 0, x: -30 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="flex flex-col h-full"
                     >
-                      {categoryData.data.map((cat, index) => (
-                        <motion.div
-                          key={cat.id}
-                          initial={{ opacity: 0, x: 10 }}
-                          animate={{
-                            opacity: 1,
-                            x: 0,
-                            backgroundColor: hoveredCategory === cat.id ? 'rgba(255,255,255,0.05)' : 'transparent'
-                          }}
-                          transition={{ delay: index * 0.03, duration: 0.2 }}
-                          className="rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors"
-                          onMouseEnter={() => setHoveredCategory(cat.id)}
-                          onMouseLeave={() => setHoveredCategory(null)}
+                      {/* Header with back button */}
+                      <div className="flex items-center gap-3 mb-4 sm:mb-5">
+                        <button
+                          onClick={() => setSelectedCategory(null)}
+                          className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
                         >
-                          <div className="flex items-center gap-2 sm:gap-4 mb-1 sm:mb-2">
-                            <div
-                              className="w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full shrink-0 transition-shadow"
-                              style={{
-                                backgroundColor: cat.color,
-                                boxShadow: hoveredCategory === cat.id
-                                  ? `0 0 16px ${cat.color}`
-                                  : `0 0 8px ${cat.color}40`
-                              }}
-                            />
-                            <span className="flex-1 text-[14px] sm:text-base text-white truncate">{cat.label}</span>
-                            <span className="px-1 sm:px-2 py-0.5 rounded-full bg-white/10 text-[8px] sm:text-[10px] text-white/50 font-medium tabular-nums">
-                              {cat.count} TXN
-                            </span>
-                            <span className="text-[10px] sm:text-base text-white/40 tabular-nums">{cat.percentage.toFixed(0)}%</span>
-                            <span className={`text-[10px] sm:text-base font-semibold tabular-nums`} style={{ color: themeColor }}>
-                              {formatCurrency(cat.amount)}
-                            </span>
+                          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                        <div
+                          className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shrink-0"
+                          style={{
+                            backgroundColor: selectedCategory.color,
+                            boxShadow: `0 0 12px ${selectedCategory.color}`
+                          }}
+                        />
+                        <h3 className="text-lg sm:text-xl font-semibold text-white flex-1">{selectedCategory.label}</h3>
+                        <div className="text-right">
+                          <div className="text-sm sm:text-lg font-bold" style={{ color: selectedCategory.color }}>
+                            {formatCurrency(selectedCategory.amount)}
                           </div>
-                          {/* Progress bar */}
-                          <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden ml-4.5 sm:ml-8">
-                            <motion.div
-                              className="h-full rounded-full"
-                              style={{ backgroundColor: cat.color }}
-                              initial={{ width: 0 }}
-                              animate={{ width: `${cat.percentage}%` }}
-                              transition={{ delay: index * 0.05 + 0.2, duration: 0.5, ease: 'easeOut' }}
-                            />
-                          </div>
-                        </motion.div>
-                      ))}
+                          <div className="text-[10px] sm:text-xs text-white/40">{selectedCategory.count} transactions</div>
+                        </div>
+                      </div>
+
+                      {/* Transaction List */}
+                      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide space-y-2 sm:space-y-3">
+                        {selectedCategoryTransactions.map((txn, index) => (
+                          <motion.div
+                            key={txn.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.04, duration: 0.2 }}
+                            className="rounded-lg sm:rounded-xl bg-white/5 hover:bg-white/8 p-3 sm:p-4 transition-colors"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm sm:text-base text-white truncate">{txn.description}</p>
+                                <p className="text-[10px] sm:text-xs text-white/40 mt-0.5">
+                                  {txn.date.toDate().toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                  {txn.isRecurring && (
+                                    <span className="ml-2 px-1.5 py-0.5 rounded bg-white/10 text-white/50 text-[8px] sm:text-[10px]">
+                                      Recurring
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                              <span
+                                className="text-sm sm:text-base font-semibold tabular-nums shrink-0"
+                                style={{ color: selectedCategory.color }}
+                              >
+                                {viewType === 'expense' ? '-' : '+'}{formatCurrency(Math.abs(txn.amount))}
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
                     </motion.div>
-                  </AnimatePresence>
-                </div>
+                  ) : (
+                    /* Categories List View */
+                    <motion.div
+                      key="categories"
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 30 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="flex flex-col h-full"
+                    >
+                      <div className="flex items-center justify-between mb-2 sm:mb-5">
+                        <h3 className="text-lg sm:text-xl font-semibold text-white">Categories</h3>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={handlePreviousMonth}
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
+                          >
+                            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                          <span className="text-[10px] sm:text-base text-white/40">
+                            {monthName}
+                          </span>
+                          <button
+                            onClick={handleNextMonth}
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
+                          >
+                            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={`categories-${monthKey}`}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.2 }}
+                            className="space-y-1 sm:space-y-2"
+                          >
+                            {categoryData.data.map((cat, index) => (
+                              <motion.div
+                                key={cat.id}
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{
+                                  opacity: 1,
+                                  x: 0,
+                                  backgroundColor: hoveredCategory === cat.id ? 'rgba(255,255,255,0.05)' : 'transparent'
+                                }}
+                                transition={{ delay: index * 0.03, duration: 0.2 }}
+                                className="rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors"
+                                onMouseEnter={() => setHoveredCategory(cat.id)}
+                                onMouseLeave={() => setHoveredCategory(null)}
+                                onClick={() => handleCategoryClick(cat)}
+                              >
+                                <div className="flex items-center gap-2 sm:gap-4 mb-1 sm:mb-2">
+                                  <div
+                                    className="w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full shrink-0 transition-shadow"
+                                    style={{
+                                      backgroundColor: cat.color,
+                                      boxShadow: hoveredCategory === cat.id
+                                        ? `0 0 16px ${cat.color}`
+                                        : `0 0 8px ${cat.color}40`
+                                    }}
+                                  />
+                                  <span className="flex-1 text-[14px] sm:text-base text-white truncate">{cat.label}</span>
+                                  <span className="px-1 sm:px-2 py-0.5 rounded-full bg-white/10 text-[8px] sm:text-[10px] text-white/50 font-medium tabular-nums">
+                                    {cat.count} TXN
+                                  </span>
+                                  <span className="text-[10px] sm:text-base text-white/40 tabular-nums">{cat.percentage.toFixed(0)}%</span>
+                                  <span className={`text-[10px] sm:text-base font-semibold tabular-nums`} style={{ color: themeColor }}>
+                                    {formatCurrency(cat.amount)}
+                                  </span>
+                                </div>
+                                {/* Progress bar */}
+                                <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden ml-4.5 sm:ml-8">
+                                  <motion.div
+                                    className="h-full rounded-full"
+                                    style={{ backgroundColor: cat.color }}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${cat.percentage}%` }}
+                                    transition={{ delay: index * 0.05 + 0.2, duration: 0.5, ease: 'easeOut' }}
+                                  />
+                                </div>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>

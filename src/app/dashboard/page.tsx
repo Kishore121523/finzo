@@ -7,6 +7,7 @@ import { useTransactions } from '@/lib/hooks/use-transactions';
 import { useTasks } from '@/lib/hooks/use-tasks';
 import { MonthNavigator } from '@/components/finance/month-navigator';
 import { CalendarGrid } from '@/components/finance/calendar-grid';
+import { MobileAgendaView } from '@/components/finance/mobile-agenda-view';
 import { TransactionForm } from '@/components/finance/transaction-form';
 import { KanbanBoard } from '@/components/tasks/kanban-board';
 import { InsightsView } from '@/components/insights/insights-view';
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
   const [direction, setDirection] = useState(0);
+  const [isMobileBottomSheetOpen, setIsMobileBottomSheetOpen] = useState(false);
 
   const { transactions, loading, balance, addTransaction, updateTransaction, deleteTransaction, deleteAllRecurring } =
     useTransactions(currentDate);
@@ -149,7 +151,7 @@ export default function DashboardPage() {
   const monthKey = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
 
   return (
-    <div className="flex h-[calc(100vh-57px)] sm:h-[calc(100vh-65px)] md:h-[calc(100vh-73px)] flex-col bg-[#121212] overflow-hidden">
+    <div className="flex h-[calc(100vh-57px-56px)] sm:h-[calc(100vh-57px-56px)] md:h-[calc(100vh-73px)] flex-col bg-[#121212] overflow-hidden">
       <AnimatePresence mode="wait">
         {mode === 'finance' ? (
           <motion.div
@@ -190,14 +192,31 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ) : (
-                    <CalendarGrid
-                      currentDate={currentDate}
-                      transactions={transactions}
-                      onEdit={handleEditTransaction}
-                      onDelete={handleDelete}
-                      onDeleteAllRecurring={handleDeleteAllRecurring}
-                      onAddForDate={handleAddForDate}
-                    />
+                    <>
+                      {/* Mobile: Agenda View */}
+                      <div className="md:hidden h-full">
+                        <MobileAgendaView
+                          currentDate={currentDate}
+                          transactions={transactions}
+                          onEdit={handleEditTransaction}
+                          onDelete={handleDelete}
+                          onDeleteAllRecurring={handleDeleteAllRecurring}
+                          onAddForDate={handleAddForDate}
+                          onBottomSheetChange={setIsMobileBottomSheetOpen}
+                        />
+                      </div>
+                      {/* Desktop: Calendar Grid */}
+                      <div className="hidden md:block h-full">
+                        <CalendarGrid
+                          currentDate={currentDate}
+                          transactions={transactions}
+                          onEdit={handleEditTransaction}
+                          onDelete={handleDelete}
+                          onDeleteAllRecurring={handleDeleteAllRecurring}
+                          onAddForDate={handleAddForDate}
+                        />
+                      </div>
+                    </>
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -206,7 +225,9 @@ export default function DashboardPage() {
             <Button
               onClick={handleAddTransaction}
               size="lg"
-              className="fixed bottom-6 right-4 md:bottom-8 md:right-8 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-2xl bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black z-50"
+              className={`fixed bottom-24 right-4 md:bottom-8 md:right-8 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-2xl bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black z-40 transition-opacity ${
+                isMobileBottomSheetOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : ''
+              }`}
             >
               <Plus className="h-6 w-6 md:h-7 md:w-7" />
             </Button>
