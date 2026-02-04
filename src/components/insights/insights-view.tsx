@@ -236,7 +236,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
       </div>
 
       {/* Main Content - Scrollable on mobile, overflow-hidden on desktop */}
-      <div className="flex-1 overflow-y-auto lg:overflow-hidden px-4 sm:px-6 pb-20 md:pb-6 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto lg:overflow-hidden px-2 sm:px-6 pb-20 md:pb-6 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
         {categoryData.total === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
@@ -264,11 +264,11 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center lg:h-full lg:flex-row lg:justify-center lg:items-center lg:px-4">
+          <div className="flex flex-col items-center w-full lg:h-full lg:flex-row lg:justify-center lg:items-center lg:px-4">
             {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
-            <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
+            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
               {/* Pie Chart */}
-              <div className="relative w-72 h-72 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
+              <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
                 {/* Outer glow ring */}
                 <div
                   className="absolute inset-0 rounded-full opacity-20 blur-xl"
@@ -365,7 +365,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
 
               {/* Categories Card */}
               <div
-                className="w-full min-h-[280px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-4 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
+                className="w-[calc(100%-2rem)] max-w-full min-h-[280px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-3 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
                 style={{
                   border: `1px solid ${selectedCategory ? selectedCategory.color : themeColor}20`,
                   boxShadow: `0 0 40px ${selectedCategory ? selectedCategory.color : themeColor}10, inset 0 1px 0 ${selectedCategory ? selectedCategory.color : themeColor}10`
@@ -386,13 +386,13 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -30 }}
                       transition={{ duration: 0.25, ease: 'easeOut' }}
-                      className="flex flex-col h-full"
+                      className="flex flex-col h-full w-full min-w-0 overflow-hidden"
                     >
                       {/* Header with back button */}
-                      <div className="flex items-center gap-3 mb-4 sm:mb-5">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 min-w-0">
                         <button
                           onClick={() => setSelectedCategory(null)}
-                          className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
+                          className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer shrink-0"
                         >
                           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
@@ -403,17 +403,17 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                             boxShadow: `0 0 12px ${selectedCategory.color}`
                           }}
                         />
-                        <h3 className="text-lg sm:text-xl font-semibold text-white flex-1">{selectedCategory.label}</h3>
-                        <div className="text-right">
+                        <h3 className="text-base sm:text-xl font-semibold text-white flex-1 min-w-0 truncate">{selectedCategory.label}</h3>
+                        <div className="text-right shrink-0">
                           <div className="text-sm sm:text-lg font-bold" style={{ color: selectedCategory.color }}>
                             {formatCurrency(selectedCategory.amount)}
                           </div>
-                          <div className="text-[10px] sm:text-xs text-white/40">{selectedCategory.count} transactions</div>
+                          <div className="text-[10px] sm:text-xs text-white/40">{selectedCategory.count} txn</div>
                         </div>
                       </div>
 
                       {/* Transaction List */}
-                      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide space-y-2 sm:space-y-3">
+                      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-hide space-y-2 sm:space-y-3">
                         {selectedCategoryTransactions.map((txn, index) => (
                           <motion.div
                             key={txn.id}
@@ -422,8 +422,8 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                             transition={{ delay: index * 0.04, duration: 0.2 }}
                             className="rounded-lg sm:rounded-xl bg-white/5 hover:bg-white/8 p-3 sm:p-4 transition-colors"
                           >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 sm:gap-3">
+                              <div className="flex-1 min-w-0 overflow-hidden">
                                 <p className="text-sm sm:text-base text-white truncate">{txn.description}</p>
                                 <p className="text-[10px] sm:text-xs text-white/40 mt-0.5">
                                   {txn.date.toDate().toLocaleDateString('en-US', {
@@ -432,7 +432,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                                     day: 'numeric'
                                   })}
                                   {txn.isRecurring && (
-                                    <span className="ml-2 px-1.5 py-0.5 rounded bg-white/10 text-white/50 text-[8px] sm:text-[10px]">
+                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-white/10 text-white/50 text-[8px] sm:text-[10px]">
                                       Recurring
                                     </span>
                                   )}

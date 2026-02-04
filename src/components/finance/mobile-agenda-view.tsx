@@ -40,8 +40,8 @@ interface DayData {
   isCurrentMonth: boolean;
 }
 
-// Day Card Component
-function DayCard({
+// Day List Item Component
+function DayListItem({
   day,
   index,
   isToday: isTodayDate,
@@ -59,60 +59,66 @@ function DayCard({
 
   return (
     <motion.button
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
       onClick={onClick}
       disabled={!day.isCurrentMonth}
       className={`
-        flex flex-col items-center justify-center p-2 rounded-xl w-full h-full
+        flex items-center justify-between w-full px-3 py-3 rounded-xl
         transition-all duration-200 cursor-pointer
         ${!day.isCurrentMonth
           ? 'opacity-30 cursor-default'
           : isTodayDate
-            ? 'bg-[#03DAC6]/10 border-2 border-[#03DAC6]/50'
+            ? 'bg-[#03DAC6]/10 border border-[#03DAC6]/50'
             : hasTransactions
               ? 'bg-[#1E1E1E] border border-[#2C2C2C] hover:border-[#03DAC6]/30'
               : 'bg-[#1E1E1E]/50 border border-[#2C2C2C]/50 hover:bg-[#1E1E1E]'
         }
       `}
     >
-      {/* Day name */}
-      <span className={`text-xs font-semibold uppercase tracking-wide ${
-        isTodayDate ? 'text-[#03DAC6]' : 'text-white/50'
-      }`}>
-        {format(day.date, 'EEE')}
-      </span>
+      {/* Left: Date */}
+      <div className={`
+        w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0
+        ${isTodayDate ? 'bg-[#03DAC6]/20' : 'bg-[#2C2C2C]/50'}
+      `}>
+        <span className={`text-[10px] font-semibold uppercase tracking-wide leading-none ${
+          isTodayDate ? 'text-[#03DAC6]' : 'text-white/40'
+        }`}>
+          {format(day.date, 'EEE')}
+        </span>
+        <span className={`text-xl font-bold leading-tight ${
+          isTodayDate
+            ? 'text-[#03DAC6]'
+            : day.isCurrentMonth
+              ? 'text-white'
+              : 'text-white/30'
+        }`}>
+          {format(day.date, 'd')}
+        </span>
+      </div>
 
-      {/* Date number */}
-      <span className={`text-3xl font-bold ${
-        isTodayDate
-          ? 'text-[#03DAC6]'
-          : day.isCurrentMonth
-            ? 'text-white'
-            : 'text-white/30'
-      }`}>
-        {format(day.date, 'd')}
-      </span>
-
-      {/* Transaction indicators */}
+      {/* Right: Amount or empty state */}
       {hasTransactions && day.isCurrentMonth ? (
-        <div className="mt-1 flex flex-col items-center">
+        <div className="flex items-center gap-3">
           {day.hasOverdue && (
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252] animate-pulse mb-0.5" />
+            <span className="w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" />
           )}
+          <span className="text-xs text-white/40">
+            {day.transactions.length} txn
+          </span>
           <span className={`text-sm font-bold ${
             netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'
           }`}>
             {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, { compact: true })}
           </span>
-          <span className="text-[10px] text-white/40">
-            {day.transactions.length} txn
-          </span>
         </div>
       ) : day.isCurrentMonth ? (
-        <div className="mt-1">
-          <Plus className="w-5 h-5 text-white/20" />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-white/30">Add</span>
+          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+            <Plus className="w-4 h-4 text-white/30" />
+          </div>
         </div>
       ) : null}
     </motion.button>
@@ -332,8 +338,8 @@ export const MobileAgendaView = memo(function MobileAgendaView({
           </button>
         </div>
 
-        {/* Week Carousel - 2 column grid layout */}
-        <div className="flex-1 overflow-hidden px-6 py-2">
+        {/* Week Carousel - Single column list layout */}
+        <div className="flex-1 overflow-hidden px-4 py-2">
           <AnimatePresence mode="wait" custom={dragDirection}>
             <motion.div
               key={currentWeekIndex}
@@ -346,11 +352,10 @@ export const MobileAgendaView = memo(function MobileAgendaView({
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               onDragEnd={handleDragEnd}
-              className="h-full grid grid-cols-2 grid-rows-4 gap-2"
+              className="h-full flex flex-col gap-2 overflow-y-auto scrollbar-hide pb-8"
             >
-              {/* Days 1-6 in grid */}
-              {currentWeek.slice(0, 6).map((day, index) => (
-                <DayCard
+              {currentWeek.map((day, index) => (
+                <DayListItem
                   key={day.date.toISOString()}
                   day={day}
                   index={index}
@@ -359,20 +364,6 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                   onClick={() => handleDayClick(day)}
                 />
               ))}
-              {/* Day 7 spans both columns, centered content */}
-              {currentWeek[6] && (
-                <div className="col-span-2 flex justify-center">
-                  <div className="w-1/2">
-                    <DayCard
-                      day={currentWeek[6]}
-                      index={6}
-                      isToday={isToday(currentWeek[6].date)}
-                      formatCurrency={formatCurrency}
-                      onClick={() => handleDayClick(currentWeek[6])}
-                    />
-                  </div>
-                </div>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
