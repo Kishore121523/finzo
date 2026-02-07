@@ -59,9 +59,6 @@ function DayListItem({
 
   return (
     <motion.button
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.03 }}
       onClick={onClick}
       disabled={!day.isCurrentMonth}
       style={{ touchAction: 'pan-y' }}
