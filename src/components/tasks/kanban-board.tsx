@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import {
   DndContext,
   DragEndEvent,
@@ -22,6 +22,7 @@ import { useTasks } from '@/lib/hooks/use-tasks';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { ExpenseCategory } from '@/lib/constants/categories';
 import { Circle, Clock, CheckCircle2 } from 'lucide-react';
+import { haptic } from '@/lib/utils/haptics';
 
 interface KanbanBoardProps {
   viewedDate: Date;
@@ -48,6 +49,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
   const [addToCalendarOpen, setAddToCalendarOpen] = useState(false);
   const [taskToAddToCalendar, setTaskToAddToCalendar] = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState<TaskStatus>('todo');
+  const [tabDirection, setTabDirection] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
     const task = tasks.find((t) => t.id === event.active.id);
     if (task) {
       setActiveTask(task);
+      haptic('light');
     }
   };
 
@@ -180,14 +183,78 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
   const handleMoveTask = useCallback((taskId: string, newStatus: TaskStatus) => {
     const tasksInNewStatus = getTasksByStatus(newStatus);
     reorderTasks(taskId, newStatus, tasksInNewStatus.length);
+    haptic('medium');
   }, [getTasksByStatus, reorderTasks]);
+
+  const handleTabChange = useCallback((newTab: TaskStatus) => {
+    const oldIndex = mobileTabConfig.findIndex(t => t.status === activeTab);
+    const newIndex = mobileTabConfig.findIndex(t => t.status === newTab);
+    setTabDirection(newIndex > oldIndex ? 1 : -1);
+    setActiveTab(newTab);
+    haptic('light');
+  }, [activeTab]);
+
+  const handleTabSwipe = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 50;
+    const tabIndex = mobileTabConfig.findIndex(t => t.status === activeTab);
+
+    if (info.offset.x > threshold && tabIndex > 0) {
+      setTabDirection(-1);
+      setActiveTab(mobileTabConfig[tabIndex - 1].status);
+      haptic('light');
+    } else if (info.offset.x < -threshold && tabIndex < mobileTabConfig.length - 1) {
+      setTabDirection(1);
+      setActiveTab(mobileTabConfig[tabIndex + 1].status);
+      haptic('light');
+    }
+  }, [activeTab]);
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-[#121212]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-b-4 border-t-4 border-[#03DAC6]"></div>
-          <p className="text-white/40 text-sm">Loading bills...</p>
+      <div className="h-full bg-[#121212]">
+        {/* Mobile skeleton */}
+        <div className="sm:hidden flex flex-col h-full px-4 pt-3 pb-5">
+          <div className="flex gap-1 p-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] mb-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex-1 skeleton h-9 rounded-lg" />
+            ))}
+          </div>
+          <div className="flex-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] p-3 space-y-3">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="bg-[#252525] rounded-lg border border-[#363636] p-3 space-y-2">
+                <div className="skeleton h-4 w-3/4 rounded" />
+                <div className="skeleton h-3 w-1/2 rounded" />
+                <div className="flex gap-2 mt-1">
+                  <div className="skeleton h-3 w-16 rounded" />
+                  <div className="skeleton h-3 w-14 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Desktop skeleton */}
+        <div className="hidden sm:flex max-w-7xl mx-auto gap-5 px-4 py-6 h-full">
+          {[0, 1, 2].map((col) => (
+            <div key={col} className="flex-1 flex flex-col">
+              <div className="flex items-center gap-2 mb-4 px-1">
+                <div className="skeleton h-5 w-5 rounded-full" />
+                <div className="skeleton h-4 w-20 rounded" />
+                <div className="skeleton h-5 w-8 rounded-full" />
+              </div>
+              <div className="flex-1 bg-[#1E1E1E] rounded-2xl border border-[#2C2C2C] p-4 space-y-3">
+                {[0, 1, 2].map((card) => (
+                  <div key={card} className="bg-[#252525] rounded-xl border border-[#363636] p-4 space-y-2">
+                    <div className="skeleton h-4 w-3/4 rounded" />
+                    <div className="skeleton h-3 w-1/2 rounded" />
+                    <div className="flex gap-2 mt-1">
+                      <div className="skeleton h-3 w-16 rounded" />
+                      <div className="skeleton h-3 w-14 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -213,7 +280,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                 return (
                   <button
                     key={tab.status}
-                    onClick={() => setActiveTab(tab.status)}
+                    onClick={() => handleTabChange(tab.status)}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
                         ? `${tab.activeBg} ${tab.activeText}`
@@ -239,13 +306,18 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
 
             {/* Active Column */}
             <div className="flex-1 min-h-0 overflow-hidden">
-              <AnimatePresence mode="wait">
+              <AnimatePresence initial={false} custom={tabDirection} mode="wait">
                 <motion.div
                   key={activeTab}
-                  initial={{ opacity: 0, x: 20 }}
+                  custom={tabDirection}
+                  initial={{ opacity: 0, x: tabDirection * 100 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, x: -tabDirection * 100 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={handleTabSwipe}
                   className="h-full min-h-0"
                 >
                   <KanbanColumn

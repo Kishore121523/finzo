@@ -9,6 +9,7 @@ import { Task, TaskStatus } from '@/lib/types/task';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { Edit, Trash2, AlertCircle, RefreshCw, Calendar, CalendarPlus, CreditCard, ChevronRight, ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { haptic } from '@/lib/utils/haptics';
 
 const statusFlow: TaskStatus[] = ['todo', 'in-progress', 'done'];
 const statusLabels: Record<TaskStatus, string> = {

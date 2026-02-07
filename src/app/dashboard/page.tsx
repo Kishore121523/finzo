@@ -186,12 +186,36 @@ export default function DashboardPage() {
                   className="absolute inset-0 overflow-y-auto scrollbar-hide"
                 >
                   {loading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="h-12 w-12 animate-spin rounded-full border-b-4 border-t-4 border-[#03DAC6]"></div>
-                        <p className="text-white/40 text-sm">Loading transactions...</p>
+                    <>
+                      {/* Mobile skeleton */}
+                      <div className="md:hidden p-4 space-y-2">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[#1E1E1E] border border-[#2C2C2C]">
+                            <div className="flex flex-col items-center gap-1 w-10">
+                              <div className="skeleton h-3 w-7 rounded" />
+                              <div className="skeleton h-5 w-8 rounded" />
+                            </div>
+                            <div className="flex-1 space-y-1.5">
+                              <div className="skeleton h-3.5 w-24 rounded" />
+                            </div>
+                            <div className="skeleton h-4 w-16 rounded" />
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                      {/* Desktop skeleton */}
+                      <div className="hidden md:block p-4">
+                        <div className="grid grid-cols-7 gap-1 mb-2">
+                          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                            <div key={i} className="text-center text-xs text-white/30 py-2">{d}</div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                          {[...Array(35)].map((_, i) => (
+                            <div key={i} className="skeleton h-24 rounded-lg" />
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   ) : (
                     <>
                       {/* Mobile: Agenda View */}
