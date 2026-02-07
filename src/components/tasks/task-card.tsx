@@ -138,9 +138,13 @@ export const TaskCard = memo(function TaskCard({
         transition-colors duration-150
         ${isOverdue
           ? 'bg-[#FF5252]/10 border border-[#FF5252]/40 hover:bg-[#FF5252]/15'
-          : task.linkedTransactionId
-            ? 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#03DAC6]/30'
-            : 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#BB86FC]/30'
+          : onMoveTask
+            ? `bg-[#252525] border ${
+                task.status === 'in-progress' ? 'border-[#03DAC6]/25' : task.status === 'done' ? 'border-[#4CAF50]/25' : 'border-white/15'
+              }`
+            : task.linkedTransactionId
+              ? 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#03DAC6]/30'
+              : 'bg-[#252525] border border-[#363636] hover:bg-[#2A2A2A] hover:border-[#BB86FC]/30'
         }
         ${isDragging ? 'opacity-40 shadow-lg shadow-black/30' : 'opacity-100'}
       `}

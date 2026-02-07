@@ -29,9 +29,9 @@ interface KanbanBoardProps {
 }
 
 const mobileTabConfig = [
-  { status: 'todo' as TaskStatus, label: 'To Pay', icon: Circle, color: '#ffffff' },
-  { status: 'in-progress' as TaskStatus, label: 'Processing', icon: Clock, color: '#03DAC6' },
-  { status: 'done' as TaskStatus, label: 'Paid', icon: CheckCircle2, color: '#4CAF50' },
+  { status: 'todo' as TaskStatus, label: 'To Pay', icon: Circle, color: '#ffffff', activeBg: 'bg-white/10', activeText: 'text-white' },
+  { status: 'in-progress' as TaskStatus, label: 'Processing', icon: Clock, color: '#03DAC6', activeBg: 'bg-[#03DAC6]/10', activeText: 'text-[#03DAC6]' },
+  { status: 'done' as TaskStatus, label: 'Paid', icon: CheckCircle2, color: '#4CAF50', activeBg: 'bg-[#4CAF50]/10', activeText: 'text-[#4CAF50]' },
 ];
 
 export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) {
@@ -203,7 +203,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
       >
         {isMobile ? (
           /* Mobile: Tabbed View */
-          <div className="flex flex-col h-full px-4 py-3">
+          <div className="flex flex-col h-full px-4 pt-3 pb-5">
             {/* Tab Bar */}
             <div className="flex gap-1 p-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] mb-3 shrink-0">
               {mobileTabConfig.map((tab) => {
@@ -216,7 +216,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                     onClick={() => setActiveTab(tab.status)}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
-                        ? 'bg-[#2C2C2C] text-white shadow-sm'
+                        ? `${tab.activeBg} ${tab.activeText}`
                         : 'text-white/40'
                     }`}
                   >
