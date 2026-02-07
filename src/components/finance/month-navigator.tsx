@@ -408,8 +408,8 @@ export const MonthNavigator = memo(function MonthNavigator({
                               className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl bg-white/5 hover:bg-white/8 transition-colors ${
                                 isTodayDate
                                   ? isIncome
-                                    ? 'border border-[#03DAC6]/30'
-                                    : 'border border-[#CF6679]/30'
+                                    ? 'border border-[#03DAC6]/60'
+                                    : 'border border-[#CF6679]/60'
                                   : ''
                               }`}
                             >

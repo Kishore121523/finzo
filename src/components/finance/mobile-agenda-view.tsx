@@ -64,6 +64,7 @@ function DayListItem({
       transition={{ delay: index * 0.03 }}
       onClick={onClick}
       disabled={!day.isCurrentMonth}
+      style={{ touchAction: 'pan-y' }}
       className={`
         flex items-center justify-between w-full px-3 py-3 rounded-xl
         transition-all duration-200 cursor-pointer
@@ -352,6 +353,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.2}
               onDragEnd={handleDragEnd}
+              style={{ touchAction: 'pan-y' }}
               className="h-full flex flex-col gap-2 overflow-y-auto scrollbar-hide pb-8"
             >
               {currentWeek.map((day, index) => (
