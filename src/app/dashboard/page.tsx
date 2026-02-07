@@ -170,6 +170,7 @@ export default function DashboardPage() {
               balance={balance}
               income={income}
               expense={expense}
+              transactions={transactions}
             />
 
             <div className="flex-1 overflow-hidden bg-[#121212] relative">

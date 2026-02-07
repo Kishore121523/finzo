@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
   DragEndEvent,
@@ -21,11 +21,18 @@ import { Task, TaskStatus, TaskFormData } from '@/lib/types/task';
 import { useTasks } from '@/lib/hooks/use-tasks';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { ExpenseCategory } from '@/lib/constants/categories';
+import { Circle, Clock, CheckCircle2 } from 'lucide-react';
 
 interface KanbanBoardProps {
   viewedDate: Date;
   onAddTransaction?: (data: { description: string; amount: number; date: Date }) => Promise<void>;
 }
+
+const mobileTabConfig = [
+  { status: 'todo' as TaskStatus, label: 'To Pay', icon: Circle, color: '#ffffff' },
+  { status: 'in-progress' as TaskStatus, label: 'Processing', icon: Clock, color: '#03DAC6' },
+  { status: 'done' as TaskStatus, label: 'Paid', icon: CheckCircle2, color: '#4CAF50' },
+];
 
 export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) {
   const { tasks, loading, addTask, updateTask, deleteTask, reorderTasks, getTasksByStatus } =
@@ -40,11 +47,21 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [addToCalendarOpen, setAddToCalendarOpen] = useState(false);
   const [taskToAddToCalendar, setTaskToAddToCalendar] = useState<Task | null>(null);
+  const [activeTab, setActiveTab] = useState<TaskStatus>('todo');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: isMobile ? 99999 : 8,
       },
     })
   );
@@ -160,6 +177,11 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
     }
   }, [taskToAddToCalendar, addTransaction, deleteTask, onAddTransaction]);
 
+  const handleMoveTask = useCallback((taskId: string, newStatus: TaskStatus) => {
+    const tasksInNewStatus = getTasksByStatus(newStatus);
+    reorderTasks(taskId, newStatus, tasksInNewStatus.length);
+  }, [getTasksByStatus, reorderTasks]);
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-[#121212]">
@@ -179,57 +201,125 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="mx-auto flex max-w-7xl gap-2 sm:gap-3 md:gap-5 px-2 sm:px-3 md:px-4 py-3 sm:py-4 md:py-6 overflow-x-auto h-full snap-x snap-mandatory sm:snap-none scrollbar-hide"
-        >
-          <KanbanColumn
-            title="To Pay"
-            status="todo"
-            tasks={getTasksByStatus('todo')}
-            onAddTask={handleAddTask}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteClick}
-            onAddToCalendar={handleAddToCalendarClick}
-            viewedDate={viewedDate}
-          />
-          <KanbanColumn
-            title="Processing"
-            status="in-progress"
-            tasks={getTasksByStatus('in-progress')}
-            onAddTask={handleAddTask}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteClick}
-            onAddToCalendar={handleAddToCalendarClick}
-            viewedDate={viewedDate}
-          />
-          <KanbanColumn
-            title="Paid"
-            status="done"
-            tasks={getTasksByStatus('done')}
-            onAddTask={handleAddTask}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteClick}
-            onAddToCalendar={handleAddToCalendarClick}
-            viewedDate={viewedDate}
-          />
-        </motion.div>
+        {isMobile ? (
+          /* Mobile: Tabbed View */
+          <div className="flex flex-col h-full px-4 py-3">
+            {/* Tab Bar */}
+            <div className="flex gap-1 p-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] mb-3 shrink-0">
+              {mobileTabConfig.map((tab) => {
+                const count = getTasksByStatus(tab.status).length;
+                const isActive = activeTab === tab.status;
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.status}
+                    onClick={() => setActiveTab(tab.status)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all ${
+                      isActive
+                        ? 'bg-[#2C2C2C] text-white shadow-sm'
+                        : 'text-white/40'
+                    }`}
+                  >
+                    <Icon
+                      className="h-3.5 w-3.5"
+                      style={{ color: isActive ? tab.color : undefined }}
+                    />
+                    <span>{tab.label}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                        isActive ? 'bg-white/10 text-white/70' : 'text-white/30'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-        <DragOverlay dropAnimation={null}>
-          {activeTask ? (
-            <div className="rotate-2 scale-105">
-              <TaskCard
-                task={activeTask}
-                onEdit={() => {}}
-                onDelete={() => {}}
-                isDragOverlay
+            {/* Active Column */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full min-h-0"
+                >
+                  <KanbanColumn
+                    title={mobileTabConfig.find((t) => t.status === activeTab)!.label}
+                    status={activeTab}
+                    tasks={getTasksByStatus(activeTab)}
+                    onAddTask={handleAddTask}
+                    onEditTask={handleEditTask}
+                    onDeleteTask={handleDeleteClick}
+                    onAddToCalendar={handleAddToCalendarClick}
+                    onMoveTask={handleMoveTask}
+                    viewedDate={viewedDate}
+                    isMobile
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        ) : (
+          /* Desktop: Original Layout */
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="mx-auto flex max-w-7xl gap-2 sm:gap-3 md:gap-5 px-2 sm:px-3 md:px-4 py-3 sm:py-4 md:py-6 overflow-x-auto h-full snap-x snap-mandatory sm:snap-none scrollbar-hide"
+            >
+              <KanbanColumn
+                title="To Pay"
+                status="todo"
+                tasks={getTasksByStatus('todo')}
+                onAddTask={handleAddTask}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteClick}
+                onAddToCalendar={handleAddToCalendarClick}
                 viewedDate={viewedDate}
               />
-            </div>
-          ) : null}
-        </DragOverlay>
+              <KanbanColumn
+                title="Processing"
+                status="in-progress"
+                tasks={getTasksByStatus('in-progress')}
+                onAddTask={handleAddTask}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteClick}
+                onAddToCalendar={handleAddToCalendarClick}
+                viewedDate={viewedDate}
+              />
+              <KanbanColumn
+                title="Paid"
+                status="done"
+                tasks={getTasksByStatus('done')}
+                onAddTask={handleAddTask}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteClick}
+                onAddToCalendar={handleAddToCalendarClick}
+                viewedDate={viewedDate}
+              />
+            </motion.div>
+
+            <DragOverlay dropAnimation={null}>
+              {activeTask ? (
+                <div className="rotate-2 scale-105">
+                  <TaskCard
+                    task={activeTask}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                    isDragOverlay
+                    viewedDate={viewedDate}
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </>
+        )}
       </DndContext>
 
       <TaskForm

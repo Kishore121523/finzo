@@ -39,6 +39,11 @@ export function CategorySelect({
     }
   };
 
+  // Handle touch scroll on mobile
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
+  };
+
   // Open first group by default when popover opens
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
@@ -94,11 +99,21 @@ export function CategorySelect({
         side="top"
         sideOffset={8}
         avoidCollisions={false}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          // Allow scrolling inside the popover on touch devices
+          const target = e.target as HTMLElement;
+          if (scrollRef.current?.contains(target)) {
+            e.preventDefault();
+          }
+        }}
       >
         <div
           ref={scrollRef}
           onWheel={handleWheel}
-          className="max-h-[320px] overflow-y-auto overscroll-contain touch-pan-y [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+          onTouchMove={handleTouchMove}
+          className="max-h-[50vh] sm:max-h-[320px] overflow-y-auto overscroll-contain touch-pan-y [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {categoryGroups.map((group) => (
             <div key={group.name} className="border-b border-[#363636] last:border-b-0">

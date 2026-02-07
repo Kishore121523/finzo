@@ -5,16 +5,25 @@ import { motion } from 'framer-motion';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { Task } from '@/lib/types/task';
+import { Task, TaskStatus } from '@/lib/types/task';
 import { useCurrency } from '@/components/providers/currency-provider';
-import { Edit, Trash2, AlertCircle, RefreshCw, Calendar, CalendarPlus, CreditCard } from 'lucide-react';
+import { Edit, Trash2, AlertCircle, RefreshCw, Calendar, CalendarPlus, CreditCard, ChevronRight, ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
+
+const statusFlow: TaskStatus[] = ['todo', 'in-progress', 'done'];
+const statusLabels: Record<TaskStatus, string> = {
+  'todo': 'To Pay',
+  'in-progress': 'Processing',
+  'done': 'Paid',
+};
 
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onAddToCalendar?: (task: Task) => void;
+  onMoveTask?: (taskId: string, newStatus: TaskStatus) => void;
+  disableDrag?: boolean;
   index?: number;
   isDragOverlay?: boolean;
   viewedDate?: Date;
@@ -25,6 +34,8 @@ export const TaskCard = memo(function TaskCard({
   onEdit,
   onDelete,
   onAddToCalendar,
+  onMoveTask,
+  disableDrag = false,
   index = 0,
   isDragOverlay = false,
   viewedDate = new Date(),
@@ -37,7 +48,7 @@ export const TaskCard = memo(function TaskCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id });
+  } = useSortable({ id: task.id, disabled: disableDrag });
 
   const style = {
     transform: CSS.Translate.toString(transform),
@@ -111,8 +122,7 @@ export const TaskCard = memo(function TaskCard({
     <motion.div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(disableDrag ? {} : { ...attributes, ...listeners })}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{
@@ -123,7 +133,8 @@ export const TaskCard = memo(function TaskCard({
       }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className={`
-        group p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl cursor-grab active:cursor-grabbing touch-none
+        group p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl
+        ${disableDrag ? '' : 'cursor-grab active:cursor-grabbing touch-none'}
         transition-colors duration-150
         ${isOverdue
           ? 'bg-[#FF5252]/10 border border-[#FF5252]/40 hover:bg-[#FF5252]/15'
@@ -228,6 +239,43 @@ export const TaskCard = memo(function TaskCard({
           )}
         </div>
       </div>
+
+      {/* Mobile: Quick status move buttons */}
+      {onMoveTask && (() => {
+        const currentIndex = statusFlow.indexOf(task.status);
+        const prevStatus = currentIndex > 0 ? statusFlow[currentIndex - 1] : null;
+        const nextStatus = currentIndex < statusFlow.length - 1 ? statusFlow[currentIndex + 1] : null;
+
+        return (
+          <div className="flex items-center gap-2 mt-2">
+            {prevStatus && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveTask(task.id, prevStatus);
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-white/50 bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                <span>{statusLabels[prevStatus]}</span>
+              </button>
+            )}
+            <div className="flex-1" />
+            {nextStatus && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveTask(task.id, nextStatus);
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-white/50 bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <span>{statusLabels[nextStatus]}</span>
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        );
+      })()}
     </motion.div>
   );
 });

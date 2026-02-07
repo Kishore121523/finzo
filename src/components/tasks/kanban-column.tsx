@@ -17,7 +17,9 @@ interface KanbanColumnProps {
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
   onAddToCalendar: (task: Task) => void;
+  onMoveTask?: (taskId: string, newStatus: TaskStatus) => void;
   viewedDate: Date;
+  isMobile?: boolean;
 }
 
 const statusConfig = {
@@ -46,7 +48,9 @@ export const KanbanColumn = memo(function KanbanColumn({
   onEditTask,
   onDeleteTask,
   onAddToCalendar,
+  onMoveTask,
   viewedDate,
+  isMobile,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const config = statusConfig[status];
@@ -61,10 +65,14 @@ export const KanbanColumn = memo(function KanbanColumn({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: isMobile ? 0 : 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: status === 'todo' ? 0 : status === 'in-progress' ? 0.1 : 0.2 }}
-      className="shrink-0 w-[75vw] sm:w-auto sm:flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-[320px] flex flex-col h-[calc(100%-1rem)] max-h-[75vh] sm:max-h-none sm:h-full snap-center sm:snap-align-none"
+      transition={{ duration: 0.3, delay: isMobile ? 0 : (status === 'todo' ? 0 : status === 'in-progress' ? 0.1 : 0.2) }}
+      className={
+        isMobile
+          ? 'flex flex-col w-full h-full min-h-0'
+          : 'shrink-0 w-[75vw] sm:w-auto sm:flex-1 min-w-[240px] sm:min-w-[280px] md:min-w-[320px] flex flex-col h-[calc(100%-1rem)] max-h-[75vh] sm:max-h-none sm:h-full snap-center sm:snap-align-none'
+      }
     >
       {/* Column Header */}
       <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between px-0.5 sm:px-1">
@@ -91,7 +99,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div
         ref={setNodeRef}
         className={`
-          flex-1 p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl transition-all duration-200 overflow-y-auto scrollbar-hide
+          flex-1 min-h-0 ${isMobile ? 'p-3' : 'p-2 sm:p-3 md:p-4'} rounded-xl sm:rounded-2xl transition-all duration-200 overflow-y-auto scrollbar-hide
           bg-[#1E1E1E] border border-[#2C2C2C]
           ${isOver ? 'ring-2 ring-[#03DAC6] bg-[#03DAC6]/5' : ''}
         `}
@@ -145,6 +153,8 @@ export const KanbanColumn = memo(function KanbanColumn({
                           onEdit={onEditTask}
                           onDelete={onDeleteTask}
                           onAddToCalendar={onAddToCalendar}
+                          onMoveTask={onMoveTask}
+                          disableDrag={isMobile}
                           index={index + linkedTasks.length}
                           viewedDate={viewedDate}
                         />
@@ -173,6 +183,8 @@ export const KanbanColumn = memo(function KanbanColumn({
                           onEdit={onEditTask}
                           onDelete={onDeleteTask}
                           onAddToCalendar={onAddToCalendar}
+                          onMoveTask={onMoveTask}
+                          disableDrag={isMobile}
                           index={index}
                           viewedDate={viewedDate}
                         />
