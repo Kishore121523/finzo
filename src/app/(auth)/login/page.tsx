@@ -109,9 +109,9 @@ export default function LoginPage() {
             <h1 className="text-4xl md:text-5xl font-bold text-[#03DAC6] tracking-tight mb-1">
               Finzo
             </h1>
-            <p className="text-white/40 text-base md:text-lg">
-              Take control of your money
-            </p>
+            <h2 className="text-white/40 text-base md:text-lg font-normal">
+              Personal Finance Management Made Simple
+            </h2>
           </motion.div>
 
           {/* Stats preview */}
