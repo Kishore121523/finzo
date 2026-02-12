@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
+import { FinzoLogo } from '@/components/layout/logo';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -106,6 +107,7 @@ export default function LoginPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-center mb-4"
           >
+            <FinzoLogo className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3" />
             <h1 className="text-4xl md:text-5xl font-bold text-[#03DAC6] tracking-tight mb-1">
               Finzo
             </h1>

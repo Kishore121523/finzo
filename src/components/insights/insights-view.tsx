@@ -15,6 +15,7 @@ import {
 import { TrendingDown, TrendingUp, Receipt, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Transaction } from '@/lib/types/transaction';
 import { addMonths, subMonths, startOfMonth } from 'date-fns';
+import { DailySpendingChart } from './daily-spending-chart';
 
 // Bright color palette for categories - matching categories.ts
 const BRIGHT_EXPENSE_COLORS: Record<string, string> = {
@@ -236,7 +237,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
       </div>
 
       {/* Main Content - Scrollable on mobile, overflow-hidden on desktop */}
-      <div className="flex-1 overflow-y-auto lg:overflow-hidden px-2 sm:px-6 pb-20 md:pb-6 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto px-2 sm:px-6 pb-15 md:pb-6 scrollbar-hide " style={{ WebkitOverflowScrolling: 'touch' }}>
         {categoryData.total === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
@@ -264,9 +265,11 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center w-full lg:h-full lg:flex-row lg:justify-center lg:items-center lg:px-4">
-            {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
-            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
+          <div className="flex flex-col items-center w-full">
+            {/* Centering wrapper — gives the original vertical space on desktop */}
+            <div className="flex flex-col items-center w-full lg:min-h-[calc(100vh-250px)] lg:justify-center lg:px-4">
+              {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
+              <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
               {/* Pie Chart */}
               <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
                 {/* Outer glow ring */}
@@ -543,6 +546,12 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                   )}
                 </AnimatePresence>
               </div>
+              </div>
+            </div>
+
+            {/* Daily Spending Chart - below pie + categories, scrollable */}
+            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 m-auto sm:mt-0 shrink-0 pb-0 sm:pb-4">
+              <DailySpendingChart transactions={transactions} currentDate={insightsDate} viewType={viewType} />
             </div>
           </div>
         )}

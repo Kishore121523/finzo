@@ -10,6 +10,7 @@ import { ModeProvider } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
 import { LogOut } from 'lucide-react';
+import { FinzoLogo } from '@/components/layout/logo';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -43,7 +44,10 @@ function DashboardNav() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:py-4">
         {/* Left side - Logo + Mode Toggle (desktop only) */}
         <div className="flex items-center gap-3 md:gap-8">
-          <h1 className="text-xl md:text-2xl font-bold text-white">Finzo</h1>
+          <div className="flex items-center gap-2">
+            <FinzoLogo className="w-6 h-6 md:w-7 md:h-7" />
+            <h1 className="text-xl md:text-[1.5rem] font-bold text-white">Finzo</h1>
+          </div>
           {/* Mode toggle - hidden on mobile, shown on md and up */}
           <div className="hidden md:block">
             <ModeToggle />

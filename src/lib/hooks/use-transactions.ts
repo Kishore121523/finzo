@@ -18,20 +18,20 @@ import { Transaction, TransactionFormData, AmountChange } from '@/lib/types/tran
 import { useAuth } from '@/components/providers/auth-provider';
 
 // Helper to format year-month as string (e.g., "2025-02")
-function formatYearMonth(date: Date): string {
+export function formatYearMonth(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
 }
 
 // Helper to compare year-month strings
-function isMonthOnOrAfter(viewingMonth: string, startMonth: string): boolean {
+export function isMonthOnOrAfter(viewingMonth: string, startMonth: string): boolean {
   return viewingMonth >= startMonth;
 }
 
 // Helper to get the effective amount for a specific month based on amount history
 // Returns the amount from the most recent change that is on or before the viewing month
-function getEffectiveAmount(
+export function getEffectiveAmount(
   baseAmount: number,
   amountHistory: AmountChange[] | undefined,
   viewingMonth: string

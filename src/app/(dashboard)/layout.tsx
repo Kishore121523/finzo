@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { UserAvatar } from '@/components/layout/user-avatar';
 import { NotificationToggle } from '@/components/layout/notification-toggle';
+import { FinzoLogo } from '@/components/layout/logo';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -37,7 +38,10 @@ function DashboardNav() {
     <nav className="border-b border-[#1F1F1F] bg-[#1E1E1E] sticky top-0 z-40">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 md:py-4">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-8">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Finzo</h1>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <FinzoLogo className="w-5 h-5 sm:w-6 sm:h-6" />
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Finzo</h1>
+          </div>
           <ModeToggle />
         </div>
         <div className="flex items-center gap-2 md:gap-4">
