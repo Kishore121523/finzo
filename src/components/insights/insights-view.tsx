@@ -237,7 +237,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
       </div>
 
       {/* Main Content - Scrollable on mobile, overflow-hidden on desktop */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-6 pb-15 md:pb-6 scrollbar-hide " style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto px-2 sm:px-6 pb-8 md:pb-6 scrollbar-hide " style={{ WebkitOverflowScrolling: 'touch' }}>
         {categoryData.total === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
