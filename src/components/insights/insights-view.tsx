@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useTransactions } from '@/lib/hooks/use-transactions';
@@ -12,8 +12,8 @@ import {
   DEFAULT_EXPENSE_CATEGORY,
   DEFAULT_INCOME_CATEGORY,
 } from '@/lib/constants/categories';
-import { TrendingDown, TrendingUp, Receipt, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
-import { Transaction } from '@/lib/types/transaction';
+import { TrendingDown, TrendingUp, Receipt, ChevronLeft, ChevronRight, ArrowLeft, Check } from 'lucide-react';
+
 import { addMonths, subMonths, startOfMonth } from 'date-fns';
 import { DailySpendingChart } from './daily-spending-chart';
 
@@ -102,6 +102,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
   const [insightsDate, setInsightsDate] = useState<Date>(() => startOfMonth(currentDate));
+  const [enabledCategories, setEnabledCategories] = useState<Set<string>>(new Set());
   const { formatCurrency } = useCurrency();
 
   // Fetch transactions for the insights month
@@ -161,33 +162,78 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
     return { data, total, totalCount };
   }, [transactions, viewType]);
 
-  // Generate pie chart segments
-  const pieSegments = useMemo(() => {
-    const segments: { path: string; color: string; category: CategoryData }[] = [];
-    let currentAngle = -90;
+  // Reset enabled categories when data changes (month/viewType)
+  useEffect(() => {
+    setEnabledCategories(new Set(categoryData.data.map(c => c.id)));
+  }, [categoryData.data]);
+
+  // Filtered category data based on enabled checkboxes
+  const filteredCategoryData = useMemo(() => {
+    const filtered = categoryData.data.filter(c => enabledCategories.has(c.id));
+    const filteredTotal = filtered.reduce((sum, c) => sum + c.amount, 0);
+    const filteredCount = filtered.reduce((sum, c) => sum + c.count, 0);
+
+    // Recalculate percentages based on filtered total
+    const recalculated = filtered.map(c => ({
+      ...c,
+      percentage: filteredTotal > 0 ? (c.amount / filteredTotal) * 100 : 0,
+    }));
+
+    return { data: recalculated, total: filteredTotal, totalCount: filteredCount };
+  }, [categoryData.data, enabledCategories]);
+
+  const toggleCategory = useCallback((catId: string) => {
+    setEnabledCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectAllCategories = useCallback(() => {
+    setEnabledCategories(new Set(categoryData.data.map(c => c.id)));
+  }, [categoryData.data]);
+
+  const deselectAllCategories = useCallback(() => {
+    setEnabledCategories(new Set());
+  }, []);
+
+  const allSelected = enabledCategories.size === categoryData.data.length;
+  const noneSelected = enabledCategories.size === 0;
+
+  // Donut chart: each segment is a circle with stroke-dasharray
+  const DONUT_RADIUS = 35;
+  const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
+  const DONUT_STROKE = 19; // gives outer ~44.5, inner ~25.5
+
+  const donutSegments = useMemo(() => {
+    const segments: { offset: number; length: number; color: string; category: CategoryData }[] = [];
+    let accumulated = 0;
+
+    // Compute for ALL categories — enabled get their share, disabled get 0
+    const enabledMap = new Map(filteredCategoryData.data.map(c => [c.id, c]));
 
     categoryData.data.forEach(cat => {
-      const angle = (cat.percentage / 100) * 360;
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + angle;
+      const filtered = enabledMap.get(cat.id);
+      const fraction = filtered ? filtered.percentage / 100 : 0;
+      const length = fraction * DONUT_CIRCUMFERENCE;
 
-      const startRad = (startAngle * Math.PI) / 180;
-      const endRad = (endAngle * Math.PI) / 180;
+      segments.push({
+        offset: accumulated,
+        length,
+        color: cat.color,
+        category: cat,
+      });
 
-      const x1 = 50 + 45 * Math.cos(startRad);
-      const y1 = 50 + 45 * Math.sin(startRad);
-      const x2 = 50 + 45 * Math.cos(endRad);
-      const y2 = 50 + 45 * Math.sin(endRad);
-
-      const largeArc = angle > 180 ? 1 : 0;
-      const path = `M 50 50 L ${x1} ${y1} A 45 45 0 ${largeArc} 1 ${x2} ${y2} Z`;
-
-      segments.push({ path, color: cat.color, category: cat });
-      currentAngle = endAngle;
+      accumulated += length;
     });
 
     return segments;
-  }, [categoryData.data]);
+  }, [categoryData.data, filteredCategoryData.data, DONUT_CIRCUMFERENCE]);
 
   // Get transactions for selected category
   const selectedCategoryTransactions = useMemo(() => {
@@ -272,64 +318,40 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
               <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
               {/* Pie Chart */}
               <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
-                {/* Outer glow ring */}
-                <div
-                  className="absolute inset-0 rounded-full opacity-20 blur-xl"
-                  style={{ background: `radial-gradient(circle, ${themeColor} 0%, transparent 70%)` }}
-                />
+                <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 overflow-hidden">
+                  {/* Donut segments — circles with animated stroke-dasharray */}
+                  <g transform="rotate(-90 50 50)">
+                    {donutSegments.map((segment) => {
+                      const isHighlighted = selectedCategory === null
+                        ? (hoveredCategory === null || hoveredCategory === segment.category.id)
+                        : selectedCategory.id === segment.category.id;
 
-                <svg viewBox="0 0 100 100" className="w-full h-full relative z-10">
-                  <defs>
-                    <radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#1a1a1a" />
-                      <stop offset="100%" stopColor="#121212" />
-                    </radialGradient>
-                  </defs>
+                      return (
+                        <motion.circle
+                          key={segment.category.id}
+                          cx="50"
+                          cy="50"
+                          r={DONUT_RADIUS}
+                          fill="none"
+                          stroke={segment.color}
+                          strokeWidth={DONUT_STROKE}
+                          animate={{
+                            strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
+                            strokeDashoffset: -segment.offset,
+                            opacity: segment.length < 0.01 ? 0 : (isHighlighted ? 1 : 0.3),
+                          }}
+                          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                          className="cursor-pointer"
+                          onMouseEnter={() => setHoveredCategory(segment.category.id)}
+                          onMouseLeave={() => setHoveredCategory(null)}
+                          onClick={() => handleCategoryClick(segment.category)}
+                        />
+                      );
+                    })}
+                  </g>
 
-                  {/* Animated pie segments */}
-                  <AnimatePresence mode="wait">
-                    <motion.g
-                      key={monthKey}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {pieSegments.map((segment) => {
-                        const isActive = selectedCategory?.id === segment.category.id || hoveredCategory === segment.category.id;
-                        const isHighlighted = selectedCategory === null
-                          ? (hoveredCategory === null || hoveredCategory === segment.category.id)
-                          : selectedCategory.id === segment.category.id;
-
-                        return (
-                          <motion.path
-                            key={segment.category.id}
-                            d={segment.path}
-                            fill={segment.color}
-                            initial={{ opacity: 0 }}
-                            animate={{
-                              opacity: isHighlighted ? 1 : 0.3,
-                              scale: isActive ? 1.02 : 1,
-                            }}
-                            transition={{ duration: 0.2 }}
-                            className="cursor-pointer"
-                            style={{
-                              filter: isActive
-                                ? `drop-shadow(0 0 8px ${segment.color})`
-                                : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                              transformOrigin: 'center',
-                            }}
-                            onMouseEnter={() => setHoveredCategory(segment.category.id)}
-                            onMouseLeave={() => setHoveredCategory(null)}
-                            onClick={() => handleCategoryClick(segment.category)}
-                          />
-                        );
-                      })}
-                    </motion.g>
-                  </AnimatePresence>
-
-                  {/* Center hole - rendered last to be on top */}
-                  <circle cx="50" cy="50" r="26" fill="url(#centerGradient)" />
+                  {/* Center fill */}
+                  <circle cx="50" cy="50" r="25.5" fill="#121212" />
                 </svg>
 
                 {/* Center content */}
@@ -347,7 +369,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       className="text-lg sm:text-4xl font-bold"
                       style={{ color: themeColor }}
                     >
-                      {formatCurrency(categoryData.total)}
+                      {formatCurrency(filteredCategoryData.total)}
                     </motion.span>
                   </AnimatePresence>
                   <AnimatePresence mode="wait">
@@ -360,7 +382,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       className="text-[10px] sm:text-base text-white/30 mt-0.5 sm:mt-2 flex items-center gap-1"
                     >
                       <Receipt className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
-                      {categoryData.totalCount} TXN
+                      {filteredCategoryData.totalCount} TXN
                     </motion.span>
                   </AnimatePresence>
                 </div>
@@ -463,7 +485,23 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       className="flex flex-col h-full"
                     >
                       <div className="flex items-center justify-between mb-2 sm:mb-5">
-                        <h3 className="text-lg sm:text-xl font-semibold text-white">Categories</h3>
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <h3 className="text-lg sm:text-xl font-semibold text-white">Categories</h3>
+                          <div className="flex items-center justify-center gap-1 mt-1.5">
+                            <button
+                              onClick={selectAllCategories}
+                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${allSelected ? 'bg-white/10 text-white/60' : 'text-white/30 hover:text-white/60 hover:bg-white/5'}`}
+                            >
+                              All
+                            </button>
+                            <button
+                              onClick={deselectAllCategories}
+                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${noneSelected ? 'bg-white/10 text-white/60' : 'text-white/30 hover:text-white/60 hover:bg-white/5'}`}
+                            >
+                              None
+                            </button>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={handlePreviousMonth}
@@ -509,6 +547,21 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                                 onClick={() => handleCategoryClick(cat)}
                               >
                                 <div className="flex items-center gap-2 sm:gap-4 mb-1 sm:mb-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleCategory(cat.id);
+                                    }}
+                                    className="w-4 h-4 sm:w-5 sm:h-5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all cursor-pointer"
+                                    style={{
+                                      borderColor: enabledCategories.has(cat.id) ? cat.color : 'rgba(255,255,255,0.15)',
+                                      backgroundColor: enabledCategories.has(cat.id) ? cat.color : 'transparent',
+                                    }}
+                                  >
+                                    {enabledCategories.has(cat.id) && (
+                                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black" strokeWidth={3} />
+                                    )}
+                                  </button>
                                   <div
                                     className="w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full shrink-0 transition-shadow"
                                     style={{
@@ -551,7 +604,16 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
 
             {/* Daily Spending Chart - below pie + categories, scrollable */}
             <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 m-auto sm:mt-0 shrink-0 pb-0 sm:pb-4">
-              <DailySpendingChart transactions={transactions} currentDate={insightsDate} viewType={viewType} />
+              <DailySpendingChart
+                transactions={transactions.filter(t => {
+                  const isExpense = viewType === 'expense';
+                  const defaultCat = isExpense ? DEFAULT_EXPENSE_CATEGORY : DEFAULT_INCOME_CATEGORY;
+                  const cat = t.category || defaultCat;
+                  return enabledCategories.has(cat);
+                })}
+                currentDate={insightsDate}
+                viewType={viewType}
+              />
             </div>
           </div>
         )}
