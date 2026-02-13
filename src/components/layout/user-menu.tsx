@@ -2,16 +2,21 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut } from 'lucide-react';
+import { LogOut, Bell, BellOff, Info } from 'lucide-react';
 import { User } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 interface UserMenuProps {
   user: User;
   onLogout: () => void;
+  onOpenGuide?: () => void;
 }
 
-export function UserMenu({ user, onLogout }: UserMenuProps) {
+export function UserMenu({ user, onLogout, onOpenGuide }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [notifLoading, setNotifLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -25,6 +30,38 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fetch notification preference
+  useEffect(() => {
+    const fetchPreference = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setNotificationsEnabled(userDoc.data().emailNotifications !== false);
+        }
+      } catch (error) {
+        console.error('Error fetching notification preference:', error);
+      } finally {
+        setNotifLoading(false);
+      }
+    };
+
+    fetchPreference();
+  }, [user.uid]);
+
+  const toggleNotifications = async () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        emailNotifications: newValue,
+      }, { merge: true });
+    } catch (error) {
+      console.error('Error updating notification preference:', error);
+      setNotificationsEnabled(!newValue);
+    }
+  };
 
   const initials = user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || '?';
 
@@ -53,17 +90,44 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               <p className="text-sm font-medium text-white truncate">{user.displayName || 'User'}</p>
             </div>
 
+            {/* Email reminders toggle */}
+            {!notifLoading && (
+              <button
+                onClick={toggleNotifications}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#2C2C2C] transition-colors cursor-pointer text-white/70"
+              >
+                {notificationsEnabled ? <Bell className="w-4 h-4 text-[#03DAC6]" /> : <BellOff className="w-4 h-4" />}
+                <span className="text-sm">{notificationsEnabled ? 'Email reminders on' : 'Email reminders off'}</span>
+              </button>
+            )}
+
+            {/* App guide */}
+            {onOpenGuide && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onOpenGuide();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#2C2C2C] transition-colors cursor-pointer text-white/70"
+              >
+                <Info className="w-4 h-4 text-[#03DAC6]" />
+                <span className="text-sm">App guide</span>
+              </button>
+            )}
+
             {/* Logout */}
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                onLogout();
-              }}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#2C2C2C] transition-colors cursor-pointer text-red-400"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm">Sign out</span>
-            </button>
+            <div className="border-t border-[#2C2C2C]">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onLogout();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#2C2C2C] transition-colors cursor-pointer text-red-400"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="text-sm">Sign out</span>
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

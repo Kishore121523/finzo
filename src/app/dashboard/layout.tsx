@@ -75,8 +75,11 @@ function DashboardNav() {
         <div className="flex items-center gap-3 md:gap-4">
           {/* Currency & Notifications - visible on all sizes */}
           <CurrencySelector />
-          <NotificationToggle />
-          <div className="relative group">
+          {/* Notification & Info - desktop only */}
+          <div className="hidden md:block">
+            <NotificationToggle />
+          </div>
+          <div className="hidden md:block relative group">
             <button
               onClick={() => setShowOnboarding(true)}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-[#03DAC6]/15 text-[#03DAC6] transition-colors hover:bg-[#03DAC6]/25 cursor-pointer"
@@ -88,9 +91,9 @@ function DashboardNav() {
             </span>
           </div>
 
-          {/* Mobile: User menu dropdown */}
+          {/* Mobile: User menu dropdown (includes notification toggle + app guide) */}
           <div className="md:hidden">
-            {user && <UserMenu user={user} onLogout={handleSignOut} />}
+            {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} />}
           </div>
 
           {/* Desktop: User info + Logout */}

@@ -68,7 +68,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     }
 
     if (showSign) {
-      return amount >= 0 ? `+${formatted}` : `-${formatted}`;
+      return amount >= 0 ? `+ ${formatted}` : `- ${formatted}`;
     }
     
     return formatted;

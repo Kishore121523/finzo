@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { Transaction } from '@/lib/types/transaction';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 
 interface DailySpendingChartProps {
   transactions: Transaction[];
@@ -55,6 +56,12 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Calculate month progress based on current day
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+  const currentDayOfMonth = isCurrentMonth ? today.getDate() : daysInMonth;
+  const monthProgress = (currentDayOfMonth / daysInMonth) * 100;
 
   // Aggregate daily totals
   const { dailyTotals, maxDaily, avgDaily, total, activeDays } = useMemo(() => {
@@ -168,18 +175,9 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-2 sm:mb-5">
-        <h3 className="text-sm sm:text-lg font-semibold text-white">{title}</h3>
-        {hasData && (
-          <div className="flex items-center gap-1.5">
-            <svg width="16" height="4" className="opacity-40">
-              <line x1="0" y1="2" x2="16" y2="2" stroke="white" strokeWidth="1.5" strokeDasharray="3 2" />
-            </svg>
-            <span className="text-[10px] sm:text-xs text-white/40">
-              Avg {formatCurrency(avgDaily, { compact: true })}/day
-            </span>
-          </div>
-        )}
+      <div className="flex items-center justify-center mb-1 sm:mb-3.5">
+        <h3 className="text-sm sm:text-2xl font-semibold text-white">{title}</h3>
+        
       </div>
 
       {!hasData ? (
@@ -237,7 +235,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
             y1={avgY}
             x2={padding.left + chartWidth}
             y2={avgY}
-            stroke="rgba(255,255,255,0.18)"
+            stroke={accentColor + '50'}
             strokeWidth="1"
             strokeDasharray="5 3"
           />
@@ -394,16 +392,39 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
 
       {/* Summary footer */}
       {hasData && (
-        <div className="flex items-center justify-between mt-1.5 sm:mt-4 pt-1.5 sm:pt-3 border-t border-white/5">
-          <span className="text-[9px] sm:text-xs text-white/30">
-            {activeDays} active day{activeDays !== 1 ? 's' : ''}
-          </span>
-          <span className="text-[9px] sm:text-xs text-white/40">
-            Total: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(total)}</span>
-            <span className="mx-1 sm:mx-1.5">|</span>
-            Peak: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(maxDaily)}</span>
-          </span>
-        </div>
+        <>
+          {/* Desktop: single row */}
+          <div className="hidden sm:flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+            <span className="text-xs text-white/30">
+              {activeDays} active day{activeDays !== 1 ? 's' : ''}
+              <span className="mx-1.5">|</span>
+              Month Progress: <span style={{ color: accentColor }} className="font-medium">{monthProgress.toFixed(1)}%</span>
+            </span>
+            <span className="text-xs text-white/40">
+              Total: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(total)}</span>
+              <span className="mx-1.5">|</span>
+              Peak: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(maxDaily)}</span>
+              <span className="mx-1.5">|</span>
+              Average: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(avgDaily)}</span>
+            </span>
+          </div>
+
+          {/* Mobile: compact two rows centered */}
+          <div className="sm:hidden mt-2 pt-1.5 border-t border-white/5 flex flex-col items-center gap-1">
+            <span className="text-[9px] text-white/40">
+              Total: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(total, { compact: true })}</span>
+              <span className="mx-1 text-white/15">|</span>
+              Peak: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(maxDaily, { compact: true })}</span>
+              <span className="mx-1 text-white/15">|</span>
+              Avg: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(avgDaily, { compact: true })}</span>
+            </span>
+            <span className="text-[9px] text-white/30">
+              {activeDays} active day{activeDays !== 1 ? 's' : ''}
+              <span className="mx-1">|</span>
+              Progress: <span style={{ color: accentColor }} className="font-medium">{monthProgress.toFixed(1)}%</span>
+            </span>
+          </div>
+        </>
       )}
     </div>
   );

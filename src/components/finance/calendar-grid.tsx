@@ -164,12 +164,12 @@ export const CalendarGrid = memo(function CalendarGrid({
                   ${day.isCurrentMonth
                     ? hasActivity
                       ? netAmount >= 0
-                        ? 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C] sm:border-[#03DAC6]/30'
-                        : 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C] sm:border-[#CF6679]/30'
+                        ? 'bg-[#1E1E1E] cursor-pointer border-[#03DAC6]/30'
+                        : 'bg-[#1E1E1E] cursor-pointer border-[#CF6679]/30'
                       : 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C]'
                     : 'bg-[#0a0a0a]/50 cursor-default border-transparent'
                   }
-                  ${isToday(day.date) ? 'ring-1 sm:ring-2 ring-[#03DAC6] ring-offset-1 ring-offset-[#121212]' : ''}
+                  ${''}
                   ${hasActivity && day.isCurrentMonth ? 'sm:hover:scale-[1.02] hover:shadow-lg hover:shadow-black/30' : ''}
                 `}
               >
@@ -178,8 +178,9 @@ export const CalendarGrid = memo(function CalendarGrid({
                   {/* Date at top */}
                   <span className={`
                     text-[11px] font-bold
-                    ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
-                    ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
+                    ${isToday(day.date) ? 'bg-[#03DAC6] text-black w-5 h-5 rounded-full flex items-center justify-center' : ''}
+                    ${!isToday(day.date) && day.isCurrentMonth ? 'text-white' : ''}
+                    ${!isToday(day.date) && !day.isCurrentMonth ? 'text-white/20' : ''}
                   `}>
                     {format(day.date, 'd')}
                   </span>
@@ -191,7 +192,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252] animate-pulse mb-0.5" />
                       )}
                       <span className={`text-[9px] font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
-                        {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, { compact: true })}
+                        {netAmount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(netAmount), { compact: true })}
                       </span>
                     </div>
                   ) : (
@@ -200,14 +201,15 @@ export const CalendarGrid = memo(function CalendarGrid({
                 </div>
 
                 {/* Desktop: Full layout */}
-                <div className="hidden sm:flex w-full flex-col h-full justify-between">
-                  {/* Top section: Date and indicators */}
-                  <div className="w-full flex items-start justify-between">
+                <div className="hidden sm:flex w-full flex-col h-full">
+                  {/* Top row: Date + TXN count */}
+                  <div className="w-full flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <span className={`
                         text-sm md:text-base font-bold
-                        ${day.isCurrentMonth ? 'text-white' : 'text-white/20'}
-                        ${isToday(day.date) ? 'text-[#03DAC6]' : ''}
+                        ${isToday(day.date) ? 'bg-[#03DAC6] text-black w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center' : ''}
+                        ${!isToday(day.date) && day.isCurrentMonth ? 'text-white' : ''}
+                        ${!isToday(day.date) && !day.isCurrentMonth ? 'text-white/20' : ''}
                       `}>
                         {format(day.date, 'd')}
                       </span>
@@ -215,41 +217,22 @@ export const CalendarGrid = memo(function CalendarGrid({
                         <span className="w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" />
                       )}
                     </div>
-
                     {hasActivity && day.isCurrentMonth && (
-                      <div className="flex items-center gap-1.5 pt-1">
-                        {day.income > 0 && (
-                          <div className="flex items-center gap-0">
-                            <ArrowUp className="w-3 h-3 text-[#03DAC6]" />
-                            <span className="text-[10px] md:text-xs text-[#03DAC6] font-medium">
-                              {formatCurrency(day.income, { compact: true })}
-                            </span>
-                          </div>
-                        )}
-                        {day.expense > 0 && (
-                          <div className="flex items-center gap-0">
-                            <ArrowDown className="w-3 h-3 text-[#CF6679]" />
-                            <span className="text-[10px] md:text-xs text-[#CF6679] font-medium">
-                              {formatCurrency(day.expense, { compact: true })}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-[9px] md:text-[10px] text-white/50 font-medium">
+                        {day.transactions.length} txn
+                      </span>
                     )}
                   </div>
 
-                  {/* Bottom section: Net total and transaction count */}
-                  {hasActivity && day.isCurrentMonth && (
-                    <div className="w-full flex items-end justify-between">
-                      <div className={`text-sm md:text-base font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
-                        {formatCurrency(Math.abs(netAmount), { compact: true })}
-                      </div>
-                      <div className="px-2 py-0.5 rounded-full bg-white/10">
-                        <span className="text-[9px] md:text-[10px] text-white/60 font-medium">
-                          {day.transactions.length} TXN
-                        </span>
-                      </div>
+                  {/* Net amount — pushed down */}
+                  {hasActivity && day.isCurrentMonth ? (
+                    <div className="flex-1 flex items-end justify-center">
+                      <span className={`text-base md:text-lg font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                        {netAmount >= 0 ? '+ ' : '- '}{formatCurrency(Math.abs(netAmount), { compact: true })}
+                      </span>
                     </div>
+                  ) : (
+                    <div className="flex-1" />
                   )}
                 </div>
 
@@ -403,7 +386,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                             group-hover:-translate-x-16
                             ${transaction.amount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}
                           `}>
-                            {transaction.amount >= 0 ? '+' : '-'}
+                            {transaction.amount >= 0 ? '+ ' : '- '}
                             {formatCurrency(Math.abs(transaction.amount))}
                           </span>
                           <div className="flex gap-1 absolute right-4 translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200 ease-out">

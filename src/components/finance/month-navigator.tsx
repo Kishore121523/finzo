@@ -337,23 +337,23 @@ export const MonthNavigator = memo(function MonthNavigator({
 
                 {/* Total */}
                 <div
-                  className="mt-3 md:mt-4 p-2.5 md:p-3 rounded-lg md:rounded-xl"
+                  className="mt-3 md:mt-4 p-2.5 md:p-3 rounded-lg md:rounded-xl flex items-center justify-between"
                   style={{ backgroundColor: `${getModalColor()}10` }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div>
                     <span className="text-xs md:text-sm text-white/60">
                       {modalType === 'all' ? 'Net Balance' : `Total ${getModalTitle()}`}
                     </span>
-                    <span className="text-base md:text-xl font-bold" style={{ color: getModalColor() }}>
-                      {modalType === 'all'
-                        ? formatCurrency(getModalTotal(), { showSign: true })
-                        : formatCurrency(getModalTotal())
-                      }
-                    </span>
+                    <p className="text-[10px] md:text-xs text-white/40 mt-0.5">
+                      {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
-                  <p className="text-[10px] md:text-xs text-white/40 mt-0.5 md:mt-1">
-                    {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
-                  </p>
+                  <span className="text-base md:text-xl font-bold" style={{ color: getModalColor() }}>
+                    {modalType === 'all'
+                      ? formatCurrency(getModalTotal(), { showSign: true })
+                      : formatCurrency(getModalTotal())
+                    }
+                  </span>
                 </div>
               </div>
 
@@ -459,7 +459,7 @@ export const MonthNavigator = memo(function MonthNavigator({
 
                               {/* Amount */}
                               <span className={`text-xs md:text-sm font-bold shrink-0 ${isIncome ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
-                                {isIncome ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                                {isIncome ? '+ ' : '- '}{formatCurrency(Math.abs(transaction.amount))}
                               </span>
                             </motion.div>
                           );
