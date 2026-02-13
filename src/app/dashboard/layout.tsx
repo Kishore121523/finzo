@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '@/components/layout/protected-route';
 import { ModeToggle } from '@/components/layout/mode-toggle';
 import { CurrencySelector } from '@/components/layout/currency-selector';
@@ -9,8 +10,9 @@ import { UserMenu } from '@/components/layout/user-menu';
 import { ModeProvider } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
-import { LogOut } from 'lucide-react';
+import { LogOut, Info } from 'lucide-react';
 import { FinzoLogo } from '@/components/layout/logo';
+import { OnboardingModal } from '@/components/onboarding/onboarding-modal';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -29,7 +31,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 }
 
 function DashboardNav() {
-  const { user, logout } = useAuth();
+  const { user, logout, hasSeenOnboarding, markOnboardingSeen } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, [hasSeenOnboarding]);
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    if (!hasSeenOnboarding) {
+      markOnboardingSeen();
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -40,6 +56,7 @@ function DashboardNav() {
   };
 
   return (
+    <>
     <nav className="border-b border-[#1F1F1F] bg-[#1E1E1E]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:py-4">
         {/* Left side - Logo + Mode Toggle (desktop only) */}
@@ -59,6 +76,17 @@ function DashboardNav() {
           {/* Currency & Notifications - visible on all sizes */}
           <CurrencySelector />
           <NotificationToggle />
+          <div className="relative group">
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#03DAC6]/15 text-[#03DAC6] transition-colors hover:bg-[#03DAC6]/25 cursor-pointer"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-[#2C2C2C] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              App guide
+            </span>
+          </div>
 
           {/* Mobile: User menu dropdown */}
           <div className="md:hidden">
@@ -92,5 +120,7 @@ function DashboardNav() {
         </div>
       </div>
     </nav>
+    <OnboardingModal open={showOnboarding} onClose={handleOnboardingClose} />
+    </>
   );
 }

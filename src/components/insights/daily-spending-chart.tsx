@@ -265,24 +265,59 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
           />
 
           {/* Data point dots — show on non-zero days */}
-          {points.map((pt, i) => {
-            if (dailyTotals[i] === 0) return null;
-            const isHovered = hoveredDay === i;
-            return (
-              <motion.circle
-                key={i}
-                cx={pt.x}
-                cy={pt.y}
-                r={isHovered ? sizes.dotRHover : sizes.dotR}
-                fill={accentColor}
-                stroke="#1E1E1E"
-                strokeWidth="2"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.25, delay: 0.8 + i * 0.01 }}
-              />
-            );
-          })}
+          {(() => {
+            const now = new Date();
+            const todayIndex = (now.getFullYear() === year && now.getMonth() === month)
+              ? now.getDate() - 1
+              : -1;
+
+            return points.map((pt, i) => {
+              if (dailyTotals[i] === 0) return null;
+              const isHovered = hoveredDay === i;
+              const isToday = i === todayIndex;
+              return (
+                <g key={i}>
+                  {/* Today's pulsing ring */}
+                  {isToday && (
+                    <>
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={sizes.dotRHover + 4}
+                        fill="none"
+                        stroke={accentColor}
+                        strokeWidth="1.5"
+                        opacity="0.3"
+                      >
+                        <animate attributeName="r" from={String(sizes.dotRHover + 2)} to={String(sizes.dotRHover + 8)} dur="1.5s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="0.4" to="0" dur="1.5s" repeatCount="indefinite" />
+                      </circle>
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={sizes.dotRHover + 2}
+                        fill="none"
+                        stroke={accentColor}
+                        strokeWidth="1"
+                        opacity="0.5"
+                      />
+                    </>
+                  )}
+                  <motion.circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r={isToday ? sizes.dotRHover : isHovered ? sizes.dotRHover : sizes.dotR}
+                    fill={isToday ? '#ffffff' : accentColor}
+                    stroke={isToday ? accentColor : '#1E1E1E'}
+                    strokeWidth={isToday ? 2.5 : 2}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.25, delay: 0.8 + i * 0.01 }}
+                  />
+                </g>
+              );
+            });
+          })()}
 
 
           {/* Hover indicator */}

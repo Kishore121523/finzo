@@ -8,6 +8,8 @@ import { auth, db } from '@/lib/firebase/config';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  hasSeenOnboarding: boolean;
+  markOnboardingSeen: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -17,15 +19,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          setHasSeenOnboarding(userDoc.data().hasSeenOnboarding ?? true);
+        }
+      } else {
+        setHasSeenOnboarding(true);
+      }
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
+
+  const markOnboardingSeen = async () => {
+    if (!user) return;
+    setHasSeenOnboarding(true);
+    await setDoc(doc(db, 'users', user.uid), { hasSeenOnboarding: true }, { merge: true });
+  };
 
   const signInWithGoogle = async () => {
     try {
@@ -44,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             displayName: result.user.displayName,
             photoURL: result.user.photoURL,
             emailNotifications: true,
+            hasSeenOnboarding: false,
             createdAt: new Date(),
           });
         } else {
@@ -71,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, hasSeenOnboarding, markOnboardingSeen, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
