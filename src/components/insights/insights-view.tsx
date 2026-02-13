@@ -562,15 +562,6 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                                       <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black" strokeWidth={3} />
                                     )}
                                   </button>
-                                  <div
-                                    className="w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full shrink-0 transition-shadow"
-                                    style={{
-                                      backgroundColor: cat.color,
-                                      boxShadow: hoveredCategory === cat.id
-                                        ? `0 0 16px ${cat.color}`
-                                        : `0 0 8px ${cat.color}40`
-                                    }}
-                                  />
                                   <span className="flex-1 text-[14px] sm:text-base text-white truncate">{cat.label}</span>
                                   <span className="px-1 sm:px-2 py-0.5 rounded-full bg-white/10 text-[8px] sm:text-[10px] text-white/50 font-medium tabular-nums">
                                     {cat.count} TXN
