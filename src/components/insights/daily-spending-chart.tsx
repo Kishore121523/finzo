@@ -421,7 +421,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
             <span className="text-[9px] text-white/30">
               {activeDays} active day{activeDays !== 1 ? 's' : ''}
               <span className="mx-1">|</span>
-              Progress: <span style={{ color: accentColor }} className="font-medium">{monthProgress.toFixed(1)}%</span>
+              Month Progress: <span style={{ color: accentColor }} className="font-medium">{monthProgress.toFixed(1)}%</span>
             </span>
           </div>
         </>
