@@ -572,7 +572,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                                   </span>
                                 </div>
                                 {/* Progress bar */}
-                                <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden ml-4.5 sm:ml-8">
+                                <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden ml-6 sm:ml-8">
                                   <motion.div
                                     className="h-full rounded-full"
                                     style={{ backgroundColor: cat.color }}
