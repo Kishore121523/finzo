@@ -36,7 +36,7 @@ export function GoogleSignInButton() {
     <button
       onClick={handleSignIn}
       disabled={loading}
-      className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#03DAC6] hover:bg-[#03DAC6]/90 disabled:bg-[#03DAC6]/50 text-black font-semibold rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer"
+      className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[var(--teal)] hover:bg-[var(--teal)]/90 disabled:bg-[var(--teal)]/50 text-[var(--text-inverse)] font-semibold rounded-xl transition-all duration-200 disabled:cursor-not-allowed cursor-pointer"
     >
       {loading ? (
         <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-600 rounded-full animate-spin" />

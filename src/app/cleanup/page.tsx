@@ -195,22 +195,22 @@ export default function CleanupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#121212] p-4">
-      <Card className="w-full max-w-md bg-[#1E1E1E] border-[#2C2C2C] p-6">
-        <h1 className="text-2xl font-bold text-white mb-2">Cleanup Recurring Transactions</h1>
-        <p className="text-white/50 text-sm mb-6">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--app-bg)] p-4">
+      <Card className="w-full max-w-md bg-[var(--surface)] border-[var(--border-main)] p-6">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Cleanup Recurring Transactions</h1>
+        <p className="text-[var(--text-muted)] text-sm mb-6">
           Remove duplicate entries created by the old generation logic
         </p>
 
         {!user ? (
-          <p className="text-white/60 mb-4">Please log in to use this tool</p>
+          <p className="text-[var(--text-secondary)] mb-4">Please log in to use this tool</p>
         ) : (
           <>
             <div className="space-y-3 mb-6">
               <Button
                 onClick={analyzeRecurringTransactions}
                 disabled={loading}
-                className="w-full bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black"
+                className="w-full bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-[var(--text-inverse)]"
               >
                 {loading ? 'Analyzing...' : '1. Analyze Recurring Transactions'}
               </Button>
@@ -219,7 +219,7 @@ export default function CleanupPage() {
                 <Button
                   onClick={cleanupDuplicates}
                   disabled={loading}
-                  className="w-full bg-[#BB86FC] hover:bg-[#BB86FC]/90 text-black"
+                  className="w-full bg-[var(--purple-color)] hover:bg-[var(--purple-color)]/90 text-[var(--text-inverse)]"
                 >
                   {loading ? 'Cleaning...' : `2. Remove ${stats.duplicates} Duplicates (Recommended)`}
                 </Button>
@@ -230,7 +230,7 @@ export default function CleanupPage() {
                   onClick={deleteAllRecurringTransactions}
                   disabled={loading}
                   variant="outline"
-                  className="w-full border-[#CF6679] text-[#CF6679] hover:bg-[#CF6679]/10"
+                  className="w-full border-[var(--expense-color)] text-[var(--expense-color)] hover:bg-[var(--expense-color)]/10"
                 >
                   {loading ? 'Deleting...' : 'Delete ALL Recurring (Nuclear Option)'}
                 </Button>
@@ -238,13 +238,13 @@ export default function CleanupPage() {
             </div>
 
             {message && (
-              <div className="p-4 rounded-xl bg-[#2C2C2C] border border-[#3C3C3C]">
-                <p className="text-white text-sm">{message}</p>
+              <div className="p-4 rounded-xl bg-[var(--surface-hover)] border border-[var(--border-secondary)]">
+                <p className="text-[var(--text-primary)] text-sm">{message}</p>
               </div>
             )}
 
-            <div className="mt-6 pt-6 border-t border-[#3C3C3C]">
-              <a href="/dashboard" className="text-[#BB86FC] hover:underline text-sm">
+            <div className="mt-6 pt-6 border-t border-[var(--border-secondary)]">
+              <a href="/dashboard" className="text-[var(--purple-color)] hover:underline text-sm">
                 ← Back to Dashboard
               </a>
             </div>

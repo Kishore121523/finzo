@@ -151,7 +151,7 @@ export default function DashboardPage() {
   const monthKey = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
 
   return (
-    <div className="flex h-[calc(100vh-57px-56px)] sm:h-[calc(100vh-57px-56px)] md:h-[calc(100vh-73px)] flex-col bg-[#121212] overflow-hidden">
+    <div className="flex h-[calc(100vh-57px-56px)] sm:h-[calc(100vh-57px-56px)] md:h-[calc(100vh-73px)] flex-col bg-[var(--app-bg)] overflow-hidden">
       <AnimatePresence mode="wait">
         {mode === 'finance' ? (
           <motion.div
@@ -173,7 +173,7 @@ export default function DashboardPage() {
               transactions={transactions}
             />
 
-            <div className="flex-1 overflow-hidden bg-[#121212] relative">
+            <div className="flex-1 overflow-hidden bg-[var(--app-bg)] relative">
               <AnimatePresence initial={false} custom={direction} mode="wait">
                 <motion.div
                   key={monthKey}
@@ -190,7 +190,7 @@ export default function DashboardPage() {
                       {/* Mobile skeleton */}
                       <div className="md:hidden p-4 space-y-2">
                         {[...Array(6)].map((_, i) => (
-                          <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[#1E1E1E] border border-[#2C2C2C]">
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border-main)]">
                             <div className="flex flex-col items-center gap-1 w-10">
                               <div className="skeleton h-3 w-7 rounded" />
                               <div className="skeleton h-5 w-8 rounded" />
@@ -250,7 +250,7 @@ export default function DashboardPage() {
             <Button
               onClick={handleAddTransaction}
               size="lg"
-              className={`fixed bottom-24 right-4 md:bottom-8 md:right-8 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-2xl bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black z-40 transition-opacity ${
+              className={`fixed bottom-24 right-4 md:bottom-8 md:right-8 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-2xl bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-[var(--text-inverse)] z-40 transition-opacity ${
                 isMobileBottomSheetOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : ''
               }`}
             >

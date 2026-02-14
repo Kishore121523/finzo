@@ -10,7 +10,9 @@ import { UserMenu } from '@/components/layout/user-menu';
 import { ModeProvider } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
-import { LogOut, Info } from 'lucide-react';
+import { LogOut, Info, Sun, Moon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 import { FinzoLogo } from '@/components/layout/logo';
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal';
 
@@ -19,7 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <ProtectedRoute>
       <CurrencyProvider>
         <ModeProvider>
-          <div className="flex min-h-screen flex-col bg-[#121212]">
+          <div className="flex min-h-screen flex-col bg-[var(--app-bg)]">
             <DashboardNav />
             <main className="flex-1 pb-16 md:pb-0">{children}</main>
             <BottomTabBar />
@@ -33,6 +35,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 function DashboardNav() {
   const { user, logout, hasSeenOnboarding, markOnboardingSeen } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!hasSeenOnboarding) {
@@ -55,15 +61,17 @@ function DashboardNav() {
     }
   };
 
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+
   return (
     <>
-    <nav className="border-b border-[#1F1F1F] bg-[#1E1E1E]">
+    <nav className="border-b border-[var(--border-main)] bg-[var(--surface)]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:py-4">
         {/* Left side - Logo + Mode Toggle (desktop only) */}
         <div className="flex items-center gap-3 md:gap-8">
           <div className="flex items-center gap-2">
             <FinzoLogo className="w-6 h-6 md:w-7 md:h-7" />
-            <h1 className="text-xl md:text-[1.5rem] font-bold text-white">Finzo</h1>
+            <h1 className="text-xl md:text-[1.5rem] font-bold text-[var(--text-primary)]">Finzo</h1>
           </div>
           {/* Mode toggle - hidden on mobile, shown on md and up */}
           <div className="hidden md:block">
@@ -75,21 +83,46 @@ function DashboardNav() {
         <div className="flex items-center gap-3 md:gap-4">
           {/* Currency & Notifications - visible on all sizes */}
           <CurrencySelector />
-          {/* Notification & Info - desktop only */}
+          {/* Notification & Info & Theme - desktop only */}
           <div className="hidden md:block">
             <NotificationToggle />
           </div>
           <div className="hidden md:block relative group">
             <button
               onClick={() => setShowOnboarding(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#03DAC6]/15 text-[#03DAC6] transition-colors hover:bg-[#03DAC6]/25 cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
             >
               <Info className="h-4 w-4" />
             </button>
-            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-[#2C2C2C] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               App guide
             </span>
           </div>
+          {/* Theme toggle - desktop only */}
+          {mounted && (
+            <div className="hidden md:block relative group">
+              <button
+                onClick={toggleTheme}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--fill-subtle-hover)] hover:text-[var(--text-primary)] cursor-pointer overflow-hidden"
+              >
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={theme}
+                    initial={{ y: -20, opacity: 0, rotate: -90 }}
+                    animate={{ y: 0, opacity: 1, rotate: 0 }}
+                    exit={{ y: 20, opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    className="flex items-center justify-center"
+                  >
+                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </motion.span>
+                </AnimatePresence>
+              </button>
+              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              </span>
+            </div>
+          )}
 
           {/* Mobile: User menu dropdown (includes notification toggle + app guide) */}
           <div className="md:hidden">
@@ -98,24 +131,24 @@ function DashboardNav() {
 
           {/* Desktop: User info + Logout */}
           <div className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2C2C2C] border border-[#3C3C3C]">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-hover)] border border-[var(--border-secondary)]">
               {user && (
-                <div className="w-5 h-5 rounded-full bg-[#03DAC6]/10 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-[#03DAC6]">
+                <div className="w-5 h-5 rounded-full bg-[var(--teal-bg)] flex items-center justify-center">
+                  <span className="text-xs font-semibold text-[var(--teal)]">
                     {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
-              <span className="text-[13px] text-white">{user?.displayName}</span>
+              <span className="text-[13px] text-[var(--text-primary)]">{user?.displayName}</span>
             </div>
             <div className="relative group">
               <button
                 onClick={handleSignOut}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
               </button>
-              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-[#2C2C2C] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 Sign out
               </span>
             </div>

@@ -29,8 +29,8 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#0A0A0A]">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#2C2C2C] border-t-[#03DAC6]"></div>
+      <div className="flex h-screen items-center justify-center bg-[var(--app-bg)]">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--surface-hover)] border-t-[var(--teal)]"></div>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="relative flex min-h-screen bg-[#0A0A0A] overflow-hidden">
+    <div className="relative flex min-h-screen bg-[var(--app-bg)] overflow-hidden">
       {/* Grid pattern overlay */}
       <div
         className="absolute inset-0 opacity-[0.02]"
@@ -108,10 +108,10 @@ export default function LoginPage() {
             className="text-center mb-4"
           >
             <FinzoLogo className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3" />
-            <h1 className="text-4xl md:text-5xl font-bold text-[#03DAC6] tracking-tight mb-1">
+            <h1 className="text-4xl md:text-5xl font-bold text-[var(--teal)] tracking-tight mb-1">
               Finzo
             </h1>
-            <h2 className="text-white/40 text-base md:text-lg font-normal">
+            <h2 className="text-[var(--text-muted)] text-base md:text-lg font-normal">
               Personal Finance Management Made Simple
             </h2>
           </motion.div>
@@ -121,26 +121,26 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-[#141414] border border-[#252525] rounded-2xl p-5 mb-6"
+            className="bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl p-5 mb-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-white/50 text-sm">Monthly Overview</span>
-              <span className="text-white/30 text-xs">Preview</span>
+              <span className="text-[var(--text-muted)] text-sm">Monthly Overview</span>
+              <span className="text-[var(--text-muted)] text-xs">Preview</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#1A1A1A] rounded-xl p-3">
+              <div className="bg-[var(--surface)] rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <ArrowUpRight className="w-4 h-4 text-[#03DAC6]" />
-                  <span className="text-white/40 text-xs">Income</span>
+                  <ArrowUpRight className="w-4 h-4 text-[var(--teal)]" />
+                  <span className="text-[var(--text-muted)] text-xs">Income</span>
                 </div>
-                <span className="text-white font-semibold">$4,250</span>
+                <span className="text-[var(--text-primary)] font-semibold">$4,250</span>
               </div>
-              <div className="bg-[#1A1A1A] rounded-xl p-3">
+              <div className="bg-[var(--surface)] rounded-xl p-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <ArrowDownRight className="w-4 h-4 text-[#CF6679]" />
-                  <span className="text-white/40 text-xs">Expenses</span>
+                  <ArrowDownRight className="w-4 h-4 text-[var(--expense-color)]" />
+                  <span className="text-[var(--text-muted)] text-xs">Expenses</span>
                 </div>
-                <span className="text-white font-semibold">$2,180</span>
+                <span className="text-[var(--text-primary)] font-semibold">$2,180</span>
               </div>
             </div>
           </motion.div>
@@ -168,10 +168,10 @@ export default function LoginPage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#141414] border border-[#252525]"
+                className="flex items-center gap-2 px-3 py-2 rounded-full bg-[var(--surface)] border border-[var(--border-main)]"
               >
                 <feature.icon className="w-3.5 h-3.5" style={{ color: feature.color }} />
-                <span className="text-xs text-white/60">{feature.label}</span>
+                <span className="text-xs text-[var(--text-secondary)]">{feature.label}</span>
               </motion.div>
             ))}
           </motion.div>

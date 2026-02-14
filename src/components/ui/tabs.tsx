@@ -43,7 +43,7 @@ export function TabsList({ children, className }: TabsListProps) {
   return (
     <div
       className={cn(
-        'inline-flex items-center justify-center rounded-xl bg-[#252525] p-1.5',
+        'inline-flex items-center justify-center rounded-xl bg-[var(--surface-elevated)] p-1.5',
         className
       )}
       role="tablist"
@@ -71,7 +71,7 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       onClick={() => onValueChange(value)}
       className={cn(
         'relative inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2.5 text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
-        'text-white/50 hover:text-white',
+        'text-[var(--text-muted)] hover:text-[var(--text-primary)]',
         className
       )}
     >
@@ -80,8 +80,8 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
           layoutId="active-tab"
           className="absolute inset-0 rounded-lg"
           style={{
-            backgroundColor: value === 'income' ? 'rgba(3, 218, 198, 0.15)' : 'rgba(207, 102, 121, 0.15)',
-            border: value === 'income' ? '1px solid rgba(3, 218, 198, 0.3)' : '1px solid rgba(207, 102, 121, 0.3)',
+            backgroundColor: value === 'income' ? 'var(--teal-bg)' : 'var(--expense-bg)',
+            border: value === 'income' ? '1px solid var(--teal-border)' : '1px solid var(--expense-border)',
           }}
           transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
         />
@@ -89,8 +89,8 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       <span
         className={cn(
           'relative z-10 transition-colors font-semibold',
-          isSelected && value === 'income' && 'text-[#03DAC6]',
-          isSelected && value === 'expense' && 'text-[#CF6679]'
+          isSelected && value === 'income' && 'text-[var(--teal)]',
+          isSelected && value === 'expense' && 'text-[var(--expense-color)]'
         )}
       >
         {children}

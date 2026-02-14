@@ -30,9 +30,9 @@ interface KanbanBoardProps {
 }
 
 const mobileTabConfig = [
-  { status: 'todo' as TaskStatus, label: 'To Pay', icon: Circle, color: '#ffffff', activeBg: 'bg-white/10', activeText: 'text-white' },
-  { status: 'in-progress' as TaskStatus, label: 'Processing', icon: Clock, color: '#03DAC6', activeBg: 'bg-[#03DAC6]/10', activeText: 'text-[#03DAC6]' },
-  { status: 'done' as TaskStatus, label: 'Paid', icon: CheckCircle2, color: '#4CAF50', activeBg: 'bg-[#4CAF50]/10', activeText: 'text-[#4CAF50]' },
+  { status: 'todo' as TaskStatus, label: 'To Pay', icon: Circle, color: '#ffffff', activeBg: 'bg-[var(--fill-subtle)]', activeText: 'text-[var(--text-primary)]' },
+  { status: 'in-progress' as TaskStatus, label: 'Processing', icon: Clock, color: 'var(--teal)', activeBg: 'bg-[var(--teal-bg)]', activeText: 'text-[var(--teal)]' },
+  { status: 'done' as TaskStatus, label: 'Paid', icon: CheckCircle2, color: 'var(--success-color)', activeBg: 'bg-[var(--success-color)]/10', activeText: 'text-[var(--success-color)]' },
 ];
 
 export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) {
@@ -211,17 +211,17 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
 
   if (loading) {
     return (
-      <div className="h-full bg-[#121212]">
+      <div className="h-full bg-[var(--app-bg)]">
         {/* Mobile skeleton */}
         <div className="sm:hidden flex flex-col h-full px-4 pt-3 pb-5">
-          <div className="flex gap-1 p-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] mb-3">
+          <div className="flex gap-1 p-1 bg-[var(--surface)] rounded-xl border border-[var(--border-main)] mb-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex-1 skeleton h-9 rounded-lg" />
             ))}
           </div>
-          <div className="flex-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] p-3 space-y-3">
+          <div className="flex-1 bg-[var(--surface)] rounded-xl border border-[var(--border-main)] p-3 space-y-3">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="bg-[#252525] rounded-lg border border-[#363636] p-3 space-y-2">
+              <div key={i} className="bg-[var(--surface-elevated)] rounded-lg border border-[var(--border-secondary)] p-3 space-y-2">
                 <div className="skeleton h-4 w-3/4 rounded" />
                 <div className="skeleton h-3 w-1/2 rounded" />
                 <div className="flex gap-2 mt-1">
@@ -241,9 +241,9 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                 <div className="skeleton h-4 w-20 rounded" />
                 <div className="skeleton h-5 w-8 rounded-full" />
               </div>
-              <div className="flex-1 bg-[#1E1E1E] rounded-2xl border border-[#2C2C2C] p-4 space-y-3">
+              <div className="flex-1 bg-[var(--surface)] rounded-2xl border border-[var(--border-main)] p-4 space-y-3">
                 {[0, 1, 2].map((card) => (
-                  <div key={card} className="bg-[#252525] rounded-xl border border-[#363636] p-4 space-y-2">
+                  <div key={card} className="bg-[var(--surface-elevated)] rounded-xl border border-[var(--border-secondary)] p-4 space-y-2">
                     <div className="skeleton h-4 w-3/4 rounded" />
                     <div className="skeleton h-3 w-1/2 rounded" />
                     <div className="flex gap-2 mt-1">
@@ -261,7 +261,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
   }
 
   return (
-    <div className="h-full bg-[#121212]">
+    <div className="h-full bg-[var(--app-bg)]">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -272,7 +272,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
           /* Mobile: Tabbed View */
           <div className="flex flex-col h-full px-4 pt-3 pb-5">
             {/* Tab Bar */}
-            <div className="flex gap-1 p-1 bg-[#1E1E1E] rounded-xl border border-[#2C2C2C] mb-3 shrink-0">
+            <div className="flex gap-1 p-1 bg-[var(--surface)] rounded-xl border border-[var(--border-main)] mb-3 shrink-0">
               {mobileTabConfig.map((tab) => {
                 const count = getTasksByStatus(tab.status).length;
                 const isActive = activeTab === tab.status;
@@ -284,7 +284,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all ${
                       isActive
                         ? `${tab.activeBg} ${tab.activeText}`
-                        : 'text-white/40'
+                        : 'text-[var(--text-muted)]'
                     }`}
                   >
                     <Icon
@@ -294,7 +294,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                     <span>{tab.label}</span>
                     <span
                       className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                        isActive ? 'bg-white/10 text-white/70' : 'text-white/30'
+                        isActive ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-faint)]'
                       }`}
                     >
                       {count}

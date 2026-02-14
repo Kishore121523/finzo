@@ -49,7 +49,7 @@ export function ConfirmDialog({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-full max-w-sm bg-[#1E1E1E] border border-[#2C2C2C] rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -57,15 +57,15 @@ export function ConfirmDialog({
               <div className="flex items-start gap-4">
                 <div className={`
                   w-12 h-12 rounded-full flex items-center justify-center shrink-0
-                  ${variant === 'danger' ? 'bg-[#CF6679]/10' : 'bg-[#FFB74D]/10'}
+                  ${variant === 'danger' ? 'bg-[var(--expense-color)]/10' : 'bg-[var(--warning-color)]/10'}
                 `}>
-                  <AlertTriangle className={`w-6 h-6 ${variant === 'danger' ? 'text-[#CF6679]' : 'text-[#FFB74D]'}`} />
+                  <AlertTriangle className={`w-6 h-6 ${variant === 'danger' ? 'text-[var(--expense-color)]' : 'text-[var(--warning-color)]'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-white mb-1">
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
                     {title}
                   </h3>
-                  <p className="text-sm text-white/50">
+                  <p className="text-sm text-[var(--text-muted)]">
                     {description}
                   </p>
                 </div>
@@ -79,7 +79,7 @@ export function ConfirmDialog({
                 variant="outline"
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 bg-transparent border-[#3C3C3C] text-white hover:bg-white/5 hover:text-white h-11 rounded-xl"
+                className="flex-1 bg-transparent border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--text-primary)] h-11 rounded-xl"
               >
                 {cancelText}
               </Button>
@@ -89,8 +89,8 @@ export function ConfirmDialog({
                 disabled={loading}
                 className={`flex-1 font-semibold h-11 rounded-xl ${
                   variant === 'danger'
-                    ? 'bg-[#CF6679] hover:bg-[#CF6679]/90 text-white'
-                    : 'bg-[#FFB74D] hover:bg-[#FFB74D]/90 text-black'
+                    ? 'bg-[var(--expense-color)] hover:bg-[var(--expense-color)]/90 text-[var(--text-inverse)]'
+                    : 'bg-[var(--warning-color)] hover:bg-[var(--warning-color)]/90 text-[var(--text-inverse)]'
                 }`}
               >
                 {loading ? 'Deleting...' : confirmText}

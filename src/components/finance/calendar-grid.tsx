@@ -128,13 +128,13 @@ export const CalendarGrid = memo(function CalendarGrid({
 
   return (
     <>
-      <div className="h-[65vh] sm:h-full flex flex-col p-3 sm:p-3 md:p-6 pb-6 sm:pb-8 md:pb-10 md:pt-3 bg-[#121212]">
+      <div className="h-[65vh] sm:h-full flex flex-col p-3 sm:p-3 md:p-6 pb-6 sm:pb-8 md:pb-10 md:pt-3 bg-[var(--app-bg)]">
         {/* Week day headers */}
         <div className="grid grid-cols-7 gap-1.5 sm:gap-1 md:gap-2 mb-1.5 sm:mb-2">
           {weekDays.map((day, index) => (
             <div
               key={day}
-              className="text-center text-[10px] sm:text-xs md:text-sm font-medium text-white/40 py-1 sm:py-2"
+              className="text-center text-[10px] sm:text-xs md:text-sm font-medium text-[var(--text-muted)] py-1 sm:py-2"
             >
               <span className="hidden sm:inline">{day}</span>
               <span className="sm:hidden">{day.charAt(0)}</span>
@@ -164,13 +164,13 @@ export const CalendarGrid = memo(function CalendarGrid({
                   ${day.isCurrentMonth
                     ? hasActivity
                       ? netAmount >= 0
-                        ? 'bg-[#1E1E1E] cursor-pointer border-[#03DAC6]/30'
-                        : 'bg-[#1E1E1E] cursor-pointer border-[#CF6679]/30'
-                      : 'bg-[#1E1E1E] cursor-pointer border-[#2C2C2C]'
-                    : 'bg-[#0a0a0a]/50 cursor-default border-transparent'
+                        ? 'bg-[var(--surface)] cursor-pointer border-[var(--teal-border)]'
+                        : 'bg-[var(--surface)] cursor-pointer border-[var(--expense-color)]/30'
+                      : 'bg-[var(--surface)] cursor-pointer border-[var(--border-main)]'
+                    : 'bg-[var(--app-bg)]/50 cursor-default border-transparent'
                   }
                   ${''}
-                  ${hasActivity && day.isCurrentMonth ? 'sm:hover:scale-[1.02] hover:shadow-lg hover:shadow-black/30' : ''}
+                  ${hasActivity && day.isCurrentMonth ? 'sm:hover:scale-[1.01] hover:shadow-sm' : ''}
                 `}
               >
                 {/* Mobile: Compact layout with date and net amount */}
@@ -178,9 +178,9 @@ export const CalendarGrid = memo(function CalendarGrid({
                   {/* Date at top */}
                   <span className={`
                     text-[11px] font-bold
-                    ${isToday(day.date) ? 'bg-[#03DAC6] text-black w-5 h-5 rounded-full flex items-center justify-center' : ''}
-                    ${!isToday(day.date) && day.isCurrentMonth ? 'text-white' : ''}
-                    ${!isToday(day.date) && !day.isCurrentMonth ? 'text-white/20' : ''}
+                    ${isToday(day.date) ? 'bg-[var(--teal)] text-[var(--text-inverse)] w-5 h-5 rounded-full flex items-center justify-center' : ''}
+                    ${!isToday(day.date) && day.isCurrentMonth ? 'text-[var(--text-primary)]' : ''}
+                    ${!isToday(day.date) && !day.isCurrentMonth ? 'text-[var(--text-faint)]' : ''}
                   `}>
                     {format(day.date, 'd')}
                   </span>
@@ -189,9 +189,9 @@ export const CalendarGrid = memo(function CalendarGrid({
                   {hasActivity && day.isCurrentMonth ? (
                     <div className="flex flex-col items-center">
                       {day.hasOverdue && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF5252] animate-pulse mb-0.5" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--error-color)] animate-pulse mb-0.5" />
                       )}
-                      <span className={`text-[9px] font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                      <span className={`text-[9px] font-bold ${netAmount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                         {netAmount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(netAmount), { compact: true })}
                       </span>
                     </div>
@@ -207,18 +207,18 @@ export const CalendarGrid = memo(function CalendarGrid({
                     <div className="flex items-center gap-1">
                       <span className={`
                         text-sm md:text-base font-bold
-                        ${isToday(day.date) ? 'bg-[#03DAC6] text-black w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center' : ''}
-                        ${!isToday(day.date) && day.isCurrentMonth ? 'text-white' : ''}
-                        ${!isToday(day.date) && !day.isCurrentMonth ? 'text-white/20' : ''}
+                        ${isToday(day.date) ? 'bg-[var(--teal)] text-[var(--text-inverse)] w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center' : ''}
+                        ${!isToday(day.date) && day.isCurrentMonth ? 'text-[var(--text-primary)]' : ''}
+                        ${!isToday(day.date) && !day.isCurrentMonth ? 'text-[var(--text-faint)]' : ''}
                       `}>
                         {format(day.date, 'd')}
                       </span>
                       {day.hasOverdue && day.isCurrentMonth && (
-                        <span className="w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-[var(--error-color)] animate-pulse" />
                       )}
                     </div>
                     {hasActivity && day.isCurrentMonth && (
-                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-[9px] md:text-[10px] text-white/50 font-medium">
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--fill-subtle)] text-[9px] md:text-[10px] text-[var(--text-secondary)] font-medium">
                         {day.transactions.length} txn
                       </span>
                     )}
@@ -227,7 +227,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                   {/* Net amount — pushed down */}
                   {hasActivity && day.isCurrentMonth ? (
                     <div className="flex-1 flex items-end justify-center">
-                      <span className={`text-base md:text-lg font-bold ${netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                      <span className={`text-base md:text-lg font-bold ${netAmount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                         {netAmount >= 0 ? '+ ' : '- '}{formatCurrency(Math.abs(netAmount), { compact: true })}
                       </span>
                     </div>
@@ -239,8 +239,8 @@ export const CalendarGrid = memo(function CalendarGrid({
                 {/* Hover add button - only on non-touch devices */}
                 {day.isCurrentMonth && (
                   <div className="absolute inset-0 hidden sm:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute inset-0 bg-[#2C2C2C]/65 rounded-xl" />
-                    <Plus className="relative z-10 w-6 h-6 md:w-7 md:h-7 text-[#03DAC6]" />
+                    <div className="absolute inset-0 bg-[var(--surface-hover)]/65 rounded-xl" />
+                    <Plus className="relative z-10 w-6 h-6 md:w-7 md:h-7 text-[var(--teal)]" />
                   </div>
                 )}
               </motion.button>
@@ -264,17 +264,17 @@ export const CalendarGrid = memo(function CalendarGrid({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-lg bg-[#1E1E1E] border border-[#2C2C2C] rounded-2xl shadow-2xl overflow-hidden"
+              className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="p-5 md:p-6 border-b border-[#2C2C2C]">
+              <div className="p-5 md:p-6 border-b border-[var(--border-main)]">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-white">
+                    <h3 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
                       {format(selectedDay.date, 'EEEE')}
                     </h3>
-                    <p className="text-white/50 text-sm mt-1">
+                    <p className="text-[var(--text-secondary)] text-sm mt-1">
                       {format(selectedDay.date, 'MMMM d, yyyy')}
                     </p>
                   </div>
@@ -282,21 +282,21 @@ export const CalendarGrid = memo(function CalendarGrid({
 
                 {/* Day summary */}
                 <div className="flex gap-4 mt-5">
-                  <div className="flex-1 border border-[#03DAC6]/20 rounded-xl p-4">
+                  <div className="flex-1 border border-[var(--teal-border)] rounded-xl p-4">
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-[#03DAC6]" />
-                      <span className="text-xs text-white/60">Income</span>
+                      <TrendingUp className="w-4 h-4 text-[var(--teal)]" />
+                      <span className="text-xs text-[var(--text-secondary)]">Income</span>
                     </div>
-                    <p className="text-xl md:text-2xl font-bold text-[#03DAC6] mt-2">
+                    <p className="text-xl md:text-2xl font-bold text-[var(--teal)] mt-2">
                       {formatCurrency(selectedDay.income)}
                     </p>
                   </div>
-                  <div className="flex-1 border border-[#CF6679]/20 rounded-xl p-4">
+                  <div className="flex-1 border border-[var(--expense-color)]/20 rounded-xl p-4">
                     <div className="flex items-center gap-2">
-                      <TrendingDown className="w-4 h-4 text-[#CF6679]" />
-                      <span className="text-xs text-white/60">Expense</span>
+                      <TrendingDown className="w-4 h-4 text-[var(--expense-color)]" />
+                      <span className="text-xs text-[var(--text-secondary)]">Expense</span>
                     </div>
-                    <p className="text-xl md:text-2xl font-bold text-[#CF6679] mt-2">
+                    <p className="text-xl md:text-2xl font-bold text-[var(--expense-color)] mt-2">
                       {formatCurrency(selectedDay.expense)}
                     </p>
                   </div>
@@ -307,13 +307,13 @@ export const CalendarGrid = memo(function CalendarGrid({
               <div className="p-5 md:p-6 max-h-[350px] overflow-y-auto scrollbar-hide">
                 {selectedDay.transactions.length === 0 ? (
                   <div className="text-center py-2">
-                    <p className="text-white/40 mb-4">No transactions for this day</p>
+                    <p className="text-[var(--text-muted)] mb-4">No transactions for this day</p>
                     <Button
                       onClick={() => {
                         onAddForDate(selectedDay.date);
                         setSelectedDay(null);
                       }}
-                      className="bg-[#03DAC6] hover:bg-[#03DAC6]/80 text-black"
+                      className="bg-[var(--teal)] hover:bg-[var(--teal)]/80 text-[var(--text-inverse)]"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Add Transaction
@@ -331,10 +331,10 @@ export const CalendarGrid = memo(function CalendarGrid({
                         transition={{ delay: index * 0.05 }}
                         className={`
                           relative flex items-center justify-between p-4 rounded-xl
-                          group hover:bg-[#2C2C2C] transition-colors overflow-hidden
+                          group hover:bg-[var(--surface-hover)] transition-colors overflow-hidden
                           ${isOverdue
-                            ? 'bg-[#FF5252]/10 border border-[#FF5252]/40'
-                            : 'bg-[#2C2C2C]/50 border border-[#3C3C3C]'
+                            ? 'bg-[var(--error-color)]/10 border border-[var(--error-color)]/40'
+                            : 'bg-[var(--surface-hover)]/50 border border-[var(--border-secondary)]'
                           }
                         `}
                       >
@@ -342,27 +342,27 @@ export const CalendarGrid = memo(function CalendarGrid({
                           <div className={`
                             w-8 h-8 rounded-lg flex items-center justify-center shrink-0
                             ${isOverdue
-                              ? 'bg-[#FF5252]/20'
-                              : transaction.amount >= 0 ? 'bg-[#03DAC6]/10' : 'bg-[#CF6679]/10'
+                              ? 'bg-[var(--error-color)]/20'
+                              : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
                             }
                           `}>
                             {isOverdue ? (
-                              <AlertCircle className="w-4 h-4 text-[#FF5252]" />
+                              <AlertCircle className="w-4 h-4 text-[var(--error-color)]" />
                             ) : transaction.isRecurring ? (
-                              <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`} />
+                              <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
                             ) : transaction.amount >= 0 ? (
-                              <TrendingUp className="w-4 h-4 text-[#03DAC6]" />
+                              <TrendingUp className="w-4 h-4 text-[var(--teal)]" />
                             ) : (
-                              <TrendingDown className="w-4 h-4 text-[#CF6679]" />
+                              <TrendingDown className="w-4 h-4 text-[var(--expense-color)]" />
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-white truncate">
+                              <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                                 {transaction.description}
                               </p>
                               {isOverdue && (
-                                <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[#FF5252] text-white rounded">
+                                <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[var(--error-color)] text-[var(--text-primary)] rounded">
                                   Overdue
                                 </span>
                               )}
@@ -373,7 +373,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                                   className="w-2 h-2 rounded-full shrink-0"
                                   style={{ backgroundColor: getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').color }}
                                 />
-                                <span className="text-xs text-white/50 truncate">
+                                <span className="text-xs text-[var(--text-secondary)] truncate">
                                   {getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').label}
                                 </span>
                               </div>
@@ -384,7 +384,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                           <span className={`
                             text-sm font-semibold whitespace-nowrap transition-transform duration-200 ease-out
                             group-hover:-translate-x-16
-                            ${transaction.amount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}
+                            ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}
                           `}>
                             {transaction.amount >= 0 ? '+ ' : '- '}
                             {formatCurrency(Math.abs(transaction.amount))}
@@ -395,13 +395,13 @@ export const CalendarGrid = memo(function CalendarGrid({
                                 onEdit(transaction);
                                 setSelectedDay(null);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteClick(transaction)}
-                              className="p-1.5 rounded-lg hover:bg-white/10 text-[#CF6679] hover:text-[#CF6679]/80 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] hover:text-[var(--expense-color)]/80 transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -416,13 +416,13 @@ export const CalendarGrid = memo(function CalendarGrid({
 
               {/* Footer */}
               {selectedDay.transactions.length > 0 && (
-                <div className="p-5 md:p-6 border-t border-[#2C2C2C]">
+                <div className="p-5 md:p-6 border-t border-[var(--border-main)]">
                   <Button
                     onClick={() => {
                       onAddForDate(selectedDay.date);
                       setSelectedDay(null);
                     }}
-                    className="w-full bg-[#03DAC6] hover:bg-[#03DAC6]/80 text-black py-3"
+                    className="w-full bg-[var(--teal)] hover:bg-[var(--teal)]/80 text-[var(--text-inverse)] py-3"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Transaction
@@ -452,19 +452,19 @@ export const CalendarGrid = memo(function CalendarGrid({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-md bg-[#1E1E1E] border border-[#2C2C2C] rounded-2xl shadow-2xl overflow-hidden"
+              className="w-full max-w-md bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-5 md:p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#CF6679]/10 flex items-center justify-center shrink-0">
-                    <Trash2 className="w-6 h-6 text-[#CF6679]" />
+                  <div className="w-12 h-12 rounded-full bg-[var(--expense-color)]/10 flex items-center justify-center shrink-0">
+                    <Trash2 className="w-6 h-6 text-[var(--expense-color)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-white mb-1">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
                       Delete Transaction
                     </h3>
-                    <p className="text-sm text-white/50">
+                    <p className="text-sm text-[var(--text-secondary)]">
                       {transactionToDelete.isRecurring
                         ? 'This is a recurring transaction. Do you want to delete just this month or all occurrences?'
                         : 'Are you sure you want to delete this transaction? This action cannot be undone.'}
@@ -478,13 +478,13 @@ export const CalendarGrid = memo(function CalendarGrid({
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handleConfirmDelete(false)}
-                      className="flex-1 bg-[#2C2C2C] border border-[#3C3C3C] text-white/90 hover:bg-[#3C3C3C] hover:text-white h-12 rounded-xl transition-all duration-200"
+                      className="flex-1 bg-[var(--surface-hover)] border border-[var(--border-secondary)] text-[var(--text-primary)]/90 hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] h-12 rounded-xl transition-all duration-200"
                     >
                       This Month
                     </Button>
                     <Button
                       onClick={() => handleConfirmDelete(true)}
-                      className="flex-1 bg-[#CF6679] hover:bg-[#CF6679]/80 text-white font-semibold h-12 rounded-xl transition-all duration-200"
+                      className="flex-1 bg-[var(--expense-color)] hover:bg-[var(--expense-color)]/80 text-(--text-primary) font-semibold h-12 rounded-xl transition-all duration-200"
                     >
                       All Occurrences
                     </Button>
@@ -492,7 +492,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                 ) : (
                   <Button
                     onClick={() => handleConfirmDelete(false)}
-                    className="w-full bg-[#CF6679] hover:bg-[#CF6679]/80 text-white font-semibold h-12 rounded-xl transition-all duration-200"
+                    className="w-full bg-[var(--expense-color)] hover:bg-[var(--expense-color)]/80 text-[var(--text-primary)] font-semibold h-12 rounded-xl transition-all duration-200"
                   >
                     Delete
                   </Button>
@@ -502,7 +502,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                     setDeleteConfirmOpen(false);
                     setTransactionToDelete(null);
                   }}
-                  className="w-full bg-[#252525] border border-[#3C3C3C] text-white/50 hover:text-white hover:bg-[#2C2C2C] h-11 rounded-xl transition-all duration-200"
+                  className="w-full bg-[var(--surface-elevated)] border border-[var(--border-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] h-11 rounded-xl transition-all duration-200"
                 >
                   Cancel
                 </Button>

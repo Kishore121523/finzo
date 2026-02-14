@@ -71,17 +71,17 @@ export function AddToCalendarModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#1E1E1E] border-[#2C2C2C] text-white max-w-[92vw] sm:max-w-md p-0 gap-0 rounded-xl sm:rounded-2xl overflow-hidden" showCloseButton={false}>
-        <DialogHeader className="p-4 sm:p-5 md:p-6 border-b border-[#2C2C2C]">
+      <DialogContent className="bg-[var(--surface)] border-[var(--border-main)] text-[var(--text-primary)] max-w-[92vw] sm:max-w-md p-0 gap-0 rounded-xl sm:rounded-2xl overflow-hidden" showCloseButton={false}>
+        <DialogHeader className="p-4 sm:p-5 md:p-6 border-b border-[var(--border-main)]">
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[#03DAC6]/20 flex items-center justify-center">
-              <CalendarPlus className="h-4 w-4 sm:h-5 sm:w-5 text-[#03DAC6]" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[var(--teal-bg)] flex items-center justify-center">
+              <CalendarPlus className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--teal)]" />
             </div>
             <div>
-              <DialogTitle className="text-lg sm:text-xl font-bold text-white">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">
                 Add to Calendar
               </DialogTitle>
-              <p className="text-xs sm:text-sm text-white/50 mt-0.5">
+              <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
                 Record this expense in your calendar
               </p>
             </div>
@@ -93,30 +93,30 @@ export function AddToCalendarModal({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[#252525] border border-[#363636]"
+            className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[var(--surface-elevated)] border border-[var(--border-secondary)]"
           >
             <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-md sm:rounded-lg bg-[#FF5252]/20 flex items-center justify-center shrink-0">
-                <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF5252]" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-md sm:rounded-lg bg-[var(--error-color)]/20 flex items-center justify-center shrink-0">
+                <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-[var(--error-color)]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm sm:text-base text-white truncate">{task.title}</p>
+                <p className="font-medium text-sm sm:text-base text-[var(--text-primary)] truncate">{task.title}</p>
                 {task.description && (
-                  <p className="text-[10px] sm:text-xs text-white/50 truncate">{task.description}</p>
+                  <p className="text-[10px] sm:text-xs text-[var(--text-muted)] truncate">{task.description}</p>
                 )}
               </div>
               <div className="text-right">
-                <p className="font-bold text-sm sm:text-base text-[#FF5252]">
+                <p className="font-bold text-sm sm:text-base text-[var(--error-color)]">
                   -{formatCurrency(task.amount || 0)}
                 </p>
-                <p className="text-[9px] sm:text-[10px] text-white/40 uppercase">Expense</p>
+                <p className="text-[9px] sm:text-[10px] text-[var(--text-muted)] uppercase">Expense</p>
               </div>
             </div>
           </motion.div>
 
           {/* Date Picker */}
           <div className="space-y-1.5 sm:space-y-2">
-            <Label className="text-xs sm:text-sm font-medium text-white/70">
+            <Label className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
               Select Date
             </Label>
             <CompactDatePicker
@@ -127,7 +127,7 @@ export function AddToCalendarModal({
 
           {/* Category Selector */}
           <div className="space-y-1.5 sm:space-y-2">
-            <Label className="text-xs sm:text-sm font-medium text-white/70">
+            <Label className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
               Category
             </Label>
             <CategorySelect
@@ -139,19 +139,19 @@ export function AddToCalendarModal({
           </div>
         </div>
 
-        <DialogFooter className="p-4 sm:p-5 md:p-6 border-t border-[#2C2C2C] flex gap-2 sm:gap-3">
+        <DialogFooter className="p-4 sm:p-5 md:p-6 border-t border-[var(--border-main)] flex gap-2 sm:gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={handleClose}
-            className="flex-1 bg-transparent border-[#3C3C3C] text-white hover:bg-white/5 hover:text-white h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
+            className="flex-1 bg-transparent border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--text-primary)] h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={loading}
-            className="flex-1 bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black font-semibold h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
+            className="flex-1 bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-[var(--text-inverse)] font-semibold h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
           >
             {loading ? 'Adding...' : 'Add to Calendar'}
           </Button>

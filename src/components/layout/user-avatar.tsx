@@ -28,7 +28,7 @@ export function UserAvatar({ user, size = 32, className = '' }: UserAvatarProps)
   if (!user.photoURL || imageError) {
     return (
       <div
-        className={`flex items-center justify-center rounded-full bg-[#BB86FC] text-black font-semibold ${className}`}
+        className={`flex items-center justify-center rounded-full bg-[var(--purple-color)] text-[var(--text-inverse)] font-semibold ${className}`}
         style={{ width: size, height: size, fontSize: size * 0.5 }}
       >
         {getInitial()}

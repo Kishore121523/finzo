@@ -145,9 +145,9 @@ export function TransactionForm({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#1E1E1E] border-[#2C2C2C] text-white max-w-[92vw] sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl sm:rounded-2xl" showCloseButton={false}>
-        <DialogHeader className="p-4 sm:p-5 md:p-6 border-b border-[#2C2C2C]">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
+      <DialogContent className="bg-[var(--surface)] border-[var(--border-main)] text-[var(--text-primary)] max-w-[92vw] sm:max-w-lg p-0 gap-0 overflow-hidden rounded-xl sm:rounded-2xl" showCloseButton={false}>
+        <DialogHeader className="p-4 sm:p-5 md:p-6 border-b border-[var(--border-main)]">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-[var(--text-primary)]">
             {transaction ? 'Edit Transaction' : 'Add Transaction'}
           </DialogTitle>
         </DialogHeader>
@@ -155,42 +155,42 @@ export function TransactionForm({
           <div className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
             {/* Transaction Type Tabs */}
             <Tabs value={transactionType} onValueChange={(value) => handleTransactionTypeChange(value as 'income' | 'expense')}>
-              <TabsList className="grid w-full grid-cols-2 bg-[#252525] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
+              <TabsList className="grid w-full grid-cols-2 bg-[var(--surface-elevated)] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
                 <TabsTrigger value="income" className="text-xs sm:text-sm">Income</TabsTrigger>
                 <TabsTrigger value="expense" className="text-xs sm:text-sm">Expense</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <div className="space-y-1 sm:space-y-1.5">
-              <Label htmlFor="description" className="text-white/70 text-xs sm:text-sm">Description</Label>
+              <Label htmlFor="description" className="text-[var(--text-secondary)] text-xs sm:text-sm">Description</Label>
               <Input
                 id="description"
                 {...register('description')}
                 placeholder={transactionType === 'income' ? 'e.g., Salary, Freelance work' : 'e.g., Grocery shopping'}
-                className="bg-[#252525] border-[#363636] text-white placeholder:text-white/40 focus:ring-0 focus:border-[#4C4C4C] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
+                className="bg-[var(--surface-elevated)] border-[var(--border-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-0 focus:border-[var(--border-secondary)] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base"
               />
               {errors.description && (
-                <p className="text-xs sm:text-sm text-[#CF6679] mt-1">{errors.description.message}</p>
+                <p className="text-xs sm:text-sm text-[var(--expense-color)] mt-1">{errors.description.message}</p>
               )}
             </div>
 
             <div className="space-y-1 sm:space-y-1.5">
-              <Label htmlFor="amount" className="text-white/70 text-xs sm:text-sm">Amount</Label>
+              <Label htmlFor="amount" className="text-[var(--text-secondary)] text-xs sm:text-sm">Amount</Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
                 {...register('amount', { valueAsNumber: true })}
                 placeholder="Enter amount"
-                className="bg-[#252525] border-[#363636] text-white placeholder:text-white/40 focus:ring-0 focus:border-[#4C4C4C] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="bg-[var(--surface-elevated)] border-[var(--border-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:ring-0 focus:border-[var(--border-secondary)] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               {errors.amount && (
-                <p className="text-xs sm:text-sm text-[#CF6679] mt-1">{errors.amount.message}</p>
+                <p className="text-xs sm:text-sm text-[var(--expense-color)] mt-1">{errors.amount.message}</p>
               )}
             </div>
 
             <div className="space-y-1 sm:space-y-1.5">
-              <Label htmlFor="date" className="text-white/70 text-xs sm:text-sm">Date</Label>
+              <Label htmlFor="date" className="text-[var(--text-secondary)] text-xs sm:text-sm">Date</Label>
               <Input
                 id="date"
                 type="date"
@@ -199,16 +199,16 @@ export function TransactionForm({
                   setDateValue(e.target.value);
                   setValue('date', new Date(e.target.value));
                 }}
-                className="bg-[#252525] border-[#363636] text-white focus:ring-0 focus:border-[#4C4C4C] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base scheme-dark"
+                className="bg-[var(--surface-elevated)] border-[var(--border-secondary)] text-[var(--text-primary)] focus:ring-0 focus:border-[var(--border-secondary)] focus-visible:ring-0 focus-visible:ring-offset-0 h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base scheme-dark"
               />
               {errors.date && (
-                <p className="text-xs sm:text-sm text-[#CF6679] mt-1">{errors.date.message}</p>
+                <p className="text-xs sm:text-sm text-[var(--expense-color)] mt-1">{errors.date.message}</p>
               )}
             </div>
 
             {/* Category Selector */}
             <div className="space-y-1 sm:space-y-1.5">
-              <Label htmlFor="category" className="text-white/70 text-xs sm:text-sm">Category</Label>
+              <Label htmlFor="category" className="text-[var(--text-secondary)] text-xs sm:text-sm">Category</Label>
               <CategorySelect
                 value={category}
                 onValueChange={(value) => {
@@ -230,36 +230,36 @@ export function TransactionForm({
                 relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg sm:rounded-xl cursor-pointer
                 transition-all duration-200 border sm:mt-5
                 ${isRecurring
-                  ? 'bg-[#03DAC6]/10 border-[#03DAC6]/40'
-                  : 'bg-[#252525] border-[#363636] hover:border-[#4C4C4C]'
+                  ? 'bg-[var(--teal-bg)] border-[var(--teal-border)]'
+                  : 'bg-[var(--surface-elevated)] border-[var(--border-secondary)] hover:border-[var(--border-secondary)]'
                 }
               `}
             >
               <div className={`
                 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl
                 transition-colors duration-200
-                ${isRecurring ? 'bg-[#03DAC6]/20' : 'bg-[#1E1E1E]'}
+                ${isRecurring ? 'bg-[var(--teal-bg)]' : 'bg-[var(--surface)]'}
               `}>
                 <RefreshCw className={`
                   h-4 w-4 sm:h-5 sm:w-5 transition-colors duration-200
-                  ${isRecurring ? 'text-[#03DAC6]' : 'text-white/40'}
+                  ${isRecurring ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'}
                 `} />
               </div>
               <div className="flex-1">
-                <p className={`font-medium text-xs sm:text-sm transition-colors duration-200 ${isRecurring ? 'text-white' : 'text-white/70'}`}>
+                <p className={`font-medium text-xs sm:text-sm transition-colors duration-200 ${isRecurring ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                   Recurring Transaction
                 </p>
-                <p className="text-[10px] sm:text-xs text-white/40 mt-0.5">
+                <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5">
                   Repeats on this day every month
                 </p>
               </div>
               {/* Toggle Switch */}
               <div className={`
                 relative w-10 h-6 sm:w-12 sm:h-7 rounded-full transition-colors duration-200
-                ${isRecurring ? 'bg-[#03DAC6]' : 'bg-[#3C3C3C]'}
+                ${isRecurring ? 'bg-[var(--teal)]' : 'bg-[var(--border-secondary)]'}
               `}>
                 <div className={`
-                  absolute top-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white shadow-md
+                  absolute top-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[var(--text-primary)] shadow-md
                   transition-all duration-200 ease-out
                   ${isRecurring ? 'left-5 sm:left-6' : 'left-1'}
                 `} />
@@ -267,11 +267,11 @@ export function TransactionForm({
             </div>
           </div>
 
-          <DialogFooter className="p-4 sm:p-5 md:p-6 border-t border-[#2C2C2C] flex gap-2 sm:gap-3">
-            <Button type="button" variant="outline" onClick={handleClose} className="flex-1 bg-transparent border-[#3C3C3C] text-white hover:bg-white/5 hover:text-white h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base">
+          <DialogFooter className="p-4 sm:p-5 md:p-6 border-t border-[var(--border-main)] flex gap-2 sm:gap-3">
+            <Button type="button" variant="outline" onClick={handleClose} className="flex-1 bg-transparent border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--text-primary)] h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base">
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1 bg-[#03DAC6] hover:bg-[#03DAC6]/90 text-black font-semibold h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base">
+            <Button type="submit" disabled={loading} className="flex-1 bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-[var(--text-inverse)] font-semibold h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base">
               {loading ? 'Saving...' : transaction ? 'Update' : 'Add Transaction'}
             </Button>
           </DialogFooter>

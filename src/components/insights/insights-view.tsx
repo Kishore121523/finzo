@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useTransactions } from '@/lib/hooks/use-transactions';
@@ -12,7 +12,7 @@ import {
   DEFAULT_EXPENSE_CATEGORY,
   DEFAULT_INCOME_CATEGORY,
 } from '@/lib/constants/categories';
-import { TrendingDown, TrendingUp, Receipt, ChevronLeft, ChevronRight, ArrowLeft, Check } from 'lucide-react';
+import { TrendingDown, TrendingUp, ChevronLeft, ChevronRight, ArrowLeft, Check, LucideReceiptText } from 'lucide-react';
 
 import { addMonths, subMonths, startOfMonth } from 'date-fns';
 import { DailySpendingChart } from './daily-spending-chart';
@@ -264,14 +264,18 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
   };
 
   const monthName = insightsDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-  const themeColor = viewType === 'expense' ? '#FF6B6B' : '#10B981';
+
+  // CSS var name for the current view type — matches calendar tab:
+  // income = --teal, expense = --expense-color (no hardcoded hex values)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const themeColorVar = viewType === 'expense' ? '--expense-color' : '--teal';
 
   return (
-    <div className="flex flex-col h-full bg-[#121212] overflow-hidden">
+    <div ref={containerRef} className="flex flex-col h-full bg-[var(--app-bg)] overflow-hidden">
       {/* Type Toggle - Top */}
       <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
         <Tabs value={viewType} onValueChange={handleViewTypeChange}>
-          <TabsList className="grid w-full grid-cols-2 bg-[#252525] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
+          <TabsList className="grid w-full grid-cols-2 bg-[var(--surface-elevated)] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
             <TabsTrigger value="expense" className="text-xs sm:text-sm gap-1.5">
               Expenses
             </TabsTrigger>
@@ -283,37 +287,35 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
       </div>
 
       {/* Main Content - Scrollable on mobile, overflow-hidden on desktop */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-6 pb-8 md:pb-6 scrollbar-hide " style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto px-2 sm:px-6 pb-8 md:pb-6 lg:py-8 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
         {categoryData.total === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
+            <div className="w-20 h-20 rounded-full bg-[var(--fill-subtle)] flex items-center justify-center mb-4">
               {viewType === 'expense' ? (
-                <TrendingDown className="h-10 w-10 text-white/20" />
+                <TrendingDown className="h-10 w-10 text-[var(--text-faint)]" />
               ) : (
-                <TrendingUp className="h-10 w-10 text-white/20" />
+                <TrendingUp className="h-10 w-10 text-[var(--text-faint)]" />
               )}
             </div>
-            <p className="text-base text-white/40 mb-1">No {viewType === 'expense' ? 'expenses' : 'income'} yet</p>
+            <p className="text-base text-[var(--text-muted)] mb-1">No {viewType === 'expense' ? 'expenses' : 'income'} yet</p>
             <div className="flex items-center gap-2 mt-2">
               <button
                 onClick={handlePreviousMonth}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <span className="text-sm text-white/30">{monthName}</span>
+              <span className="text-sm text-[var(--text-muted)]">{monthName}</span>
               <button
                 onClick={handleNextMonth}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center w-full">
-            {/* Centering wrapper — gives the original vertical space on desktop */}
-            <div className="flex flex-col items-center w-full lg:min-h-[calc(100vh-250px)] lg:justify-center lg:px-4">
+          <div className="flex flex-col items-center w-full lg:h-full lg:justify-evenly lg:px-4 lg:gap-8">
               {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
               <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
               {/* Pie Chart */}
@@ -351,12 +353,12 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                   </g>
 
                   {/* Center fill */}
-                  <circle cx="50" cy="50" r="25.5" fill="#121212" />
+                  <circle cx="50" cy="50" r="25.5" fill="var(--app-bg)" />
                 </svg>
 
                 {/* Center content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-                  <span className="text-[10px] sm:text-base text-white/40 uppercase tracking-wider mb-0.5 sm:mb-1">
+                  <span className="text-[10px] sm:text-base text-[var(--text-muted)] uppercase tracking-wider mb-0.5 sm:mb-1">
                     Total
                   </span>
                   <AnimatePresence mode="wait">
@@ -367,7 +369,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
                       className="text-lg sm:text-4xl font-bold"
-                      style={{ color: themeColor }}
+                      style={{ color: `var(${themeColorVar})` }}
                     >
                       {formatCurrency(filteredCategoryData.total)}
                     </motion.span>
@@ -379,9 +381,9 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="text-[10px] sm:text-base text-white/30 mt-0.5 sm:mt-2 flex items-center gap-1"
+                      className="text-[10px] sm:text-base text-[var(--text-muted)] mt-0.5 sm:mt-2 flex items-center gap-1"
                     >
-                      <Receipt className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
+                      <LucideReceiptText className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
                       {filteredCategoryData.totalCount} TXN
                     </motion.span>
                   </AnimatePresence>
@@ -390,16 +392,20 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
 
               {/* Categories Card */}
               <div
-                className="w-[calc(100%-2rem)] max-w-full min-h-[280px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-3 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
+                className="w-[calc(100%-2rem)] max-w-full min-h-[280px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
                 style={{
-                  border: `1px solid ${selectedCategory ? selectedCategory.color : themeColor}20`,
-                  boxShadow: `0 0 40px ${selectedCategory ? selectedCategory.color : themeColor}10, inset 0 1px 0 ${selectedCategory ? selectedCategory.color : themeColor}10`
+                  border: selectedCategory
+                    ? `1px solid ${selectedCategory.color}20`
+                    : `1px solid color-mix(in srgb, var(${themeColorVar}) 12%, transparent)`,
+                  boxShadow: selectedCategory
+                    ? `0 0 40px ${selectedCategory.color}10, inset 0 1px 0 ${selectedCategory.color}10`
+                    : `0 0 40px color-mix(in srgb, var(${themeColorVar}) 6%, transparent), inset 0 1px 0 color-mix(in srgb, var(${themeColorVar}) 6%, transparent)`
                 }}
               >
                 {/* Subtle gradient overlay */}
                 <div
                   className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl pointer-events-none transition-colors duration-300"
-                  style={{ background: selectedCategory ? selectedCategory.color : themeColor }}
+                  style={{ background: selectedCategory ? selectedCategory.color : `var(${themeColorVar})` }}
                 />
 
                 <AnimatePresence mode="wait">
@@ -417,7 +423,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 min-w-0">
                         <button
                           onClick={() => setSelectedCategory(null)}
-                          className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer shrink-0"
+                          className="p-1.5 sm:p-2 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
                         >
                           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
@@ -428,12 +434,12 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                             boxShadow: `0 0 12px ${selectedCategory.color}`
                           }}
                         />
-                        <h3 className="text-base sm:text-xl font-semibold text-white flex-1 min-w-0 truncate">{selectedCategory.label}</h3>
+                        <h3 className="text-base sm:text-xl font-semibold text-[var(--text-primary)] flex-1 min-w-0 truncate">{selectedCategory.label}</h3>
                         <div className="text-right shrink-0">
                           <div className="text-sm sm:text-lg font-bold" style={{ color: selectedCategory.color }}>
                             {formatCurrency(selectedCategory.amount)}
                           </div>
-                          <div className="text-[10px] sm:text-xs text-white/40">{selectedCategory.count} txn</div>
+                          <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{selectedCategory.count} txn</div>
                         </div>
                       </div>
 
@@ -445,19 +451,19 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.04, duration: 0.2 }}
-                            className="rounded-lg sm:rounded-xl bg-white/5 hover:bg-white/8 p-3 sm:p-4 transition-colors"
+                            className="rounded-lg sm:rounded-xl bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] p-3 sm:p-4 transition-colors"
                           >
                             <div className="flex items-center justify-between gap-2 sm:gap-3">
                               <div className="flex-1 min-w-0 overflow-hidden">
-                                <p className="text-sm sm:text-base text-white truncate">{txn.description}</p>
-                                <p className="text-[10px] sm:text-xs text-white/40 mt-0.5">
+                                <p className="text-sm sm:text-base text-[var(--text-primary)] truncate">{txn.description}</p>
+                                <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5">
                                   {txn.date.toDate().toLocaleDateString('en-US', {
                                     weekday: 'short',
                                     month: 'short',
                                     day: 'numeric'
                                   })}
                                   {txn.isRecurring && (
-                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-white/10 text-white/50 text-[8px] sm:text-[10px]">
+                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[var(--fill-subtle)] text-[var(--text-primary)]/50 text-[8px] sm:text-[10px]">
                                       Recurring
                                     </span>
                                   )}
@@ -486,17 +492,17 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                     >
                       <div className="flex items-center justify-between mb-2 sm:mb-5">
                         <div className="flex items-center gap-2 sm:gap-3">
-                          <h3 className="text-lg sm:text-xl font-semibold text-white">Categories</h3>
-                          <div className="flex items-center justify-center gap-1 mt-1.5">
+                          <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)]">Categories</h3>
+                          <div className="flex items-center justify-center gap-1 mt-0">
                             <button
                               onClick={selectAllCategories}
-                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${allSelected ? 'bg-white/10 text-white/60' : 'text-white/30 hover:text-white/60 hover:bg-white/5'}`}
+                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${allSelected ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)]'}`}
                             >
                               All
                             </button>
                             <button
                               onClick={deselectAllCategories}
-                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${noneSelected ? 'bg-white/10 text-white/60' : 'text-white/30 hover:text-white/60 hover:bg-white/5'}`}
+                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${noneSelected ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)]'}`}
                             >
                               None
                             </button>
@@ -505,16 +511,16 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={handlePreviousMonth}
-                            className="p-1 sm:p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                           >
                             <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
-                          <span className="text-[10px] sm:text-base text-white/40">
+                          <span className="text-[10px] sm:text-base text-[var(--text-muted)]">
                             {monthName}
                           </span>
                           <button
                             onClick={handleNextMonth}
-                            className="p-1 sm:p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                           >
                             <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
@@ -538,7 +544,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                                 animate={{
                                   opacity: 1,
                                   x: 0,
-                                  backgroundColor: hoveredCategory === cat.id ? 'rgba(255,255,255,0.05)' : 'transparent'
+                                  backgroundColor: hoveredCategory === cat.id ? 'var(--fill-subtle)' : 'transparent'
                                 }}
                                 transition={{ delay: index * 0.03, duration: 0.2 }}
                                 className="rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors"
@@ -554,25 +560,25 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                                     }}
                                     className="w-4 h-4 sm:w-5 sm:h-5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all cursor-pointer"
                                     style={{
-                                      borderColor: enabledCategories.has(cat.id) ? cat.color : 'rgba(255,255,255,0.15)',
+                                      borderColor: enabledCategories.has(cat.id) ? cat.color : 'var(--text-faint)',
                                       backgroundColor: enabledCategories.has(cat.id) ? cat.color : 'transparent',
                                     }}
                                   >
                                     {enabledCategories.has(cat.id) && (
-                                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-black" strokeWidth={3} />
+                                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[var(--text-inverse)]" strokeWidth={3} />
                                     )}
                                   </button>
-                                  <span className="flex-1 text-[14px] sm:text-base text-white truncate">{cat.label}</span>
-                                  <span className="px-1 sm:px-2 py-0.5 rounded-full bg-white/10 text-[8px] sm:text-[10px] text-white/50 font-medium tabular-nums">
+                                  <span className="flex-1 text-[14px] sm:text-base text-[var(--text-primary)] truncate">{cat.label}</span>
+                                  <span className="px-1 sm:px-2 py-0.5 rounded-full bg-[var(--fill-subtle)] text-[8px] sm:text-[10px] text-[var(--text-primary)]/50 font-medium tabular-nums">
                                     {cat.count} TXN
                                   </span>
-                                  <span className="text-[10px] sm:text-base text-white/40 tabular-nums">{cat.percentage.toFixed(0)}%</span>
-                                  <span className={`text-[10px] sm:text-base font-semibold tabular-nums`} style={{ color: themeColor }}>
+                                  <span className="text-[10px] sm:text-base text-[var(--text-muted)] tabular-nums">{cat.percentage.toFixed(0)}%</span>
+                                  <span className={`text-[10px] sm:text-base font-semibold tabular-nums`} style={{ color: `var(${themeColorVar})` }}>
                                     {formatCurrency(cat.amount)}
                                   </span>
                                 </div>
                                 {/* Progress bar */}
-                                <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden ml-6 sm:ml-8">
+                                <div className="h-1 sm:h-1.5 bg-[var(--fill-subtle)] rounded-full overflow-hidden ml-6 sm:ml-8">
                                   <motion.div
                                     className="h-full rounded-full"
                                     style={{ backgroundColor: cat.color }}
@@ -591,10 +597,9 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                 </AnimatePresence>
               </div>
               </div>
-            </div>
 
-            {/* Daily Spending Chart - below pie + categories, scrollable */}
-            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 m-auto sm:mt-0 shrink-0 pb-0 sm:pb-4">
+            {/* Daily Spending Chart */}
+            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 lg:mt-0 shrink-0 pb-0 sm:pb-8">
               <DailySpendingChart
                 transactions={transactions.filter(t => {
                   const isExpense = viewType === 'expense';

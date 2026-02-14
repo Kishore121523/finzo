@@ -75,7 +75,7 @@ export function CategorySelect({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'w-full justify-between bg-[#252525] border-[#363636] text-white hover:bg-[#2A2A2A] hover:text-white h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base font-normal',
+            'w-full justify-between bg-[var(--surface-elevated)] border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] h-10 sm:h-12 rounded-lg sm:rounded-xl text-sm sm:text-base font-normal',
             className
           )}
         >
@@ -88,13 +88,13 @@ export function CategorySelect({
               <span className="truncate">{selectedCategory.label}</span>
             </div>
           ) : (
-            <span className="text-white/40">{placeholder}</span>
+            <span className="text-[var(--text-muted)]">{placeholder}</span>
           )}
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-[#03DAC6]" />
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-[var(--teal)]" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[280px] sm:w-[300px] p-0 bg-[#252525] border-[#363636] rounded-lg sm:rounded-xl"
+        className="w-[280px] sm:w-[300px] p-0 bg-[var(--surface-elevated)] border-[var(--border-secondary)] rounded-lg sm:rounded-xl"
         align="start"
         side="top"
         sideOffset={8}
@@ -116,21 +116,21 @@ export function CategorySelect({
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {categoryGroups.map((group) => (
-            <div key={group.name} className="border-b border-[#363636] last:border-b-0">
+            <div key={group.name} className="border-b border-[var(--border-secondary)] last:border-b-0">
               {/* Group Header */}
               <button
                 type="button"
                 onClick={() => handleGroupClick(group.name)}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-white/5 transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[var(--fill-subtle)] transition-colors"
               >
-                <span className="text-xs sm:text-sm font-medium text-white/60 uppercase tracking-wider">
+                <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                   {group.name}
                 </span>
                 <motion.div
                   animate={{ rotate: expandedGroup === group.name ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <ChevronDown className="h-4 w-4 text-[#03DAC6]" />
+                  <ChevronDown className="h-4 w-4 text-[var(--teal)]" />
                 </motion.div>
               </button>
 
@@ -151,19 +151,19 @@ export function CategorySelect({
                           type="button"
                           onClick={() => handleCategorySelect(cat)}
                           className={cn(
-                            'w-full flex items-center gap-2 px-3 py-2 hover:bg-white/10 transition-colors text-left',
-                            value === cat.id && 'bg-white/5'
+                            'w-full flex items-center gap-2 px-3 py-2 hover:bg-[var(--fill-subtle-hover)] transition-colors text-left',
+                            value === cat.id && 'bg-[var(--fill-subtle)]'
                           )}
                         >
                           <div
                             className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full shrink-0"
                             style={{ backgroundColor: cat.color }}
                           />
-                          <span className="flex-1 text-sm sm:text-base text-white truncate">
+                          <span className="flex-1 text-sm sm:text-base text-[var(--text-primary)] truncate">
                             {cat.label}
                           </span>
                           {value === cat.id && (
-                            <Check className="h-4 w-4 text-[#03DAC6] shrink-0" />
+                            <Check className="h-4 w-4 text-[var(--teal)] shrink-0" />
                           )}
                         </button>
                       ))}

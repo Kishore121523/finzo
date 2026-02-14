@@ -95,7 +95,7 @@ export const MonthNavigator = memo(function MonthNavigator({
   return (
     <>
       {/* Desktop Layout */}
-      <div className="hidden md:block bg-linear-to-b from-[#0a0a0a] to-[#121212]">
+      <div className="hidden md:block bg-linear-to-b from-[var(--app-bg)] to-[var(--app-bg)]">
         <div className="mx-auto max-w-7xl px-4 pt-6 pb-2">
           <div>
             {/* Month navigation */}
@@ -104,7 +104,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                 variant="ghost"
                 size="icon"
                 onClick={onPreviousMonth}
-                className="h-12 w-12 rounded-xl bg-[#2C2C2C] border border-[#3C3C3C] text-white hover:bg-[#3C3C3C] hover:text-white transition-all"
+                className="h-12 w-12 rounded-xl bg-[var(--surface-hover)] border border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
                 <ChevronLeft className="h-6 w-6" />
               </Button>
@@ -115,17 +115,17 @@ export const MonthNavigator = memo(function MonthNavigator({
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center"
               >
-                <h2 className="text-3xl font-bold text-white">
+                <h2 className="text-3xl font-bold text-[var(--text-primary)]">
                   {format(currentDate, 'MMMM')}
                 </h2>
-                <p className="text-sm text-white/40">{format(currentDate, 'yyyy')}</p>
+                <p className="text-sm text-[var(--text-muted)]">{format(currentDate, 'yyyy')}</p>
               </motion.div>
 
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onNextMonth}
-                className="h-12 w-12 rounded-xl bg-[#2C2C2C] border border-[#3C3C3C] text-white hover:bg-[#3C3C3C] hover:text-white transition-all"
+                className="h-12 w-12 rounded-xl bg-[var(--surface-hover)] border border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
                 <ChevronRight className="h-6 w-6" />
               </Button>
@@ -135,58 +135,58 @@ export const MonthNavigator = memo(function MonthNavigator({
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-[#1A1A1A] border border-[#2C2C2C] rounded-2xl p-3"
+              className="bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl p-3"
             >
               <div className="grid grid-cols-3 gap-3">
                 {/* Income */}
                 <button
                   onClick={() => setModalType('income')}
-                  className="flex items-center gap-3 bg-[#03DAC6]/5 hover:bg-[#03DAC6]/10 rounded-xl px-4 py-3 transition-colors cursor-pointer group"
+                  className="flex items-center gap-3 bg-[var(--teal-bg)] hover:bg-[var(--teal-bg)] rounded-xl px-4 py-3 transition-colors cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#03DAC6]/15 flex items-center justify-center shrink-0">
-                    <TrendingUp className="w-5 h-5 text-[#03DAC6]" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--teal-bg)] flex items-center justify-center shrink-0">
+                    <TrendingUp className="w-5 h-5 text-[var(--teal)]" />
                   </div>
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="text-xs text-white/40 leading-none">Income</p>
-                    <p className="text-lg font-bold text-[#03DAC6] leading-tight truncate">
+                    <p className="text-xs text-[var(--text-muted)] leading-none">Income</p>
+                    <p className="text-lg font-bold text-[var(--teal)] leading-tight truncate">
                       {formatCurrency(income, { compact: true })}
                     </p>
                   </div>
-                  <ChevronRightSmall className="w-4 h-4 text-white/20 group-hover:text-[#03DAC6] transition-colors" />
+                  <ChevronRightSmall className="w-4 h-4 text-[var(--text-faint)] group-hover:text-[var(--teal)] transition-colors" />
                 </button>
 
                 {/* Expense */}
                 <button
                   onClick={() => setModalType('expense')}
-                  className="flex items-center gap-3 bg-[#CF6679]/5 hover:bg-[#CF6679]/10 rounded-xl px-4 py-3 transition-colors cursor-pointer group"
+                  className="flex items-center gap-3 bg-[var(--expense-color)]/5 hover:bg-[var(--expense-color)]/10 rounded-xl px-4 py-3 transition-colors cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#CF6679]/15 flex items-center justify-center shrink-0">
-                    <TrendingDown className="w-5 h-5 text-[#CF6679]" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--expense-color)]/15 flex items-center justify-center shrink-0">
+                    <TrendingDown className="w-5 h-5 text-[var(--expense-color)]" />
                   </div>
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="text-xs text-white/40 leading-none">Expense</p>
-                    <p className="text-lg font-bold text-[#CF6679] leading-tight truncate">
+                    <p className="text-xs text-[var(--text-muted)] leading-none">Expense</p>
+                    <p className="text-lg font-bold text-[var(--expense-color)] leading-tight truncate">
                       {formatCurrency(expense, { compact: true })}
                     </p>
                   </div>
-                  <ChevronRightSmall className="w-4 h-4 text-white/20 group-hover:text-[#CF6679] transition-colors" />
+                  <ChevronRightSmall className="w-4 h-4 text-[var(--text-faint)] group-hover:text-[var(--expense-color)] transition-colors" />
                 </button>
 
                 {/* Balance */}
                 <button
                   onClick={() => setModalType('all')}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors cursor-pointer group ${balance >= 0 ? 'bg-[#03DAC6]/5 hover:bg-[#03DAC6]/10' : 'bg-[#CF6679]/5 hover:bg-[#CF6679]/10'}`}
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors cursor-pointer group ${balance >= 0 ? 'bg-[var(--teal-bg)] hover:bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/5 hover:bg-[var(--expense-color)]/10'}`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${balance >= 0 ? 'bg-[#03DAC6]/15' : 'bg-[#CF6679]/15'}`}>
-                    <Wallet className={`w-5 h-5 ${balance >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${balance >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/15'}`}>
+                    <Wallet className={`w-5 h-5 ${balance >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
                   </div>
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="text-xs text-white/40 leading-none">Balance</p>
-                    <p className={`text-lg font-bold leading-tight truncate ${balance >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                    <p className="text-xs text-[var(--text-muted)] leading-none">Balance</p>
+                    <p className={`text-lg font-bold leading-tight truncate ${balance >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                       {formatCurrency(balance, { showSign: true, compact: true })}
                     </p>
                   </div>
-                  <ChevronRightSmall className={`w-4 h-4 text-white/20 transition-colors ${balance >= 0 ? 'group-hover:text-[#03DAC6]' : 'group-hover:text-[#CF6679]'}`} />
+                  <ChevronRightSmall className={`w-4 h-4 text-[var(--text-faint)] transition-colors ${balance >= 0 ? 'group-hover:text-[var(--teal)]' : 'group-hover:text-[var(--expense-color)]'}`} />
                 </button>
               </div>
             </motion.div>
@@ -195,7 +195,7 @@ export const MonthNavigator = memo(function MonthNavigator({
       </div>
 
       {/* Mobile Layout */}
-      <div className="md:hidden bg-[#121212]">
+      <div className="md:hidden bg-[var(--app-bg)]">
         <div className="px-3 py-3 space-y-3">
           {/* Month Navigation */}
           <div className="flex items-center justify-between">
@@ -203,7 +203,7 @@ export const MonthNavigator = memo(function MonthNavigator({
               variant="ghost"
               size="icon"
               onClick={onPreviousMonth}
-              className="h-9 w-9 rounded-lg bg-[#2C2C2C] border border-[#3C3C3C] text-white hover:bg-[#3C3C3C] hover:text-white transition-all"
+              className="h-9 w-9 rounded-lg bg-[var(--surface-hover)] border border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -214,17 +214,17 @@ export const MonthNavigator = memo(function MonthNavigator({
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">
                 {format(currentDate, 'MMMM')}
               </h2>
-              <p className="text-[10px] text-white/40">{format(currentDate, 'yyyy')}</p>
+              <p className="text-[10px] text-[var(--text-muted)]">{format(currentDate, 'yyyy')}</p>
             </motion.div>
 
             <Button
               variant="ghost"
               size="icon"
               onClick={onNextMonth}
-              className="h-9 w-9 rounded-lg bg-[#2C2C2C] border border-[#3C3C3C] text-white hover:bg-[#3C3C3C] hover:text-white transition-all"
+              className="h-9 w-9 rounded-lg bg-[var(--surface-hover)] border border-[var(--border-secondary)] text-[var(--text-primary)] hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] transition-all"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -234,20 +234,20 @@ export const MonthNavigator = memo(function MonthNavigator({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#1A1A1A] border border-[#2C2C2C] rounded-2xl p-2.5"
+            className="bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl p-2.5"
           >
             <div className="grid grid-cols-3 gap-1">
               {/* Income */}
               <button
                 onClick={() => setModalType('income')}
-                className="flex items-center gap-2 bg-[#03DAC6]/5 hover:bg-[#03DAC6]/10 rounded-xl px-2.5 py-2 transition-colors cursor-pointer"
+                className="flex items-center gap-2 bg-[var(--teal-bg)] hover:bg-[var(--teal-bg)] rounded-xl px-2.5 py-2 transition-colors cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-lg bg-[#03DAC6]/15 flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-4 h-4 text-[#03DAC6]" />
+                <div className="w-8 h-8 rounded-lg bg-[var(--teal-bg)] flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 text-[var(--teal)]" />
                 </div>
                 <div className="min-w-0 text-left">
-                  <p className="text-[10px] text-white/40 leading-none">Income</p>
-                  <p className="text-xs font-bold text-[#03DAC6] leading-tight truncate">
+                  <p className="text-[10px] text-[var(--text-muted)] leading-none">Income</p>
+                  <p className="text-xs font-bold text-[var(--teal)] leading-tight truncate">
                     {formatCurrency(income, { compact: true })}
                   </p>
                 </div>
@@ -256,14 +256,14 @@ export const MonthNavigator = memo(function MonthNavigator({
               {/* Expense */}
               <button
                 onClick={() => setModalType('expense')}
-                className="flex items-center gap-2 bg-[#CF6679]/5 hover:bg-[#CF6679]/10 rounded-xl px-2.5 py-2 transition-colors cursor-pointer"
+                className="flex items-center gap-2 bg-[var(--expense-color)]/5 hover:bg-[var(--expense-color)]/10 rounded-xl px-2.5 py-2 transition-colors cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-lg bg-[#CF6679]/15 flex items-center justify-center shrink-0">
-                  <TrendingDown className="w-4 h-4 text-[#CF6679]" />
+                <div className="w-8 h-8 rounded-lg bg-[var(--expense-color)]/15 flex items-center justify-center shrink-0">
+                  <TrendingDown className="w-4 h-4 text-[var(--expense-color)]" />
                 </div>
                 <div className="min-w-0 text-left">
-                  <p className="text-[10px] text-white/40 leading-none">Expense</p>
-                  <p className="text-xs font-bold text-[#CF6679] leading-tight truncate">
+                  <p className="text-[10px] text-[var(--text-muted)] leading-none">Expense</p>
+                  <p className="text-xs font-bold text-[var(--expense-color)] leading-tight truncate">
                     {formatCurrency(expense, { compact: true })}
                   </p>
                 </div>
@@ -272,14 +272,14 @@ export const MonthNavigator = memo(function MonthNavigator({
               {/* Balance */}
               <button
                 onClick={() => setModalType('all')}
-                className={`flex items-center gap-2 rounded-xl px-2.5 py-2 transition-colors cursor-pointer ${balance >= 0 ? 'bg-[#03DAC6]/5 hover:bg-[#03DAC6]/10' : 'bg-[#CF6679]/5 hover:bg-[#CF6679]/10'}`}
+                className={`flex items-center gap-2 rounded-xl px-2.5 py-2 transition-colors cursor-pointer ${balance >= 0 ? 'bg-[var(--teal-bg)] hover:bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/5 hover:bg-[var(--expense-color)]/10'}`}
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${balance >= 0 ? 'bg-[#03DAC6]/15' : 'bg-[#CF6679]/15'}`}>
-                  <Wallet className={`w-4 h-4 ${balance >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`} />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${balance >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/15'}`}>
+                  <Wallet className={`w-4 h-4 ${balance >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
                 </div>
                 <div className="min-w-0 text-left">
-                  <p className="text-[10px] text-white/40 leading-none">Balance</p>
-                  <p className={`text-xs font-bold leading-tight truncate ${balance >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                  <p className="text-[10px] text-[var(--text-muted)] leading-none">Balance</p>
+                  <p className={`text-xs font-bold leading-tight truncate ${balance >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                     {formatCurrency(balance, { showSign: true, compact: true })}
                   </p>
                 </div>
@@ -308,10 +308,10 @@ export const MonthNavigator = memo(function MonthNavigator({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-x-6 top-28 bottom-36 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:max-h-[80vh] z-50 flex flex-col bg-[#1A1A1A] rounded-xl md:rounded-2xl overflow-hidden border border-[#2C2C2C] shadow-2xl"
+              className="fixed inset-x-6 top-28 bottom-36 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg md:max-h-[80vh] z-50 flex flex-col bg-[var(--surface)] rounded-xl md:rounded-2xl overflow-hidden border border-[var(--border-main)] shadow-2xl"
             >
               {/* Header */}
-              <div className="p-3 md:p-4 border-b border-[#2C2C2C] shrink-0">
+              <div className="p-3 md:p-4 border-b border-[var(--border-main)] shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 md:gap-3">
                     <div
@@ -323,13 +323,13 @@ export const MonthNavigator = memo(function MonthNavigator({
                       {modalType === 'all' && <Wallet className="w-4 h-4 md:w-5 md:h-5" style={{ color: getModalColor() }} />}
                     </div>
                     <div>
-                      <h3 className="text-sm md:text-lg font-bold text-white">{getModalTitle()}</h3>
-                      <p className="text-[10px] md:text-xs text-white/40">{format(currentDate, 'MMMM yyyy')}</p>
+                      <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)]">{getModalTitle()}</h3>
+                      <p className="text-[10px] md:text-xs text-[var(--text-muted)]">{format(currentDate, 'MMMM yyyy')}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setModalType(null)}
-                    className="p-1.5 md:p-2 rounded-lg md:rounded-xl hover:bg-white/10 text-white/60 hover:text-white transition-colors cursor-pointer"
+                    className="p-1.5 md:p-2 rounded-lg md:rounded-xl hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
@@ -341,10 +341,10 @@ export const MonthNavigator = memo(function MonthNavigator({
                   style={{ backgroundColor: `${getModalColor()}10` }}
                 >
                   <div>
-                    <span className="text-xs md:text-sm text-white/60">
+                    <span className="text-xs md:text-sm text-[var(--text-secondary)]">
                       {modalType === 'all' ? 'Net Balance' : `Total ${getModalTitle()}`}
                     </span>
-                    <p className="text-[10px] md:text-xs text-white/40 mt-0.5">
+                    <p className="text-[10px] md:text-xs text-[var(--text-muted)] mt-0.5">
                       {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -380,15 +380,15 @@ export const MonthNavigator = memo(function MonthNavigator({
                     <div key={group.date}>
                       {/* Date Header */}
                       <div className="flex items-center gap-2 mb-1.5 md:mb-2">
-                        <span className={`text-[10px] md:text-xs font-medium ${isTodayDate ? 'text-[#03DAC6]' : 'text-white/40'}`}>
+                        <span className={`text-[10px] md:text-xs font-medium ${isTodayDate ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'}`}>
                           {isTodayDate ? 'Today' : format(dateObj, 'EEE, MMM d')}
                         </span>
                         {isTodayDate && (
-                          <span className="text-[9px] md:text-[10px] text-[#03DAC6]/60 bg-[#03DAC6]/10 px-1 py-0.5 rounded">
+                          <span className="text-[9px] md:text-[10px] text-[var(--teal)]/60 bg-[var(--teal-bg)] px-1 py-0.5 rounded">
                             {format(dateObj, 'MMM d')}
                           </span>
                         )}
-                        <div className={`flex-1 h-px ${isTodayDate ? 'bg-[#03DAC6]/30' : 'bg-[#2C2C2C]'}`} />
+                        <div className={`flex-1 h-px ${isTodayDate ? 'bg-[var(--teal-border)]' : 'bg-[var(--border-main)]'}`} />
                       </div>
 
                       {/* Transactions for this date */}
@@ -405,11 +405,11 @@ export const MonthNavigator = memo(function MonthNavigator({
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: (groupIndex * 0.05) + (index * 0.02) }}
-                              className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl bg-white/5 hover:bg-white/8 transition-colors ${
+                              className={`flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg md:rounded-xl bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] transition-colors ${
                                 isTodayDate
                                   ? isIncome
-                                    ? 'border border-[#03DAC6]/60'
-                                    : 'border border-[#CF6679]/60'
+                                    ? 'border border-[var(--teal-border)]'
+                                    : 'border border-[var(--expense-color)]/60'
                                   : ''
                               }`}
                             >
@@ -428,15 +428,15 @@ export const MonthNavigator = memo(function MonthNavigator({
                                     style={{ color: categoryInfo?.color || (isIncome ? '#03DAC6' : '#CF6679') }}
                                   />
                                 ) : isIncome ? (
-                                  <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#03DAC6]" />
+                                  <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[var(--teal)]" />
                                 ) : (
-                                  <TrendingDown className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#CF6679]" />
+                                  <TrendingDown className="w-3.5 h-3.5 md:w-4 md:h-4 text-[var(--expense-color)]" />
                                 )}
                               </div>
 
                               {/* Description & Category */}
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs md:text-sm font-medium text-white truncate">
+                                <p className="text-xs md:text-sm font-medium text-[var(--text-primary)] truncate">
                                   {transaction.description}
                                 </p>
                                 {categoryInfo && (
@@ -445,11 +445,11 @@ export const MonthNavigator = memo(function MonthNavigator({
                                       className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full"
                                       style={{ backgroundColor: categoryInfo.color }}
                                     />
-                                    <span className="text-[9px] md:text-[11px] text-white/40 truncate">
+                                    <span className="text-[9px] md:text-[11px] text-[var(--text-muted)] truncate">
                                       {categoryInfo.label}
                                     </span>
                                     {transaction.isRecurring && (
-                                      <span className="text-[8px] md:text-[10px] text-white/30 bg-white/10 px-1 py-0.5 rounded">
+                                      <span className="text-[8px] md:text-[10px] text-[var(--text-muted)] bg-[var(--fill-subtle-hover)] px-1 py-0.5 rounded">
                                         Recurring
                                       </span>
                                     )}
@@ -458,7 +458,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                               </div>
 
                               {/* Amount */}
-                              <span className={`text-xs md:text-sm font-bold shrink-0 ${isIncome ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                              <span className={`text-xs md:text-sm font-bold shrink-0 ${isIncome ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                                 {isIncome ? '+ ' : '- '}{formatCurrency(Math.abs(transaction.amount))}
                               </span>
                             </motion.div>

@@ -182,7 +182,7 @@ export function CompactDatePicker({ value, onChange }: CompactDatePickerProps) {
         type="button"
         whileTap={{ scale: 0.9 }}
         onClick={onIncrement}
-        className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-[#03DAC6]"
+        className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle)] transition-colors text-[var(--teal)]"
       >
         <ChevronUp className="w-5 h-5" />
       </motion.button>
@@ -195,7 +195,7 @@ export function CompactDatePicker({ value, onChange }: CompactDatePickerProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: direction === 'up' ? -20 : 20 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="text-2xl font-semibold text-white tabular-nums"
+            className="text-2xl font-semibold text-[var(--text-primary)] tabular-nums"
           >
             {value}
           </motion.div>
@@ -206,7 +206,7 @@ export function CompactDatePicker({ value, onChange }: CompactDatePickerProps) {
         type="button"
         whileTap={{ scale: 0.9 }}
         onClick={onDecrement}
-        className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-[#03DAC6]"
+        className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle)] transition-colors text-[var(--teal)]"
       >
         <ChevronDown className="w-5 h-5" />
       </motion.button>
@@ -214,7 +214,7 @@ export function CompactDatePicker({ value, onChange }: CompactDatePickerProps) {
   );
 
   return (
-    <div className="flex items-center justify-center gap-2 p-4 rounded-xl bg-[#252525] border border-[#363636]">
+    <div className="flex items-center justify-center gap-2 p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border-secondary)]">
       {/* Day */}
       <DateColumn
         value={day.toString().padStart(2, '0')}
@@ -225,7 +225,7 @@ export function CompactDatePicker({ value, onChange }: CompactDatePickerProps) {
         width="w-14"
       />
 
-      <span className="text-white/30 text-2xl font-light">/</span>
+      <span className="text-[var(--text-muted)] text-2xl font-light">/</span>
 
       {/* Month */}
       <DateColumn
@@ -237,7 +237,7 @@ export function CompactDatePicker({ value, onChange }: CompactDatePickerProps) {
         width="w-16"
       />
 
-      <span className="text-white/30 text-2xl font-light">/</span>
+      <span className="text-[var(--text-muted)] text-2xl font-light">/</span>
 
       {/* Year */}
       <DateColumn

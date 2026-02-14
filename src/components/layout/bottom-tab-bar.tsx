@@ -16,9 +16,9 @@ export function BottomTabBar() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       {/* Gradient fade effect at top */}
-      <div className="absolute -top-6 left-0 right-0 h-6 bg-gradient-to-t from-[#121212] to-transparent pointer-events-none" />
+      <div className="absolute -top-6 left-0 right-0 h-6 bg-gradient-to-t from-[var(--app-bg)] to-transparent pointer-events-none" />
 
-      <div className="bg-[#1E1E1E] border-t border-[#2C2C2C] px-2 pb-[env(safe-area-inset-bottom)]">
+      <div className="bg-[var(--surface)] border-t border-[var(--border-main)] px-2 pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-around py-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -33,18 +33,18 @@ export function BottomTabBar() {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-[#03DAC6]/10 rounded-xl"
+                    className="absolute inset-0 bg-[var(--teal-bg)] rounded-xl"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
                 <Icon
                   className={`w-5 h-5 relative z-10 transition-colors ${
-                    isActive ? 'text-[#03DAC6]' : 'text-white/40'
+                    isActive ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'
                   }`}
                 />
                 <span
                   className={`text-[10px] font-medium relative z-10 transition-colors ${
-                    isActive ? 'text-[#03DAC6]' : 'text-white/40'
+                    isActive ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'
                   }`}
                 >
                   {tab.label}

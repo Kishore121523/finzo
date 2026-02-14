@@ -50,8 +50,27 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
   }, []);
 
   const isExpense = viewType === 'expense';
-  const accentColor = isExpense ? '#FF6B6B' : '#10B981';
   const title = isExpense ? 'Daily Spending' : 'Daily Income';
+
+  // CSS var name — matches calendar tab: expense = --expense-color, income = --teal
+  const accentColorVar = isExpense ? '--expense-color' : '--teal';
+
+  // Resolved hex (needed for SVG opacity suffixes like `${color}50`)
+  const [accentColor, setAccentColor] = useState('');
+
+  const readColor = useCallback(() => {
+    const el = containerRef.current || document.documentElement;
+    const style = getComputedStyle(el);
+    setAccentColor(style.getPropertyValue(accentColorVar).trim());
+  }, [accentColorVar]);
+
+  useEffect(() => { readColor(); }, [readColor]);
+
+  useEffect(() => {
+    const observer = new MutationObserver(readColor);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [readColor]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -162,27 +181,27 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
 
   return (
     <div
-      className="w-[calc(100%-2rem)] max-w-full sm:w-[480px] lg:w-[1188px] rounded-xl sm:rounded-2xl bg-[#1E1E1E] p-3 sm:p-6 lg:p-8 relative overflow-hidden"
+      className="w-[calc(100%-2rem)] max-w-full sm:w-[480px] lg:w-[1188px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-6 lg:p-8 relative overflow-hidden mt-0 md:mt-4"
       style={{
-        border: `1px solid ${accentColor}20`,
-        boxShadow: `0 0 40px ${accentColor}10, inset 0 1px 0 ${accentColor}10`,
+        border: `1px solid color-mix(in srgb, var(${accentColorVar}) 12%, transparent)`,
+        boxShadow: `0 0 40px color-mix(in srgb, var(${accentColorVar}) 6%, transparent), inset 0 1px 0 color-mix(in srgb, var(${accentColorVar}) 6%, transparent)`,
       }}
     >
       {/* Subtle gradient overlay */}
       <div
         className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl pointer-events-none"
-        style={{ background: accentColor }}
+        style={{ background: `var(${accentColorVar})` }}
       />
 
       {/* Header */}
       <div className="flex items-center justify-center mb-1 sm:mb-3.5">
-        <h3 className="text-sm sm:text-2xl font-semibold text-white">{title}</h3>
+        <h3 className="text-sm sm:text-2xl font-semibold text-[var(--text-primary)]">{title}</h3>
         
       </div>
 
       {!hasData ? (
         <div className="h-[140px] sm:h-[180px] flex items-center justify-center">
-          <p className="text-xs sm:text-sm text-white/30">
+          <p className="text-xs sm:text-sm text-[var(--text-muted)]">
             No {isExpense ? 'expenses' : 'income'} this month
           </p>
         </div>
@@ -213,14 +232,14 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
                   y1={y}
                   x2={padding.left + chartWidth}
                   y2={y}
-                  stroke="rgba(255,255,255,0.05)"
+                  stroke="var(--fill-subtle)"
                   strokeDasharray="3 3"
                 />
                 <text
                   x={padding.left - 8}
                   y={y + 4.5}
                   textAnchor="end"
-                  fill="rgba(255,255,255,0.25)"
+                  fill="var(--text-muted)"
                   fontSize={sizes.yLabel}
                 >
                   {formatCompact(val)}
@@ -270,9 +289,9 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
               : -1;
 
             return points.map((pt, i) => {
-              if (dailyTotals[i] === 0) return null;
               const isHovered = hoveredDay === i;
               const isToday = i === todayIndex;
+              if (dailyTotals[i] === 0 && !isToday) return null;
               return (
                 <g key={i}>
                   {/* Today's pulsing ring */}
@@ -306,7 +325,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
                     cy={pt.y}
                     r={isToday ? sizes.dotRHover : isHovered ? sizes.dotRHover : sizes.dotR}
                     fill={isToday ? '#ffffff' : accentColor}
-                    stroke={isToday ? accentColor : '#1E1E1E'}
+                    stroke={isToday ? accentColor : 'var(--surface)'}
                     strokeWidth={isToday ? 2.5 : 2}
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -339,7 +358,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
                   y1={padding.top}
                   x2={pt.x}
                   y2={baseY}
-                  stroke="rgba(255,255,255,0.1)"
+                  stroke="var(--text-faint)"
                   strokeWidth="1"
                   strokeDasharray="3 3"
                 />
@@ -350,7 +369,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
                   cy={pt.y}
                   r={sizes.hoverDotR}
                   fill={accentColor}
-                  stroke="#1E1E1E"
+                  stroke="var(--surface)"
                   strokeWidth="2.5"
                 />
 
@@ -361,7 +380,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
                   width={tooltipWidth}
                   height={tooltipHeight}
                   rx={sizes.tooltipRx}
-                  fill="#2A2A2A"
+                  fill="var(--surface-hover)"
                   stroke={`${accentColor}33`}
                   strokeWidth="1"
                 />
@@ -369,7 +388,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
                   x={tooltipX + tooltipWidth / 2}
                   y={tooltipY + tooltipHeight * 0.38}
                   textAnchor="middle"
-                  fill="rgba(255,255,255,0.5)"
+                  fill="var(--text-secondary)"
                   fontSize={sizes.tooltipDateFs}
                 >
                   {currentDate.toLocaleString('default', { month: 'short' })} {hoveredDay + 1}
@@ -394,34 +413,34 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
       {hasData && (
         <>
           {/* Desktop: single row */}
-          <div className="hidden sm:flex items-center justify-between mt-4 pt-4 border-t border-white/5">
-            <span className="text-xs text-white/30">
+          <div className="hidden sm:flex items-center justify-between mt-4 pt-4 border-t border-[var(--fill-subtle)]">
+            <span className="text-xs text-[var(--text-muted)]">
               {activeDays} active day{activeDays !== 1 ? 's' : ''}
               <span className="mx-1.5">|</span>
-              Month Progress: <span style={{ color: accentColor }} className="font-medium">{monthProgress.toFixed(1)}%</span>
+              Month Progress: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{monthProgress.toFixed(1)}%</span>
             </span>
-            <span className="text-xs text-white/40">
-              Total: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(total)}</span>
+            <span className="text-xs text-[var(--text-muted)]">
+              Total: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{formatCurrency(total)}</span>
               <span className="mx-1.5">|</span>
-              Peak: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(maxDaily)}</span>
+              Peak: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{formatCurrency(maxDaily)}</span>
               <span className="mx-1.5">|</span>
-              Average: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(avgDaily)}</span>
+              Average: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{formatCurrency(avgDaily)}</span>
             </span>
           </div>
 
           {/* Mobile: compact two rows centered */}
-          <div className="sm:hidden mt-2 pt-1.5 border-t border-white/5 flex flex-col items-center gap-1">
-            <span className="text-[9px] text-white/40">
-              Total: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(total, { compact: true })}</span>
-              <span className="mx-1 text-white/15">|</span>
-              Peak: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(maxDaily, { compact: true })}</span>
-              <span className="mx-1 text-white/15">|</span>
-              Avg: <span style={{ color: accentColor }} className="font-medium">{formatCurrency(avgDaily, { compact: true })}</span>
+          <div className="sm:hidden mt-2 pt-1.5 border-t border-[var(--fill-subtle)] flex flex-col items-center gap-1">
+            <span className="text-[9px] text-[var(--text-muted)]">
+              Total: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{formatCurrency(total, { compact: true })}</span>
+              <span className="mx-1 text-[var(--text-faint)]">|</span>
+              Peak: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{formatCurrency(maxDaily, { compact: true })}</span>
+              <span className="mx-1 text-[var(--text-faint)]">|</span>
+              Avg: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{formatCurrency(avgDaily, { compact: true })}</span>
             </span>
-            <span className="text-[9px] text-white/30">
+            <span className="text-[9px] text-[var(--text-muted)]">
               {activeDays} active day{activeDays !== 1 ? 's' : ''}
               <span className="mx-1">|</span>
-              Month Progress: <span style={{ color: accentColor }} className="font-medium">{monthProgress.toFixed(1)}%</span>
+              Month Progress: <span style={{ color: `var(${accentColorVar})` }} className="font-medium">{monthProgress.toFixed(1)}%</span>
             </span>
           </div>
         </>

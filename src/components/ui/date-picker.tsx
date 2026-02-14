@@ -91,7 +91,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
   }, [month, year]);
 
   return (
-    <div className="w-full bg-[#252525] rounded-2xl border border-[#363636] p-4">
+    <div className="w-full bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border-secondary)] p-4">
       {/* Header with month/year selectors */}
       <div className="flex items-center justify-between mb-4">
         <Button
@@ -99,7 +99,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
           variant="ghost"
           size="icon"
           onClick={handlePrevMonth}
-          className="h-8 w-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
+          className="h-8 w-8 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--fill-subtle)]"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -113,7 +113,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                 setShowMonthSelector(!showMonthSelector);
                 setShowYearSelector(false);
               }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--fill-subtle)] transition-colors"
             >
               {MONTHS[month]}
             </button>
@@ -124,7 +124,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full left-0 mt-1 bg-[#1E1E1E] border border-[#363636] rounded-xl shadow-xl z-10 p-2 grid grid-cols-3 gap-1 w-[200px]"
+                  className="absolute top-full left-0 mt-1 bg-[var(--surface)] border border-[var(--border-secondary)] rounded-xl shadow-xl z-10 p-2 grid grid-cols-3 gap-1 w-[200px]"
                 >
                   {MONTHS.map((m, i) => (
                     <button
@@ -133,8 +133,8 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                       onClick={() => handleSelectMonth(i)}
                       className={`px-2 py-1.5 text-xs rounded-lg transition-colors ${
                         i === month
-                          ? 'bg-[#03DAC6] text-black font-medium'
-                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                          ? 'bg-[var(--teal)] text-[var(--text-inverse)] font-medium'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       {m.slice(0, 3)}
@@ -153,7 +153,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                 setShowYearSelector(!showYearSelector);
                 setShowMonthSelector(false);
               }}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--fill-subtle)] transition-colors"
             >
               {year}
             </button>
@@ -164,7 +164,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute top-full right-0 mt-1 bg-[#1E1E1E] border border-[#363636] rounded-xl shadow-xl z-10 p-2 max-h-[200px] overflow-y-auto scrollbar-hide"
+                  className="absolute top-full right-0 mt-1 bg-[var(--surface)] border border-[var(--border-secondary)] rounded-xl shadow-xl z-10 p-2 max-h-[200px] overflow-y-auto scrollbar-hide"
                 >
                   {yearOptions.map((y) => (
                     <button
@@ -173,8 +173,8 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                       onClick={() => handleSelectYear(y)}
                       className={`w-full px-4 py-1.5 text-sm rounded-lg transition-colors ${
                         y === year
-                          ? 'bg-[#03DAC6] text-black font-medium'
-                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                          ? 'bg-[var(--teal)] text-[var(--text-inverse)] font-medium'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       {y}
@@ -191,7 +191,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
           variant="ghost"
           size="icon"
           onClick={handleNextMonth}
-          className="h-8 w-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
+          className="h-8 w-8 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--fill-subtle)]"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -202,7 +202,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
         {DAYS.map((day) => (
           <div
             key={day}
-            className="text-center text-[10px] font-medium text-white/40 py-1"
+            className="text-center text-[10px] font-medium text-[var(--text-muted)] py-1"
           >
             {day}
           </div>
@@ -219,10 +219,10 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
                 onClick={() => handleSelectDay(day)}
                 className={`w-full h-full flex items-center justify-center text-sm rounded-lg transition-all ${
                   isSelected(day)
-                    ? 'bg-[#03DAC6] text-black font-semibold'
+                    ? 'bg-[var(--teal)] text-[var(--text-inverse)] font-semibold'
                     : isToday(day)
-                    ? 'bg-white/10 text-[#03DAC6] font-medium ring-1 ring-[#03DAC6]/50'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'bg-[var(--fill-subtle)] text-[var(--teal)] font-medium ring-1 ring-[var(--teal)]/50'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--fill-subtle)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 {day}
@@ -233,7 +233,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
       </div>
 
       {/* Quick select for today */}
-      <div className="mt-3 pt-3 border-t border-[#363636]">
+      <div className="mt-3 pt-3 border-t border-[var(--border-secondary)]">
         <button
           type="button"
           onClick={() => {
@@ -241,7 +241,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
             onChange(today);
             setViewDate(today);
           }}
-          className="w-full py-2 text-sm font-medium text-[#03DAC6] rounded-lg hover:bg-[#03DAC6]/10 transition-colors"
+          className="w-full py-2 text-sm font-medium text-[var(--teal)] rounded-lg hover:bg-[var(--teal-bg)] transition-colors"
         >
           Today
         </button>

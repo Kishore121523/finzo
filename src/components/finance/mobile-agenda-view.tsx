@@ -68,29 +68,29 @@ function DayListItem({
         ${!day.isCurrentMonth
           ? 'opacity-30 cursor-default'
           : isTodayDate
-            ? 'bg-[#03DAC6]/10 border border-[#03DAC6]/50'
+            ? 'bg-[var(--teal-bg)] border border-[var(--teal-border)]'
             : hasTransactions
-              ? 'bg-[#1E1E1E] border border-[#2C2C2C] hover:border-[#03DAC6]/30'
-              : 'bg-[#1E1E1E]/50 border border-[#2C2C2C]/50 hover:bg-[#1E1E1E]'
+              ? 'bg-[var(--surface)] border border-[var(--border-main)] hover:border-[var(--teal-border)]'
+              : 'bg-[var(--surface)]/50 border border-[var(--border-main)]/50 hover:bg-[var(--surface)]'
         }
       `}
     >
       {/* Left: Date */}
       <div className={`
         w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0
-        ${isTodayDate ? 'bg-[#03DAC6]/20' : 'bg-[#2C2C2C]/50'}
+        ${isTodayDate ? 'bg-[var(--teal-bg)]' : 'bg-[var(--surface-hover)]/50'}
       `}>
         <span className={`text-[10px] font-semibold uppercase tracking-wide leading-none ${
-          isTodayDate ? 'text-[#03DAC6]' : 'text-white/40'
+          isTodayDate ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'
         }`}>
           {format(day.date, 'EEE')}
         </span>
         <span className={`text-xl font-bold leading-tight ${
           isTodayDate
-            ? 'text-[#03DAC6]'
+            ? 'text-[var(--teal)]'
             : day.isCurrentMonth
-              ? 'text-white'
-              : 'text-white/30'
+              ? 'text-[var(--text-primary)]'
+              : 'text-[var(--text-muted)]'
         }`}>
           {format(day.date, 'd')}
         </span>
@@ -100,22 +100,22 @@ function DayListItem({
       {hasTransactions && day.isCurrentMonth ? (
         <div className="flex items-center gap-3">
           {day.hasOverdue && (
-            <span className="w-2 h-2 rounded-full bg-[#FF5252] animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[var(--error-color)] animate-pulse" />
           )}
-          <span className="text-xs text-white/40">
+          <span className="text-xs text-[var(--text-muted)]">
             {day.transactions.length} txn
           </span>
           <span className={`text-sm font-bold ${
-            netAmount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'
+            netAmount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'
           }`}>
             {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, { compact: true })}
           </span>
         </div>
       ) : day.isCurrentMonth ? (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-white/30">Add</span>
-          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-            <Plus className="w-4 h-4 text-white/30" />
+          <span className="text-sm text-[var(--text-muted)]">Add</span>
+          <div className="w-8 h-8 rounded-lg bg-[var(--fill-subtle)] flex items-center justify-center">
+            <Plus className="w-4 h-4 text-[var(--text-muted)]" />
           </div>
         </div>
       ) : null}
@@ -303,24 +303,24 @@ export const MobileAgendaView = memo(function MobileAgendaView({
 
   return (
     <>
-      <div className="h-full flex flex-col bg-[#121212]" ref={containerRef}>
+      <div className="h-full flex flex-col bg-[var(--app-bg)]" ref={containerRef}>
         {/* Week Navigation Header */}
-        <div className="px-4 py-3 flex items-center justify-between border-b border-[#2C2C2C]">
+        <div className="px-4 py-3 flex items-center justify-between border-b border-[var(--border-main)]">
           <button
             onClick={handlePrevWeek}
             disabled={currentWeekIndex === 0}
             className={`p-2 rounded-lg transition-colors cursor-pointer ${
               currentWeekIndex === 0
-                ? 'text-white/20'
-                : 'text-white/60 hover:bg-white/10 hover:text-white'
+                ? 'text-[var(--text-faint)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)] hover:text-[var(--text-primary)]'
             }`}
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
           <div className="text-center">
-            <p className="text-sm font-medium text-white">{weekRangeText}</p>
-            <p className="text-[10px] text-white/40">Week {currentWeekIndex + 1} of {weeks.length}</p>
+            <p className="text-sm font-medium text-[var(--text-primary)]">{weekRangeText}</p>
+            <p className="text-[10px] text-[var(--text-muted)]">Week {currentWeekIndex + 1} of {weeks.length}</p>
           </div>
 
           <button
@@ -328,8 +328,8 @@ export const MobileAgendaView = memo(function MobileAgendaView({
             disabled={currentWeekIndex === weeks.length - 1}
             className={`p-2 rounded-lg transition-colors cursor-pointer ${
               currentWeekIndex === weeks.length - 1
-                ? 'text-white/20'
-                : 'text-white/60 hover:bg-white/10 hover:text-white'
+                ? 'text-[var(--text-faint)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)] hover:text-[var(--text-primary)]'
             }`}
           >
             <ChevronRight className="w-5 h-5" />
@@ -387,7 +387,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed left-0 right-0 z-50 bg-[#1E1E1E] rounded-t-3xl overflow-hidden"
+              className="fixed left-0 right-0 z-50 bg-[var(--surface)] rounded-t-3xl overflow-hidden"
               style={{ bottom: '70px', height: '60vh', maxHeight: '500px' }}
             >
               <div className="h-full flex flex-col">
@@ -412,21 +412,21 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                     document.addEventListener('pointerup', onUp);
                   }}
                 >
-                  <div className="w-10 h-1 rounded-full bg-white/20" />
+                  <div className="w-10 h-1 rounded-full bg-[var(--text-faint)]" />
                 </div>
 
                 {/* Header */}
                 <div className="px-5 pb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xl font-bold text-white">
+                      <h3 className="text-xl font-bold text-[var(--text-primary)]">
                         {isToday(selectedDay.date) ? 'Today' : format(selectedDay.date, 'EEEE')}
                       </h3>
-                      <p className="text-sm text-white/50">{format(selectedDay.date, 'MMMM d, yyyy')}</p>
+                      <p className="text-sm text-[var(--text-secondary)]">{format(selectedDay.date, 'MMMM d, yyyy')}</p>
                     </div>
                     <button
                       onClick={() => setSelectedDay(null)}
-                      className="p-2 rounded-full hover:bg-white/10 text-white/60 cursor-pointer"
+                      className="p-2 rounded-full hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] cursor-pointer"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -438,7 +438,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                       onAddForDate(selectedDay.date);
                       setSelectedDay(null);
                     }}
-                    className="w-full bg-[#03DAC6] hover:bg-[#03DAC6]/80 text-black h-12 rounded-xl mt-4 font-semibold"
+                    className="w-full bg-[var(--teal)] hover:bg-[var(--teal)]/80 text-[var(--text-inverse)] h-12 rounded-xl mt-4 font-semibold"
                   >
                     <Plus className="w-5 h-5 mr-2" />
                     Add Transaction
@@ -448,21 +448,21 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                 {/* Day summary - only if has transactions */}
                 {selectedDay.transactions.length > 0 && (
                   <div className="px-5 pb-3 flex gap-3">
-                    <div className="flex-1 bg-[#03DAC6]/10 rounded-xl p-3">
+                    <div className="flex-1 bg-[var(--teal-bg)] rounded-xl p-3">
                       <div className="flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5 text-[#03DAC6]" />
-                        <span className="text-[10px] text-white/50">Income</span>
+                        <TrendingUp className="w-3.5 h-3.5 text-[var(--teal)]" />
+                        <span className="text-[10px] text-[var(--text-secondary)]">Income</span>
                       </div>
-                      <p className="text-lg font-bold text-[#03DAC6] mt-1">
+                      <p className="text-lg font-bold text-[var(--teal)] mt-1">
                         {formatCurrency(selectedDay.income)}
                       </p>
                     </div>
-                    <div className="flex-1 bg-[#CF6679]/10 rounded-xl p-3">
+                    <div className="flex-1 bg-[var(--expense-color)]/10 rounded-xl p-3">
                       <div className="flex items-center gap-1.5">
-                        <TrendingDown className="w-3.5 h-3.5 text-[#CF6679]" />
-                        <span className="text-[10px] text-white/50">Expense</span>
+                        <TrendingDown className="w-3.5 h-3.5 text-[var(--expense-color)]" />
+                        <span className="text-[10px] text-[var(--text-secondary)]">Expense</span>
                       </div>
-                      <p className="text-lg font-bold text-[#CF6679] mt-1">
+                      <p className="text-lg font-bold text-[var(--expense-color)] mt-1">
                         {formatCurrency(selectedDay.expense)}
                       </p>
                     </div>
@@ -470,17 +470,17 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                 )}
 
                 {/* Transactions List - Scrollable */}
-                <div 
+                <div
                   className="flex-1 overflow-y-auto overscroll-contain px-5 pb-4 scrollbar-hide"
                   style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                 {selectedDay.transactions.length === 0 ? (
                   <div className="text-center py-6">
-                    <p className="text-white/40">No transactions yet for this day</p>
+                    <p className="text-[var(--text-muted)]">No transactions yet for this day</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-xs text-white/40 uppercase tracking-wide mb-2">
+                    <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-2">
                       {selectedDay.transactions.length} Transaction{selectedDay.transactions.length > 1 ? 's' : ''}
                     </p>
                     {selectedDay.transactions.map((transaction, index) => {
@@ -498,8 +498,8 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                           className={`
                             flex items-center justify-between p-3 rounded-xl
                             ${isOverdue
-                              ? 'bg-[#FF5252]/10 border border-[#FF5252]/30'
-                              : 'bg-[#2C2C2C]/50'
+                              ? 'bg-[var(--error-color)]/10 border border-[var(--error-color)]/30'
+                              : 'bg-[var(--surface-hover)]/50'
                             }
                           `}
                         >
@@ -507,22 +507,22 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                             <div className={`
                               w-9 h-9 rounded-lg flex items-center justify-center shrink-0
                               ${isOverdue
-                                ? 'bg-[#FF5252]/20'
-                                : transaction.amount >= 0 ? 'bg-[#03DAC6]/10' : 'bg-[#CF6679]/10'
+                                ? 'bg-[var(--error-color)]/20'
+                                : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
                               }
                             `}>
                               {isOverdue ? (
-                                <AlertCircle className="w-4 h-4 text-[#FF5252]" />
+                                <AlertCircle className="w-4 h-4 text-[var(--error-color)]" />
                               ) : transaction.isRecurring ? (
-                                <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`} />
+                                <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
                               ) : transaction.amount >= 0 ? (
-                                <TrendingUp className="w-4 h-4 text-[#03DAC6]" />
+                                <TrendingUp className="w-4 h-4 text-[var(--teal)]" />
                               ) : (
-                                <TrendingDown className="w-4 h-4 text-[#CF6679]" />
+                                <TrendingDown className="w-4 h-4 text-[var(--expense-color)]" />
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-white truncate">
+                              <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                                 {transaction.description}
                               </p>
                               {categoryInfo && (
@@ -531,7 +531,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                                     className="w-1.5 h-1.5 rounded-full shrink-0"
                                     style={{ backgroundColor: categoryInfo.color }}
                                   />
-                                  <span className="text-[11px] text-white/40 truncate">
+                                  <span className="text-[11px] text-[var(--text-muted)] truncate">
                                     {categoryInfo.label}
                                   </span>
                                 </div>
@@ -539,7 +539,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                             </div>
                           </div>
                           <div className="flex items-center gap-1 ml-2">
-                            <span className={`text-sm font-semibold ${transaction.amount >= 0 ? 'text-[#03DAC6]' : 'text-[#CF6679]'}`}>
+                            <span className={`text-sm font-semibold ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                               {transaction.amount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
                             </span>
                             <button
@@ -548,13 +548,13 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                                 onEdit(transaction);
                                 setSelectedDay(null);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] cursor-pointer"
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={(e) => handleDeleteClick(transaction, e)}
-                              className="p-1.5 rounded-lg hover:bg-white/10 text-[#CF6679] cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -589,19 +589,19 @@ export const MobileAgendaView = memo(function MobileAgendaView({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 100, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-sm bg-[#1E1E1E] border border-[#2C2C2C] rounded-2xl shadow-2xl overflow-hidden mb-4"
+              className="w-full max-w-sm bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden mb-4"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-5">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#CF6679]/10 flex items-center justify-center shrink-0">
-                    <Trash2 className="w-5 h-5 text-[#CF6679]" />
+                  <div className="w-10 h-10 rounded-full bg-[var(--expense-color)]/10 flex items-center justify-center shrink-0">
+                    <Trash2 className="w-5 h-5 text-[var(--expense-color)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-white mb-1">
+                    <h3 className="text-base font-semibold text-[var(--text-primary)] mb-1">
                       Delete Transaction
                     </h3>
-                    <p className="text-sm text-white/50">
+                    <p className="text-sm text-[var(--text-secondary)]">
                       {transactionToDelete.isRecurring
                         ? 'Delete just this month or all occurrences?'
                         : 'This action cannot be undone.'}
@@ -615,13 +615,13 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleConfirmDelete(false)}
-                      className="flex-1 bg-[#2C2C2C] text-white/90 hover:bg-[#3C3C3C] h-11 rounded-xl"
+                      className="flex-1 bg-[var(--surface-hover)] text-[var(--text-primary)]/90 hover:bg-[var(--border-secondary)] h-11 rounded-xl"
                     >
                       This Month
                     </Button>
                     <Button
                       onClick={() => handleConfirmDelete(true)}
-                      className="flex-1 bg-[#CF6679] hover:bg-[#CF6679]/80 text-white h-11 rounded-xl"
+                      className="flex-1 bg-[var(--expense-color)] hover:bg-[var(--expense-color)]/80 text-[var(--text-primary)] h-11 rounded-xl"
                     >
                       All
                     </Button>
@@ -629,7 +629,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                 ) : (
                   <Button
                     onClick={() => handleConfirmDelete(false)}
-                    className="w-full bg-[#CF6679] hover:bg-[#CF6679]/80 text-white h-11 rounded-xl"
+                    className="w-full bg-[var(--expense-color)] hover:bg-[var(--expense-color)]/80 text-[var(--text-primary)] h-11 rounded-xl"
                   >
                     Delete
                   </Button>
@@ -639,7 +639,7 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                     setDeleteConfirmOpen(false);
                     setTransactionToDelete(null);
                   }}
-                  className="w-full bg-[#252525] text-white/50 hover:text-white hover:bg-[#2C2C2C] h-10 rounded-xl"
+                  className="w-full bg-[var(--surface-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] h-10 rounded-xl"
                 >
                   Cancel
                 </Button>

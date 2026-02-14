@@ -18,8 +18,8 @@ export default function Home() {
   }, [user, loading, router]);
 
   return (
-    <div className="flex h-screen items-center justify-center bg-[#121212]">
-      <div className="h-32 w-32 animate-spin rounded-full border-b-4 border-t-4 border-[#03DAC6]"></div>
+    <div className="flex h-screen items-center justify-center bg-[var(--app-bg)]">
+      <div className="h-32 w-32 animate-spin rounded-full border-b-4 border-t-4 border-[var(--teal)]"></div>
     </div>
   );
 }

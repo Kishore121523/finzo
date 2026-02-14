@@ -20,11 +20,11 @@ const steps: { icon: typeof Wallet; color: string; title: string; description: R
       <>
         Never miss a payment. Your recurring expenses automatically become tasks on a kanban board.
         <div className="flex items-center justify-center gap-2 mt-4">
-          <span className="px-3 py-1.5 rounded-lg bg-[#BB86FC]/15 text-[#BB86FC] text-xs font-semibold">To Pay</span>
-          <ArrowRight className="w-3.5 h-3.5 text-white/30" />
-          <span className="px-3 py-1.5 rounded-lg bg-[#FFB74D]/15 text-[#FFB74D] text-xs font-semibold">Pending</span>
-          <ArrowRight className="w-3.5 h-3.5 text-white/30" />
-          <span className="px-3 py-1.5 rounded-lg bg-[#03DAC6]/15 text-[#03DAC6] text-xs font-semibold">Paid</span>
+          <span className="px-3 py-1.5 rounded-lg bg-[var(--purple-color)]/15 text-[var(--purple-color)] text-xs font-semibold">To Pay</span>
+          <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <span className="px-3 py-1.5 rounded-lg bg-[var(--warning-color)]/15 text-[var(--warning-color)] text-xs font-semibold">Pending</span>
+          <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <span className="px-3 py-1.5 rounded-lg bg-[var(--teal-bg)] text-[var(--teal)] text-xs font-semibold">Paid</span>
         </div>
       </>
     ),
@@ -83,7 +83,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-full max-w-[320px] sm:max-w-md bg-[#1E1E1E] border border-[#2C2C2C] rounded-2xl shadow-2xl overflow-hidden"
+            className="w-full max-w-[320px] sm:max-w-md bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 pt-7 pb-5 sm:px-8 sm:pt-12 sm:pb-10 flex flex-col items-center text-center">
@@ -109,10 +109,10 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
                       style={{ color: current.color }}
                     />
                   </div>
-                  <h2 className="text-lg sm:text-2xl font-bold text-white mb-2 sm:mb-3">
+                  <h2 className="text-lg sm:text-2xl font-bold text-[var(--text-primary)] mb-2 sm:mb-3">
                     {current.title}
                   </h2>
-                  <div className="text-[13px] sm:text-base text-white/50 leading-relaxed max-w-xs">
+                  <div className="text-[13px] sm:text-base text-[var(--text-muted)] leading-relaxed max-w-xs">
                     {current.description}
                   </div>
                 </motion.div>
@@ -126,7 +126,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
                   key={i}
                   className="w-2 h-2 rounded-full transition-colors duration-200"
                   style={{
-                    backgroundColor: i === step ? '#03DAC6' : 'rgba(255,255,255,0.2)',
+                    backgroundColor: i === step ? 'var(--teal)' : 'var(--text-faint)',
                   }}
                 />
               ))}
@@ -137,7 +137,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
               <button
                 onClick={handlePrev}
                 disabled={step === 0}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-default disabled:hover:bg-[#2C2C2C] disabled:hover:text-white/70"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-20 disabled:cursor-default disabled:hover:bg-[var(--surface-hover)] disabled:hover:text-[var(--text-secondary)]"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -145,7 +145,7 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
               <button
                 onClick={handleNext}
                 disabled={step === steps.length - 1}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2C2C2C] text-white/70 transition-colors hover:bg-[#3C3C3C] hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-default disabled:hover:bg-[#2C2C2C] disabled:hover:text-white/70"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-20 disabled:cursor-default disabled:hover:bg-[var(--surface-hover)] disabled:hover:text-[var(--text-secondary)]"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
