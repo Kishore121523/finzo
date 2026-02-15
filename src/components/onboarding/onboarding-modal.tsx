@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, ReactNode } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun } from 'lucide-react';
+import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 
 interface Step {
@@ -21,22 +21,6 @@ const steps: Step[] = [
     description:
       'Visualize your finances in a monthly calendar format. Each day displays color-coded income and expense totals, helping you quickly identify spending patterns and trends.',
     image: '/calendarPage.png',
-  },
-  {
-    icon: PieChart,
-    colorVar: '--purple-color',
-    title: 'Category Breakdown',
-    description:
-      'Visualize your spending with interactive donut charts that display category-wise percentages, transaction counts, and totals. Select or deselect categories to dynamically update the view and analyze your expenses more clearly.',
-    image: '/insightsPie.png',
-  },
-  {
-    icon: TrendingDown,
-    colorVar: '--expense-color',
-    title: 'Spending Trends',
-    description:
-      'Monitor your daily spending with a smooth line chart that highlights peak expense days, monthly averages, and overall progress giving you a clear view of your financial patterns at a glance.',
-    image: '/insightsDailySpending.png',
   },
   {
     icon: RefreshCw,
@@ -65,6 +49,22 @@ const steps: Step[] = [
     image: '/paymentPage.png',
   },
   {
+    icon: PieChart,
+    colorVar: '--purple-color',
+    title: 'Category Breakdown',
+    description:
+      'Visualize your spending with interactive donut charts that display category-wise percentages, transaction counts, and totals. Select or deselect categories to dynamically update the view and analyze your expenses.',
+    image: '/insightsPie.png',
+  },
+  {
+    icon: TrendingDown,
+    colorVar: '--expense-color',
+    title: 'Spending Trends',
+    description:
+      'Monitor your daily spending with a smooth line chart that highlights peak expense days, monthly averages, and overall progress giving you a clear view of your financial patterns at a glance.',
+    image: '/insightsDailySpending.png',
+  },
+  {
     icon: Mail,
     colorVar: '--warning-color',
     title: 'Email Reminders',
@@ -91,26 +91,192 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (step < steps.length - 1) {
       setDirection(1);
       setStep(step + 1);
     }
-  };
+  }, [step]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (step > 0) {
       setDirection(-1);
       setStep(step - 1);
     }
-  };
+  }, [step]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setStep(0);
     onClose();
-  };
+  }, [onClose]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, handleNext, handlePrev, handleClose]);
 
   const current = steps[step];
+  const isLast = step === steps.length - 1;
+  const progress = ((step + 1) / steps.length) * 100;
+
+  const contentVariants = {
+    enter: (d: number) => ({ y: d * 30, opacity: 0 }),
+    center: { y: 0, opacity: 1 },
+    exit: (d: number) => ({ y: d * -30, opacity: 0 }),
+  };
+
+  // Shared sub-components to avoid duplication
+  const progressBar = (
+    <div className="h-1 w-full bg-[var(--fill-subtle)] shrink-0">
+      <motion.div
+        className="h-full rounded-r-full"
+        style={{
+          background: `linear-gradient(90deg, var(${current.colorVar}), color-mix(in srgb, var(${current.colorVar}) 70%, var(--teal)))`,
+        }}
+        initial={{ width: 0 }}
+        animate={{ width: `${progress}%` }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+      />
+    </div>
+  );
+
+  const dots = (
+    <div className="flex items-center gap-1.5">
+      {steps.map((_, i) => (
+        <button
+          key={i}
+          onClick={() => {
+            setDirection(i > step ? 1 : -1);
+            setStep(i);
+          }}
+          className="cursor-pointer p-0.5"
+        >
+          <motion.div
+            className="rounded-full"
+            animate={{
+              width: i === step ? 24 : 8,
+              height: 8,
+              backgroundColor: i === step ? `var(${current.colorVar})` : 'var(--text-faint)',
+            }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          />
+        </button>
+      ))}
+    </div>
+  );
+
+  const backButton = (
+    <button
+      onClick={handlePrev}
+      disabled={step === 0}
+      className="flex items-center gap-1.5 h-10 px-4 rounded-xl text-sm font-medium text-[var(--text-secondary)] bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] transition-all cursor-pointer disabled:opacity-0 disabled:pointer-events-none"
+    >
+      <ChevronLeft className="w-4 h-4" />
+      Back
+    </button>
+  );
+
+  const nextButton = (
+    <button
+      onClick={isLast ? handleClose : handleNext}
+      className="flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold transition-all cursor-pointer hover:opacity-90 active:scale-[0.97]"
+      style={{
+        backgroundColor: `var(${current.colorVar})`,
+        color: 'var(--text-inverse)',
+      }}
+    >
+      {isLast ? (
+        <>
+          <Sparkles className="w-4 h-4" />
+          Get Started
+        </>
+      ) : (
+        <>
+          Continue
+          <ChevronRight className="w-4 h-4" />
+        </>
+      )}
+    </button>
+  );
+
+  const imageVariants = {
+    enter: (d: number) => ({ opacity: 0, y: d * 40 }),
+    center: { opacity: 1, y: 0 },
+    exit: (d: number) => ({ opacity: 0, y: d * -40 }),
+  };
+
+  const imagePanel = (
+    <AnimatePresence mode="wait" custom={direction}>
+      {current.image && (
+        <motion.div
+          key={step}
+          custom={direction}
+          variants={imageVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={current.image}
+            alt={current.title}
+            fill
+            className="object-cover object-top"
+            sizes="(min-width: 1024px) 60vw, 0vw"
+            priority
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const contentBlock = (align: 'center' | 'left') => (
+    <AnimatePresence mode="wait" custom={direction}>
+      <motion.div
+        key={step}
+        custom={direction}
+        variants={contentVariants}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className={`flex flex-col ${align === 'center' ? 'items-center text-center' : 'items-start text-left'
+          }`}
+      >
+        {/* Icon badge */}
+        <div
+          className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl flex items-center justify-center mb-3 lg:mb-5 shrink-0"
+          style={{
+            backgroundColor: `color-mix(in srgb, var(${current.colorVar}) 14%, transparent)`,
+            border: `1px solid color-mix(in srgb, var(${current.colorVar}) 20%, transparent)`,
+          }}
+        >
+          <current.icon
+            className="w-5 h-5 lg:w-6 lg:h-6"
+            style={{ color: `var(${current.colorVar})` }}
+          />
+        </div>
+
+        {/* Title */}
+        <h2 className="text-lg lg:text-[2rem] font-bold text-[var(--text-primary)] mb-1.5 lg:mb-3 leading-tight">
+          {current.title}
+        </h2>
+
+        {/* Description */}
+        <div className="text-sm lg:text-lg text-[var(--text-secondary)] leading-relaxed lg:leading-[1.5] max-w-sm">
+          {current.description}
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
 
   return (
     <AnimatePresence>
@@ -119,148 +285,158 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
           onClick={handleClose}
         >
-          {/* Mobile: compact card layout */}
+          {/* ============================== */}
+          {/* DESKTOP LAYOUT (lg and above)  */}
+          {/* ============================== */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            initial={{ scale: 0.92, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="w-full max-w-[320px] sm:max-w-md lg:max-w-5xl xl:max-w-6xl bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden"
+            exit={{ scale: 0.92, opacity: 0, y: 30 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            className="hidden lg:flex relative w-[92vw] max-w-5xl h-[90vh] max-h-[620px] bg-[var(--surface)] rounded-3xl shadow-2xl overflow-hidden flex-col"
+            style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.3), 0 0 0 1px var(--border-main)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col lg:flex-row lg:h-[480px]">
-              {/* Image panel — desktop only */}
-              {current.image && (
-                <div className="hidden lg:block lg:w-[60%] relative bg-[var(--app-bg)]">
-                  <AnimatePresence mode="wait" custom={direction}>
-                    <motion.div
-                      key={step}
-                      custom={direction}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.3, ease: 'easeInOut' }}
-                      className="absolute inset-0 flex items-center justify-center p-6"
-                    >
-                      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg border border-[var(--border-main)]">
-                        <Image
-                          src={current.image}
-                          alt={current.title}
-                          fill
-                          className="object-cover object-top"
-                          sizes="(min-width: 1024px) 55vw, 0vw"
-                        />
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              )}
+            {progressBar}
 
-              {/* Content panel */}
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="px-5 pt-7 pb-5 sm:px-8 sm:pt-10 sm:pb-6 lg:px-8 lg:pt-12 lg:pb-8 flex flex-col items-center lg:items-start text-center lg:text-left flex-1 justify-center">
-                  {/* Step counter — desktop */}
-                  <div className="hidden lg:flex items-center gap-2 mb-6">
-                    <span className="text-xs font-medium text-[var(--text-muted)]">
-                      {step + 1} / {steps.length}
-                    </span>
-                  </div>
-
-                  <AnimatePresence mode="wait" custom={direction}>
-                    <motion.div
-                      key={step}
-                      custom={direction}
-                      initial={{ y: direction * 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: direction * -20, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: 'easeInOut' }}
-                      className="flex flex-col items-center lg:items-start h-[220px] sm:h-[260px] lg:h-[240px]"
-                    >
-                      {/* Icon */}
-                      <div
-                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full lg:rounded-2xl flex items-center justify-center mb-4 sm:mb-5 shrink-0"
-                        style={{
-                          backgroundColor: `color-mix(in srgb, var(${current.colorVar}) 12%, transparent)`,
-                        }}
-                      >
-                        <current.icon
-                          className="w-6 h-6 sm:w-7 sm:h-7"
-                          style={{ color: `var(${current.colorVar})` }}
-                        />
-                      </div>
-
-                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-[var(--text-primary)] mb-2 sm:mb-3">
-                        {current.title}
-                      </h2>
-                      <div className="text-[13px] sm:text-sm lg:text-base text-[var(--text-muted)] leading-relaxed max-w-xs lg:max-w-sm">
-                        {current.description}
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {/* Dots — desktop only (separate row) */}
-                <div className="hidden lg:flex justify-start px-8 gap-1.5 pb-5">
-                  {steps.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setDirection(i > step ? 1 : -1);
-                        setStep(i);
-                      }}
-                      className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                        i === step ? 'w-6' : 'w-1.5'
-                      }`}
-                      style={{
-                        backgroundColor: i === step ? `var(${current.colorVar})` : 'var(--text-faint)',
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Actions */}
-                <div className="px-5 pb-5 sm:px-8 sm:pb-6 lg:pb-8 flex items-center justify-between">
+            {/* Top bar */}
+            <div className="flex items-center justify-between px-8 pt-4 pb-0 shrink-0">
+              <span className="text-xs font-semibold tracking-wider uppercase text-[var(--text-faint)]">
+                {step + 1} of {steps.length}
+              </span>
+              <div className="flex items-center gap-3">
+                {!isLast && (
                   <button
-                    onClick={handlePrev}
-                    disabled={step === 0}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-20 disabled:cursor-default disabled:hover:bg-[var(--surface-hover)] disabled:hover:text-[var(--text-secondary)]"
+                    onClick={handleClose}
+                    className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                   >
-                    <ChevronLeft className="h-5 w-5" />
+                    Skip tour
                   </button>
+                )}
+                <button
+                  onClick={handleClose}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-                  {/* Dots — mobile only (between arrows) */}
-                  <div className="flex lg:hidden items-center gap-1.5">
-                    {steps.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          setDirection(i > step ? 1 : -1);
-                          setStep(i);
-                        }}
-                        className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                          i === step ? 'w-5' : 'w-1.5'
-                        }`}
-                        style={{
-                          backgroundColor: i === step ? `var(${current.colorVar})` : 'var(--text-faint)',
-                        }}
-                      />
-                    ))}
-                  </div>
+            {/* Two-column content */}
+            <div className="flex-1 flex flex-row overflow-hidden min-h-0">
+              {/* Content panel — 36% */}
+              <div className="w-[40%] flex flex-col justify-center ml-2 px-10 py-8">
+                {contentBlock('left')}
+              </div>
 
-                  {/* Spacer — desktop only */}
-                  <div className="hidden lg:block" />
+              {/* Image panel — 64% */}
+              <div className="flex-1 flex items-center justify-center p-8 pl-3 min-h-0">
+                <div
+                  className="relative w-[95%] h-full rounded-2xl overflow-hidden bg-[var(--app-bg)] border border-[var(--border-main)]"
+                  style={{ boxShadow: 'var(--shadow-lg)' }}
+                >
+                  {imagePanel}
+                </div>
+              </div>
+            </div>
 
+            {/* Bottom bar */}
+            <div className="shrink-0 px-10 pb-7 pt-2">
+              <div className="flex items-center justify-between gap-4">
+                {backButton}
+                {dots}
+                {nextButton}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ============================== */}
+          {/* MOBILE LAYOUT (below lg)       */}
+          {/* ============================== */}
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            className="flex lg:hidden relative w-[85vw] max-w-[380px] h-[380px] bg-[var(--surface)] rounded-2xl shadow-2xl overflow-hidden flex-col"
+            style={{
+              boxShadow: '0 25px 60px rgba(0,0,0,0.3), 0 0 0 1px var(--border-main)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {progressBar}
+
+            {/* Top bar — compact */}
+            <div className="flex items-center justify-between px-5 pt-4 shrink-0">
+              <span className="text-xs font-semibold tracking-wider uppercase text-[var(--text-faint)]">
+                {step + 1} of {steps.length}
+              </span>
+              <div className="flex items-center gap-2.5">
+                {!isLast && (
+                  <button
+                    onClick={handleClose}
+                    className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                  >
+                    Skip
+                  </button>
+                )}
+                <button
+                  onClick={handleClose}
+                  className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Text-only content — vertically centered */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
+              {contentBlock('center')}
+            </div>
+
+            {/* Bottom bar — arrow ← dots → arrow */}
+            <div className="shrink-0 px-5 pb-5 pt-3">
+              <div className="flex items-center justify-between gap-3">
+                {/* Back arrow */}
+                <button
+                  onClick={handlePrev}
+                  disabled={step === 0}
+                  className="flex items-center justify-center w-9 h-9 rounded-full bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] transition-all cursor-pointer disabled:opacity-0 disabled:pointer-events-none shrink-0"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {dots}
+
+                {/* Next arrow / Get Started */}
+                {isLast ? (
+                  <button
+                    onClick={handleClose}
+                    className="flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-semibold transition-all cursor-pointer hover:opacity-90 active:scale-[0.97] shrink-0"
+                    style={{
+                      backgroundColor: `var(${current.colorVar})`,
+                      color: 'var(--text-inverse)',
+                    }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Start
+                  </button>
+                ) : (
                   <button
                     onClick={handleNext}
-                    disabled={step === steps.length - 1}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] cursor-pointer disabled:opacity-20 disabled:cursor-default disabled:hover:bg-[var(--surface-hover)] disabled:hover:text-[var(--text-secondary)]"
+                    className="flex items-center justify-center w-9 h-9 rounded-full transition-all cursor-pointer hover:opacity-90 active:scale-[0.97] shrink-0"
+                    style={{
+                      backgroundColor: `var(${current.colorVar})`,
+                      color: 'var(--text-inverse)',
+                    }}
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
-                </div>
+                )}
               </div>
             </div>
           </motion.div>
