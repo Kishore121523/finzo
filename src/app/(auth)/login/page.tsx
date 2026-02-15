@@ -12,8 +12,6 @@ import {
   CreditCard,
   Bell,
   Target,
-  ArrowUpRight,
-  ArrowDownRight,
 } from 'lucide-react';
 import { FinzoLogo } from '@/components/layout/logo';
 
@@ -36,19 +34,19 @@ export default function LoginPage() {
   }
 
   const features = [
-    { icon: Wallet, label: 'Track Expenses', color: '#03DAC6' },
-    { icon: PieChart, label: 'Smart Insights', color: '#BB86FC' },
-    { icon: Bell, label: 'Bill Reminders', color: '#CF6679' },
+    { icon: Wallet, label: 'Track Expenses', color: 'var(--teal)' },
+    { icon: PieChart, label: 'Smart Insights', color: 'var(--purple-color)' },
+    { icon: Bell, label: 'Bill Reminders', color: 'var(--expense-color)' },
   ];
 
   // Floating icons configuration
   const floatingIcons = [
-    { icon: TrendingUp, x: '15%', y: '20%', delay: 0, color: '#03DAC6', size: 32 },
-    { icon: CreditCard, x: '75%', y: '15%', delay: 0.2, color: '#BB86FC', size: 28 },
-    { icon: Target, x: '80%', y: '70%', delay: 0.4, color: '#03DAC6', size: 30 },
-    { icon: PieChart, x: '20%', y: '75%', delay: 0.6, color: '#CF6679', size: 26 },
-    { icon: Wallet, x: '85%', y: '40%', delay: 0.8, color: '#FFB74D', size: 24 },
-    { icon: Bell, x: '10%', y: '45%', delay: 1, color: '#BB86FC', size: 22 },
+    { icon: TrendingUp, x: '15%', y: '20%', delay: 0, colorVar: '--teal', size: 32 },
+    { icon: CreditCard, x: '75%', y: '15%', delay: 0.2, colorVar: '--purple-color', size: 28 },
+    { icon: Target, x: '80%', y: '70%', delay: 0.4, colorVar: '--teal', size: 30 },
+    { icon: PieChart, x: '20%', y: '75%', delay: 0.6, colorVar: '--expense-color', size: 26 },
+    { icon: Wallet, x: '85%', y: '40%', delay: 0.8, colorVar: '--warning-color', size: 24 },
+    { icon: Bell, x: '10%', y: '45%', delay: 1, colorVar: '--purple-color', size: 22 },
   ];
 
   return (
@@ -57,7 +55,7 @@ export default function LoginPage() {
       <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
-          backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)`,
           backgroundSize: '60px 60px',
         }}
       />
@@ -83,11 +81,11 @@ export default function LoginPage() {
           <div
             className="p-3 rounded-2xl backdrop-blur-sm"
             style={{
-              backgroundColor: `${item.color}10`,
-              border: `1px solid ${item.color}20`,
+              backgroundColor: `color-mix(in srgb, var(${item.colorVar}) 8%, transparent)`,
+              border: `1px solid color-mix(in srgb, var(${item.colorVar}) 12%, transparent)`,
             }}
           >
-            <item.icon size={item.size} style={{ color: item.color }} />
+            <item.icon size={item.size} style={{ color: `var(${item.colorVar})` }} />
           </div>
         </motion.div>
       ))}
@@ -121,26 +119,41 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl p-5 mb-6"
+            className="mb-6 bg-[var(--surface)] border border-[var(--border-main)] w-[300px] lg:w-[400px] mx-auto rounded-2xl p-5"
           >
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[var(--text-muted)] text-sm">Monthly Overview</span>
-              <span className="text-[var(--text-muted)] text-xs">Preview</span>
+            {/* Balance */}
+            <p className="text-xs text-center text-[var(--text-muted)] mb-1">Net Balance</p>
+            <p className=" text-xl lg:text-2xl text-center font-bold text-[var(--text-primary)] tracking-tight">$2,070</p>
+
+            {/* Proportion bar */}
+            <div className="flex h-1.5 rounded-full overflow-hidden mt-4 mb-4 bg-[var(--fill-subtle)]">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '66%' }}
+                transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
+                className="rounded-full"
+                style={{ backgroundColor: 'var(--teal)' }}
+              />
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '34%' }}
+                transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
+                className="rounded-full ml-0.5"
+                style={{ backgroundColor: 'var(--expense-color)' }}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[var(--surface)] rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <ArrowUpRight className="w-4 h-4 text-[var(--teal)]" />
-                  <span className="text-[var(--text-muted)] text-xs">Income</span>
-                </div>
-                <span className="text-[var(--text-primary)] font-semibold">$4,250</span>
+
+            {/* Labels */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 lg:gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--teal)' }} />
+                <span className="text-[10px] lg:text-xs text-[var(--text-muted)]">Income</span>
+                <span className="text-[10px] lg:text-sm font-semibold text-[var(--text-primary)]">$4,250</span>
               </div>
-              <div className="bg-[var(--surface)] rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <ArrowDownRight className="w-4 h-4 text-[var(--expense-color)]" />
-                  <span className="text-[var(--text-muted)] text-xs">Expenses</span>
-                </div>
-                <span className="text-[var(--text-primary)] font-semibold">$2,180</span>
+              <div className="flex items-center gap-1 lg:gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--expense-color)' }} />
+                <span className="text-[10px] lg:text-xs text-[var(--text-muted)]">Expenses</span>
+                <span className="text-[10px] lg:text-sm font-semibold text-[var(--text-primary)]">$2,180</span>
               </div>
             </div>
           </motion.div>
