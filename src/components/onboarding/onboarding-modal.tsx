@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles } from 'lucide-react';
 import Image from 'next/image';
+import { on } from 'events';
 
 interface Step {
   icon: typeof Wallet;
@@ -27,7 +28,7 @@ const steps: Step[] = [
     colorVar: '--teal',
     title: 'Recurring Transactions',
     description:
-      'Set up EMIs, SIPs, subscriptions, and utility bills once they automatically populate each month. Stay on top of recurring payments and never miss an important due date again.',
+      "Set up EMIs, SIPs, subscriptions, and utility bills once. They'll automatically populate each month, helping you stay on top of recurring payments and never miss a due date.",
     image: '/recurring.png',
   },
   {
