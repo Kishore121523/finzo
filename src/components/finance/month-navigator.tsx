@@ -74,12 +74,12 @@ export const MonthNavigator = memo(function MonthNavigator({
     }
   };
 
-  const getModalColor = () => {
+  const getModalColorVar = () => {
     switch (modalType) {
-      case 'income': return '#03DAC6';
-      case 'expense': return '#CF6679';
-      case 'all': return balance >= 0 ? '#03DAC6' : '#CF6679';
-      default: return '#03DAC6';
+      case 'income': return '--teal';
+      case 'expense': return '--expense-color';
+      case 'all': return balance >= 0 ? '--teal' : '--expense-color';
+      default: return '--teal';
     }
   };
 
@@ -316,11 +316,11 @@ export const MonthNavigator = memo(function MonthNavigator({
                   <div className="flex items-center gap-2 md:gap-3">
                     <div
                       className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${getModalColor()}20` }}
+                      style={{ backgroundColor: `color-mix(in srgb, var(${getModalColorVar()}) 12%, transparent)` }}
                     >
-                      {modalType === 'income' && <TrendingUp className="w-4 h-4 md:w-5 md:h-5" style={{ color: getModalColor() }} />}
-                      {modalType === 'expense' && <TrendingDown className="w-4 h-4 md:w-5 md:h-5" style={{ color: getModalColor() }} />}
-                      {modalType === 'all' && <Wallet className="w-4 h-4 md:w-5 md:h-5" style={{ color: getModalColor() }} />}
+                      {modalType === 'income' && <TrendingUp className="w-4 h-4 md:w-5 md:h-5" style={{ color: `var(${getModalColorVar()})` }} />}
+                      {modalType === 'expense' && <TrendingDown className="w-4 h-4 md:w-5 md:h-5" style={{ color: `var(${getModalColorVar()})` }} />}
+                      {modalType === 'all' && <Wallet className="w-4 h-4 md:w-5 md:h-5" style={{ color: `var(${getModalColorVar()})` }} />}
                     </div>
                     <div>
                       <h3 className="text-sm md:text-lg font-bold text-[var(--text-primary)]">{getModalTitle()}</h3>
@@ -338,7 +338,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                 {/* Total */}
                 <div
                   className="mt-3 md:mt-4 p-2.5 md:p-3 rounded-lg md:rounded-xl flex items-center justify-between"
-                  style={{ backgroundColor: `${getModalColor()}10` }}
+                  style={{ backgroundColor: `color-mix(in srgb, var(${getModalColorVar()}) 8%, transparent)` }}
                 >
                   <div>
                     <span className="text-xs md:text-sm text-[var(--text-secondary)]">
@@ -348,7 +348,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                       {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
                     </p>
                   </div>
-                  <span className="text-base md:text-xl font-bold" style={{ color: getModalColor() }}>
+                  <span className="text-base md:text-xl font-bold" style={{ color: `var(${getModalColorVar()})` }}>
                     {modalType === 'all'
                       ? formatCurrency(getModalTotal(), { showSign: true })
                       : formatCurrency(getModalTotal())
@@ -364,12 +364,12 @@ export const MonthNavigator = memo(function MonthNavigator({
               >
                 {groupedTransactions.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/5 flex items-center justify-center mb-3 md:mb-4">
-                      {modalType === 'income' && <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-white/20" />}
-                      {modalType === 'expense' && <TrendingDown className="w-6 h-6 md:w-8 md:h-8 text-white/20" />}
-                      {modalType === 'all' && <Wallet className="w-6 h-6 md:w-8 md:h-8 text-white/20" />}
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[var(--fill-subtle)] flex items-center justify-center mb-3 md:mb-4">
+                      {modalType === 'income' && <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-[var(--text-faint)]" />}
+                      {modalType === 'expense' && <TrendingDown className="w-6 h-6 md:w-8 md:h-8 text-[var(--text-faint)]" />}
+                      {modalType === 'all' && <Wallet className="w-6 h-6 md:w-8 md:h-8 text-[var(--text-faint)]" />}
                     </div>
-                    <p className="text-xs md:text-sm text-white/40">No transactions yet</p>
+                    <p className="text-xs md:text-sm text-[var(--text-muted)]">No transactions yet</p>
                   </div>
                 ) : (
                   groupedTransactions.map((group, groupIndex) => {
@@ -384,7 +384,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                           {isTodayDate ? 'Today' : format(dateObj, 'EEE, MMM d')}
                         </span>
                         {isTodayDate && (
-                          <span className="text-[9px] md:text-[10px] text-[var(--teal)]/60 bg-[var(--teal-bg)] px-1 py-0.5 rounded">
+                          <span className="text-[9px] md:text-[10px] px-1 py-0.5 rounded" style={{ color: 'var(--teal)', backgroundColor: 'var(--teal-bg)' }}>
                             {format(dateObj, 'MMM d')}
                           </span>
                         )}
@@ -409,7 +409,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                                 isTodayDate
                                   ? isIncome
                                     ? 'border border-[var(--teal-border)]'
-                                    : 'border border-[var(--expense-color)]/60'
+                                    : 'border border-[var(--expense-border)]'
                                   : ''
                               }`}
                             >
@@ -419,13 +419,13 @@ export const MonthNavigator = memo(function MonthNavigator({
                                 style={{
                                   backgroundColor: categoryInfo
                                     ? `${categoryInfo.color}20`
-                                    : isIncome ? 'rgba(3, 218, 198, 0.1)' : 'rgba(207, 102, 121, 0.1)'
+                                    : isIncome ? 'var(--teal-bg)' : 'var(--expense-bg)'
                                 }}
                               >
                                 {transaction.isRecurring ? (
                                   <RefreshCw
                                     className="w-3.5 h-3.5 md:w-4 md:h-4"
-                                    style={{ color: categoryInfo?.color || (isIncome ? '#03DAC6' : '#CF6679') }}
+                                    style={{ color: categoryInfo?.color || (isIncome ? 'var(--teal)' : 'var(--expense-color)') }}
                                   />
                                 ) : isIncome ? (
                                   <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[var(--teal)]" />
@@ -449,7 +449,7 @@ export const MonthNavigator = memo(function MonthNavigator({
                                       {categoryInfo.label}
                                     </span>
                                     {transaction.isRecurring && (
-                                      <span className="text-[8px] md:text-[10px] text-[var(--text-muted)] bg-[var(--fill-subtle-hover)] px-1 py-0.5 rounded">
+                                      <span className="text-[8px] md:text-[10px] text-[var(--text-muted)] bg-[var(--fill-subtle)] px-1 py-0.5 rounded">
                                         Recurring
                                       </span>
                                     )}

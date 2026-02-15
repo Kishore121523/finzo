@@ -47,77 +47,78 @@
 }
 
 /* ============================================
-   LIGHT MODE (default)
-   Warm slate / material-inspired palette
+   LIGHT MODE — "Soft Linen"
+   Warm cream base, pastel accents
+   Expense = dusty rose (warm), Income = sage (cool)
    ============================================ */
 :root {
   --radius: 0.625rem;
-  --background: #faf9f5;
-  --foreground: #3d3929;
-  --card: #faf9f5;
-  --card-foreground: #141413;
-  --popover: #ffffff;
-  --popover-foreground: #28261b;
-  --primary: #c96442;
+  --background: #d4cab9;
+  --foreground: #38322a;
+  --card: #dbd0bf;
+  --card-foreground: #2a251e;
+  --popover: #ded4c2;
+  --popover-foreground: #2a251e;
+  --primary: #7c8b9e;
   --primary-foreground: #ffffff;
-  --secondary: #e9e6dc;
-  --secondary-foreground: #535146;
-  --muted: #ede9de;
-  --muted-foreground: #83827d;
-  --accent: #e9e6dc;
-  --accent-foreground: #28261b;
-  --destructive: #141413;
-  --border: #dad9d4;
-  --input: #b4b2a7;
-  --ring: #c96442;
-  --chart-1: #b05730;
-  --chart-2: #9c87f5;
-  --chart-3: #ded8c4;
-  --chart-4: #dbd3f0;
-  --chart-5: #b4552d;
-  --sidebar: #f5f4ee;
-  --sidebar-foreground: #3d3d3a;
-  --sidebar-primary: #c96442;
-  --sidebar-primary-foreground: #fbfbfb;
-  --sidebar-accent: #e9e6dc;
-  --sidebar-accent-foreground: #343434;
-  --sidebar-border: #ebebeb;
-  --sidebar-ring: #b5b5b5;
+  --secondary: #dcd1c0;
+  --secondary-foreground: #504a40;
+  --muted: #d9cebb;
+  --muted-foreground: #887e70;
+  --accent: #dcd1c0;
+  --accent-foreground: #2a251e;
+  --destructive: #c47a72;
+  --border: #cdc2b0;
+  --input: #b7ab9a;
+  --ring: #7c8b9e;
+  --chart-1: #c4857c;
+  --chart-2: #7ea88f;
+  --chart-3: #9ca5b8;
+  --chart-4: #c9a87c;
+  --chart-5: #a68db8;
+  --sidebar: #e2d8c8;
+  --sidebar-foreground: #38322a;
+  --sidebar-primary: #7c8b9e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dcd1c0;
+  --sidebar-accent-foreground: #38322a;
+  --sidebar-border: #cdc2b0;
+  --sidebar-ring: #b7ab9a;
 
-  /* App-specific semantic tokens — Light (earthy terracotta) */
-  --app-bg: #faf9f5;
-  --surface: #faf9f5;
-  --surface-elevated: #f3f1ea;
-  --surface-hover: #edeae2;
-  --border-main: #dad9d4;
-  --border-secondary: #d4d2c8;
-  --text-primary: #3d3929;
-  --text-secondary: #535146;
-  --text-muted: #83827d;
-  --text-faint: #b4b2a7;
+  /* App-specific semantic tokens — Light */
+  --app-bg: #dfd5c4;
+  --surface: #e8dece;
+  --surface-elevated: #e2d8c8;
+  --surface-hover: #dbd0bf;
+  --border-main: #cdc2b0;
+  --border-secondary: #c3b8a5;
+  --text-primary: #38322a;
+  --text-secondary: #5c554a;
+  --text-muted: #887e70;
+  --text-faint: #b7ab9a;
   --text-inverse: #ffffff;
-  --fill-subtle: rgba(61, 57, 41, 0.05);
-  --fill-subtle-hover: rgba(61, 57, 41, 0.10);
-  --teal: #4a7fa0;
-  --teal-hover: #3d6f8e;
-  --teal-bg: rgba(74, 127, 160, 0.10);
-  --teal-border: rgba(74, 127, 160, 0.25);
-  --expense-color: #c96442;
-  --expense-bg: rgba(201, 100, 66, 0.10);
-  --expense-border: rgba(201, 100, 66, 0.25);
-  --income-color: #5a8a5e;
-  --purple-color: #9c87f5;
-  --error-color: #b54c35;
-  --error-bg: rgba(181, 76, 53, 0.08);
-  --warning-bg: rgba(201, 100, 66, 0.08);
-  --warning-color: #c96442;
-  --success-color: #5a8a5e;
-  --overlay: rgba(61, 57, 41, 0.45);
-  --shadow-sm: 0 1px 3px rgba(61, 57, 41, 0.08);
-  --shadow-md: 0 4px 12px rgba(61, 57, 41, 0.08);
-  --shadow-lg: 0 8px 30px rgba(61, 57, 41, 0.10);
-  --skeleton-from: #e5e2d8;
-  --skeleton-via: #f0ede5;
+  --fill-subtle: rgba(56, 50, 42, 0.06);
+  --fill-subtle-hover: rgba(56, 50, 42, 0.10);
+  --teal: #1f6a5a;;
+  --teal-hover: #337a6a;
+  --teal-bg: rgba(61, 139, 122, 0.12);
+  --teal-border: rgba(61, 139, 122, 0.28);
+  --expense-color: #ca2e15;
+  --expense-bg: rgba(196, 133, 124, 0.10);
+  --expense-border: rgba(196, 133, 124, 0.25);
+  --income-color: #3d8b7a;
+  --purple-color: #a68db8;
+  --error-color: #c47a72;
+  --error-bg: rgba(196, 122, 114, 0.08);
+  --warning-bg: rgba(201, 168, 124, 0.10);
+  --warning-color: #53504d;
+  --success-color: #3d8b7a;
+  --overlay: rgba(56, 50, 42, 0.45);
+  --shadow-sm: 0 1px 3px rgba(56, 50, 42, 0.08);
+  --shadow-md: 0 4px 12px rgba(56, 50, 42, 0.09);
+  --shadow-lg: 0 8px 30px rgba(56, 50, 42, 0.11);
+  --skeleton-from: #d6ccbb;
+  --skeleton-via: #e2d8c8;
 }
 
 /* ============================================

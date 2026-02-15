@@ -275,7 +275,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
       {/* Type Toggle - Top */}
       <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
         <Tabs value={viewType} onValueChange={handleViewTypeChange}>
-          <TabsList className="grid w-full grid-cols-2 bg-[var(--surface-elevated)] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
+          <TabsList className="grid w-full grid-cols-2 bg-[var(--surface)] p-1 sm:p-1.5 rounded-lg sm:rounded-xl">
             <TabsTrigger value="expense" className="text-xs sm:text-sm gap-1.5">
               Expenses
             </TabsTrigger>
