@@ -194,7 +194,6 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
     >
       {isLast ? (
         <>
-          <Sparkles className="w-4 h-4" />
           Get Started
         </>
       ) : (
@@ -266,12 +265,12 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
         </div>
 
         {/* Title */}
-        <h2 className="text-lg lg:text-[2rem] font-bold text-[var(--text-primary)] mb-1.5 lg:mb-3 leading-tight">
+        <h2 className="text-lg lg:text-[1.7rem] font-bold text-[var(--text-primary)] mb-1.5 lg:mb-3 leading-tight">
           {current.title}
         </h2>
 
         {/* Description */}
-        <div className="text-sm lg:text-lg text-[var(--text-secondary)] leading-relaxed lg:leading-[1.5] max-w-sm">
+        <div className="text-sm lg:text-[16px] text-[var(--text-secondary)] leading-relaxed lg:leading-[1.5] max-w-sm">
           {current.description}
         </div>
       </motion.div>
@@ -297,46 +296,23 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0, y: 30 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="hidden lg:flex relative w-[92vw] max-w-5xl h-[90vh] max-h-[620px] bg-[var(--surface)] rounded-3xl shadow-2xl overflow-hidden flex-col"
+            className="hidden lg:flex relative w-[92vw] max-w-5xl h-[90vh] max-h-[500px] bg-[var(--surface)] rounded-2xl rounded-t-none shadow-2xl overflow-hidden flex-col"
             style={{ boxShadow: '0 25px 60px rgba(0,0,0,0.3), 0 0 0 1px var(--border-main)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {progressBar}
 
-            {/* Top bar */}
-            <div className="flex items-center justify-between px-8 pt-4 pb-0 shrink-0">
-              <span className="text-xs font-semibold tracking-wider uppercase text-[var(--text-faint)]">
-                {step + 1} of {steps.length}
-              </span>
-              <div className="flex items-center gap-3">
-                {!isLast && (
-                  <button
-                    onClick={handleClose}
-                    className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                  >
-                    Skip tour
-                  </button>
-                )}
-                <button
-                  onClick={handleClose}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
             {/* Two-column content */}
             <div className="flex-1 flex flex-row overflow-hidden min-h-0">
               {/* Content panel — 36% */}
-              <div className="w-[40%] flex flex-col justify-center ml-2 px-10 py-8">
+              <div className="w-[40%] flex flex-col justify-center ml-2 px-8 -mt-4">
                 {contentBlock('left')}
               </div>
 
               {/* Image panel — 64% */}
-              <div className="flex-1 flex items-center justify-center p-8 pl-3 min-h-0">
+              <div className="flex-1 flex items-center justify-center pt-3 pr-8 pb-0 pl-3 min-h-0">
                 <div
-                  className="relative w-[95%] h-full rounded-2xl overflow-hidden bg-[var(--app-bg)] border border-[var(--border-main)]"
+                  className="relative w-[95%] h-[85%] rounded-2xl overflow-hidden bg-[var(--app-bg)] border border-[var(--border-main)] pointer-events-none"
                   style={{ boxShadow: 'var(--shadow-lg)' }}
                 >
                   {imagePanel}
@@ -356,13 +332,12 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
 
           {/* ============================== */}
           {/* MOBILE LAYOUT (below lg)       */}
-          {/* ============================== */}
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-            className="flex lg:hidden relative w-[85vw] max-w-[380px] h-[380px] bg-[var(--surface)] rounded-2xl shadow-2xl overflow-hidden flex-col"
+            className="flex lg:hidden relative w-[85vw] max-w-[380px] h-[340px] bg-[var(--surface)] rounded-2xl shadow-2xl rounded-t-none overflow-hidden flex-col"
             style={{
               boxShadow: '0 25px 60px rgba(0,0,0,0.3), 0 0 0 1px var(--border-main)',
             }}
@@ -370,31 +345,10 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
           >
             {progressBar}
 
-            {/* Top bar — compact */}
-            <div className="flex items-center justify-between px-5 pt-4 shrink-0">
-              <span className="text-xs font-semibold tracking-wider uppercase text-[var(--text-faint)]">
-                {step + 1} of {steps.length}
-              </span>
-              <div className="flex items-center gap-2.5">
-                {!isLast && (
-                  <button
-                    onClick={handleClose}
-                    className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                  >
-                    Skip
-                  </button>
-                )}
-                <button
-                  onClick={handleClose}
-                  className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+
 
             {/* Text-only content — vertically centered */}
-            <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 mt-6 overflow-hidden">
               {contentBlock('center')}
             </div>
 

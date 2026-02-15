@@ -75,7 +75,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
+
   // Calculate month progress based on current day
   const today = new Date();
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
@@ -194,9 +194,27 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
       />
 
       {/* Header */}
-      <div className="flex items-center justify-center mb-1 sm:mb-3.5">
+      <div className="flex items-center justify-between mb-1 sm:mb-3.5">
         <h3 className="text-sm sm:text-2xl font-semibold text-[var(--text-primary)]">{title}</h3>
-        
+        {hasData && (() => {
+          const todayVal = isCurrentMonth ? dailyTotals[currentDayOfMonth - 1] : null;
+          // For past months, find the last active day
+          const lastActiveIdx = !isCurrentMonth ? dailyTotals.findLastIndex((v: number) => v > 0) : -1;
+          const lastActiveVal = lastActiveIdx >= 0 ? dailyTotals[lastActiveIdx] : null;
+          const displayVal = todayVal ?? lastActiveVal;
+          const displayLabel = isCurrentMonth ? 'Today' : lastActiveIdx >= 0 ? `Day ${lastActiveIdx + 1}` : null;
+
+          if (displayVal == null || displayLabel == null) return null;
+
+          return (
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[9px] sm:text-[16px] text-[var(--text-muted)] tracking-wide">{displayLabel}: </span>
+              <span className="text-[9px] sm:text-[16px] font-bold tabular-nums" style={{ color: `var(${accentColorVar})` }}>
+                {formatCurrency(displayVal)}
+              </span>
+            </div>
+          );
+        })()}
       </div>
 
       {!hasData ? (

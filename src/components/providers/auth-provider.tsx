@@ -64,6 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             hasSeenOnboarding: false,
             createdAt: new Date(),
           });
+          // Immediately update state so onboarding shows on first login
+          // (onAuthStateChanged may have already fired before this doc was written)
+          setHasSeenOnboarding(false);
         } else {
           // Existing user - update email in case it changed
           await setDoc(userRef, {

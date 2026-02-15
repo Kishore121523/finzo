@@ -270,6 +270,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const themeColorVar = viewType === 'expense' ? '--expense-color' : '--teal';
 
+
   return (
     <div ref={containerRef} className="flex flex-col h-full bg-[var(--app-bg)] overflow-hidden">
       {/* Type Toggle - Top */}
@@ -316,8 +317,8 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center w-full lg:h-full lg:justify-evenly lg:px-4 lg:gap-8">
-              {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
-              <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
+            {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
+            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
               {/* Pie Chart */}
               <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
                 <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 overflow-hidden">
@@ -337,6 +338,11 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                           fill="none"
                           stroke={segment.color}
                           strokeWidth={DONUT_STROKE}
+                          initial={{
+                            strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
+                            strokeDashoffset: -segment.offset,
+                            opacity: segment.length < 0.01 ? 0 : (isHighlighted ? 1 : 0.3),
+                          }}
                           animate={{
                             strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
                             strokeDashoffset: -segment.offset,
@@ -596,7 +602,7 @@ export function InsightsView({ currentDate }: InsightsViewProps) {
                   )}
                 </AnimatePresence>
               </div>
-              </div>
+            </div>
 
             {/* Daily Spending Chart */}
             <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 lg:mt-0 shrink-0 pb-0 sm:pb-8">
