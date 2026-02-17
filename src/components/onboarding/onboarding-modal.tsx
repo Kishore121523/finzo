@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles } from 'lucide-react';
+import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles, Keyboard } from 'lucide-react';
 import Image from 'next/image';
 import { on } from 'events';
 
@@ -12,7 +12,49 @@ interface Step {
   title: string;
   description: ReactNode;
   image?: string;
+  component?: ReactNode;
 }
+
+const ShortcutsList = () => {
+  const shortcuts = [
+    { keys: ['Shift', 'N'], label: 'New Transaction' },
+    { keys: ['Shift', 'D'], label: 'Toggle Theme' },
+    { keys: ['Shift', '1-31'], label: 'Jump to Date' },
+    { keys: ['Shift', '← / →'], label: 'Navigate Months' },
+    { keys: ['← / →'], label: 'Navigate Days' },
+    { keys: ['Esc'], label: 'Close Modals' },
+  ];
+
+  return (
+    <div className="w-full h-full flex flex-col justify-center px-8 md:px-12 py-8 bg-[var(--app-bg)]">
+      <div className="space-y-4">
+        {shortcuts.map((shortcut, i) => (
+          <motion.div
+            key={shortcut.label}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 + (i * 0.1), duration: 0.4 }}
+            className="flex items-center justify-between group"
+          >
+            <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
+              {shortcut.label}
+            </span>
+            <div className="flex gap-1.5">
+              {shortcut.keys.map((key, k) => (
+                <span
+                  key={k}
+                  className="min-w-[28px] h-7 px-2 flex items-center justify-center rounded-md bg-[var(--surface)] border border-[var(--border-main)] shadow-sm text-xs font-bold text-[var(--text-primary)] font-mono"
+                >
+                  {key}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const steps: Step[] = [
   {
@@ -74,6 +116,14 @@ const steps: Step[] = [
     image: '/email.png',
   },
   {
+    icon: Keyboard,
+    colorVar: '--teal',
+    title: 'Keyboard Shortcuts',
+    description:
+      'Navigate Finzo efficiently on desktop using keyboard shortcuts. Quickly add transactions, switch between months, and manage your view with greater speed and control.',
+    component: <ShortcutsList />,
+  },
+  {
     icon: Sun,
     colorVar: '--teal',
     title: 'Light & Dark Mode',
@@ -115,12 +165,22 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') handleNext();
-      else if (e.key === 'ArrowLeft') handlePrev();
-      else if (e.key === 'Escape') handleClose();
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopPropagation();
+        handlePrev();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleClose();
+      }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => window.removeEventListener('keydown', onKey, { capture: true });
   }, [open, handleNext, handlePrev, handleClose]);
 
   const current = steps[step];
@@ -214,7 +274,20 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
 
   const imagePanel = (
     <AnimatePresence mode="wait" custom={direction}>
-      {current.image && (
+      {current.component ? (
+        <motion.div
+          key={step}
+          custom={direction}
+          variants={imageVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="absolute inset-0"
+        >
+          {current.component}
+        </motion.div>
+      ) : current.image && (
         <motion.div
           key={step}
           custom={direction}
@@ -288,6 +361,8 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md"
           onClick={handleClose}
+          role="dialog"
+          aria-modal="true"
         >
           {/* ============================== */}
           {/* DESKTOP LAYOUT (lg and above)  */}
@@ -377,7 +452,6 @@ export function OnboardingModal({ open, onClose }: OnboardingModalProps) {
                       color: 'var(--text-inverse)',
                     }}
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
                     Start
                   </button>
                 ) : (

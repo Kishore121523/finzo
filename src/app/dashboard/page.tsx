@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useMode } from '@/components/providers/mode-provider';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { useTasks } from '@/lib/hooks/use-tasks';
 import { MonthNavigator } from '@/components/finance/month-navigator';
@@ -18,6 +19,7 @@ import { Transaction, TransactionFormData } from '@/lib/types/transaction';
 
 export default function DashboardPage() {
   const { mode } = useMode();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -150,6 +152,51 @@ export default function DashboardPage() {
   // Create a unique key for AnimatePresence based on year-month
   const monthKey = useMemo(() => format(currentDate, 'yyyy-MM'), [currentDate]);
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input, textarea, or contenteditable
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Ignore if a dialog/modal is open
+      if (document.querySelector('[role="dialog"]')) {
+        return;
+      }
+
+      // New Transaction: Shift + N
+      if (e.shiftKey && (e.key === 'N' || e.key === 'n')) {
+        e.preventDefault();
+        handleAddTransaction();
+      }
+
+      // Navigate Months: Shift + ArrowLeft / Right
+      if (e.shiftKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePreviousMonth();
+      }
+      if (e.shiftKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNextMonth();
+      }
+
+      // Toggle Theme: Shift + D
+      if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+        e.preventDefault();
+        setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleAddTransaction, handlePreviousMonth, handleNextMonth, resolvedTheme, setTheme]);
+
   return (
     <div className="flex h-[calc(100vh-57px-56px)] sm:h-[calc(100vh-57px-56px)] md:h-[calc(100vh-73px)] flex-col bg-[var(--app-bg)] overflow-hidden">
       <AnimatePresence mode="wait">
@@ -250,9 +297,8 @@ export default function DashboardPage() {
             <Button
               onClick={handleAddTransaction}
               size="lg"
-              className={`fixed bottom-24 right-4 md:bottom-8 md:right-8 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-2xl bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-[var(--text-inverse)] z-40 transition-opacity ${
-                isMobileBottomSheetOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : ''
-              }`}
+              className={`fixed bottom-24 right-4 md:bottom-8 md:right-8 h-14 w-14 md:h-16 md:w-16 rounded-2xl shadow-2xl bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-[var(--text-inverse)] z-40 transition-opacity ${isMobileBottomSheetOpen ? 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto' : ''
+                }`}
             >
               <Plus className="h-6 w-6 md:h-7 md:w-7" />
             </Button>
@@ -287,7 +333,7 @@ export default function DashboardPage() {
             transition={pageTransition}
             className="h-full shrink-0 overflow-hidden"
           >
-            <InsightsView currentDate={currentDate} />
+            <InsightsView currentDate={currentDate} onDateChange={setCurrentDate} />
           </motion.div>
         )}
       </AnimatePresence>

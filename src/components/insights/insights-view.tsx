@@ -86,6 +86,7 @@ const BRIGHT_INCOME_COLORS: Record<string, string> = {
 
 interface InsightsViewProps {
   currentDate: Date;
+  onDateChange: (date: Date) => void;
 }
 
 interface CategoryData {
@@ -97,23 +98,25 @@ interface CategoryData {
   count: number;
 }
 
-export function InsightsView({ currentDate }: InsightsViewProps) {
+export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   const [viewType, setViewType] = useState<'expense' | 'income'>('expense');
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
-  const [insightsDate, setInsightsDate] = useState<Date>(() => startOfMonth(currentDate));
   const [enabledCategories, setEnabledCategories] = useState<Set<string>>(new Set());
   const { formatCurrency } = useCurrency();
+
+  // Ensure we are working with the start of the month for consistent logic
+  const insightsDate = useMemo(() => startOfMonth(currentDate), [currentDate]);
 
   // Fetch transactions for the insights month
   const { transactions } = useTransactions(insightsDate);
 
   const handlePreviousMonth = () => {
-    setInsightsDate(prev => subMonths(prev, 1));
+    onDateChange(subMonths(insightsDate, 1));
   };
 
   const handleNextMonth = () => {
-    setInsightsDate(prev => addMonths(prev, 1));
+    onDateChange(addMonths(insightsDate, 1));
   };
 
   // Key for animating content when month changes

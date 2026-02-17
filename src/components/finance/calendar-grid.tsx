@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useMemo } from 'react';
+import { memo, useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction } from '@/lib/types/transaction';
 import {
@@ -123,6 +123,114 @@ export const CalendarGrid = memo(function CalendarGrid({
       };
     });
   }, [currentDate, transactions, isTransactionOverdue]);
+
+  // Date Jump Shortcut: Shift + 1-31
+  const inputBufferRef = useRef<string>('');
+  const inputTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Check if it's a digit key with Shift pressed
+      // Use e.code (e.g. "Digit1") because e.key returns shifted chars ("!" for Shift+1)
+      const digitMatch = e.shiftKey && e.code ? e.code.match(/^Digit([0-9])$/) : null;
+      if (digitMatch) {
+        e.preventDefault();
+        const digit = digitMatch[1];
+
+        // Clear existing timeout
+        if (inputTimeoutRef.current) {
+          clearTimeout(inputTimeoutRef.current);
+        }
+
+        // Add to buffer
+        inputBufferRef.current += digit;
+
+        // Process buffer
+        const processBuffer = () => {
+          const dayNum = parseInt(inputBufferRef.current, 10);
+
+          if (!isNaN(dayNum) && dayNum > 0 && dayNum <= 31) {
+            // Find the day in the current month
+            const targetDay = calendarDays.find(d =>
+              d.isCurrentMonth && d.date.getDate() === dayNum
+            );
+
+            if (targetDay) {
+              setSelectedDay(targetDay);
+            }
+          }
+
+          // Reset buffer
+          inputBufferRef.current = '';
+        };
+
+        // If buffer is 2 digits, process immediately. 
+        // Or if > 3 (impossible for day), process immediately to clear.
+        if (inputBufferRef.current.length >= 2) {
+          processBuffer();
+        } else {
+          // Wait for potential second digit
+          inputTimeoutRef.current = setTimeout(processBuffer, 250);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (inputTimeoutRef.current) {
+        clearTimeout(inputTimeoutRef.current);
+      }
+    };
+  }, [calendarDays]);
+
+  // Keyboard navigation for selected day
+  useEffect(() => {
+    if (!selectedDay) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentIndex = calendarDays.findIndex(d =>
+          d.date.getTime() === selectedDay.date.getTime()
+        );
+
+        if (currentIndex > 0) {
+          setSelectedDay(calendarDays[currentIndex - 1]);
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentIndex = calendarDays.findIndex(d =>
+          d.date.getTime() === selectedDay.date.getTime()
+        );
+
+        if (currentIndex < calendarDays.length - 1) {
+          setSelectedDay(calendarDays[currentIndex + 1]);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedDay(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedDay, calendarDays]);
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -266,6 +374,8 @@ export const CalendarGrid = memo(function CalendarGrid({
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border-main)] rounded-2xl shadow-2xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
             >
               {/* Header */}
               <div className="p-5 md:p-6 border-b border-[var(--border-main)]">
@@ -315,7 +425,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                       }}
                       className="bg-[var(--teal)] hover:bg-[var(--teal)]/80 text-[var(--text-inverse)]"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus className="w-4 h-4 -mr-0.5" />
                       Add Transaction
                     </Button>
                   </div>
@@ -324,91 +434,91 @@ export const CalendarGrid = memo(function CalendarGrid({
                     {selectedDay.transactions.map((transaction, index) => {
                       const isOverdue = isTransactionOverdue(transaction);
                       return (
-                      <motion.div
-                        key={transaction.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className={`
+                        <motion.div
+                          key={transaction.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className={`
                           relative flex items-center justify-between p-4 rounded-xl
                           group hover:bg-[var(--surface-hover)] transition-colors overflow-hidden
                           ${isOverdue
-                            ? 'bg-[var(--error-color)]/10 border border-[var(--error-color)]/40'
-                            : 'bg-[var(--surface-hover)]/50 border border-[var(--border-secondary)]'
-                          }
+                              ? 'bg-[var(--error-color)]/10 border border-[var(--error-color)]/40'
+                              : 'bg-[var(--surface-hover)]/50 border border-[var(--border-secondary)]'
+                            }
                         `}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 max-w-[65%]">
-                          <div className={`
+                        >
+                          <div className="flex items-center gap-3 min-w-0 max-w-[65%]">
+                            <div className={`
                             w-8 h-8 rounded-lg flex items-center justify-center shrink-0
                             ${isOverdue
-                              ? 'bg-[var(--error-color)]/20'
-                              : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
-                            }
+                                ? 'bg-[var(--error-color)]/20'
+                                : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
+                              }
                           `}>
-                            {isOverdue ? (
-                              <AlertCircle className="w-4 h-4 text-[var(--error-color)]" />
-                            ) : transaction.isRecurring ? (
-                              <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
-                            ) : transaction.amount >= 0 ? (
-                              <TrendingUp className="w-4 h-4 text-[var(--teal)]" />
-                            ) : (
-                              <TrendingDown className="w-4 h-4 text-[var(--expense-color)]" />
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                                {transaction.description}
-                              </p>
-                              {isOverdue && (
-                                <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[var(--error-color)] text-[var(--text-primary)] rounded">
-                                  Overdue
-                                </span>
+                              {isOverdue ? (
+                                <AlertCircle className="w-4 h-4 text-[var(--error-color)]" />
+                              ) : transaction.isRecurring ? (
+                                <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
+                              ) : transaction.amount >= 0 ? (
+                                <TrendingUp className="w-4 h-4 text-[var(--teal)]" />
+                              ) : (
+                                <TrendingDown className="w-4 h-4 text-[var(--expense-color)]" />
                               )}
                             </div>
-                            {transaction.category && (
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <div
-                                  className="w-2 h-2 rounded-full shrink-0"
-                                  style={{ backgroundColor: getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').color }}
-                                />
-                                <span className="text-xs text-[var(--text-secondary)] truncate">
-                                  {getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').label}
-                                </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                  {transaction.description}
+                                </p>
+                                {isOverdue && (
+                                  <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-[var(--error-color)] text-[var(--text-primary)] rounded">
+                                    Overdue
+                                  </span>
+                                )}
                               </div>
-                            )}
+                              {transaction.category && (
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <div
+                                    className="w-2 h-2 rounded-full shrink-0"
+                                    style={{ backgroundColor: getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').color }}
+                                  />
+                                  <span className="text-xs text-[var(--text-secondary)] truncate">
+                                    {getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').label}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-0 ml-auto">
-                          <span className={`
+                          <div className="flex items-center gap-0 ml-auto">
+                            <span className={`
                             text-sm font-semibold whitespace-nowrap transition-transform duration-200 ease-out
                             group-hover:-translate-x-16
                             ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}
                           `}>
-                            {transaction.amount >= 0 ? '+ ' : '- '}
-                            {formatCurrency(Math.abs(transaction.amount))}
-                          </span>
-                          <div className="flex gap-1 absolute right-4 translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200 ease-out">
-                            <button
-                              onClick={() => {
-                                onEdit(transaction);
-                                setSelectedDay(null);
-                              }}
-                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteClick(transaction)}
-                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] hover:text-[var(--expense-color)]/80 transition-colors cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                              {transaction.amount >= 0 ? '+ ' : '- '}
+                              {formatCurrency(Math.abs(transaction.amount))}
+                            </span>
+                            <div className="flex gap-1 absolute right-4 translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200 ease-out">
+                              <button
+                                onClick={() => {
+                                  onEdit(transaction);
+                                  setSelectedDay(null);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClick(transaction)}
+                                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] hover:text-[var(--expense-color)]/80 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    );
+                        </motion.div>
+                      );
                     })}
                   </div>
                 )}

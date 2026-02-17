@@ -51,9 +51,7 @@ export function CurrencySelector() {
               <button
                 key={c.code}
                 onClick={() => handleSelect(c)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[var(--surface-hover)] transition-colors ${
-                  currency.code === c.code ? 'bg-[var(--surface-hover)]' : ''
-                }`}
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-[var(--surface-hover)] transition-colors cursor-pointer ${currency.code === c.code ? 'bg-[var(--surface-hover)]' : ''}`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg w-6 text-center text-[var(--teal)]">{c.symbol}</span>
