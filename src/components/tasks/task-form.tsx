@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CategorySelect } from '@/components/ui/category-select';
+import { useAuth } from '@/components/providers/auth-provider';
 import { Circle, Clock, CheckCircle2 } from 'lucide-react';
 import {
   EXPENSE_CATEGORY_GROUPS,
@@ -49,6 +50,7 @@ export function TaskForm({
   const [loading, setLoading] = useState(false);
   const [category, setCategory] = useState<ExpenseCategory>(DEFAULT_EXPENSE_CATEGORY);
   const { currency } = useCurrency();
+  const { recentExpenseCategories, trackRecentCategory } = useAuth();
 
   const {
     register,
@@ -162,6 +164,8 @@ export function TaskForm({
                   setValue('category', value as ExpenseCategory);
                 }}
                 categoryGroups={EXPENSE_CATEGORY_GROUPS}
+                recentCategoryIds={recentExpenseCategories}
+                onCategoryUsed={(id) => trackRecentCategory(id, 'expense')}
                 placeholder="Select category"
               />
             </div>

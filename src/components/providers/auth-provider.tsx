@@ -5,11 +5,16 @@ import { User, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut 
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
 
+const RECENT_MAX = 6;
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   hasSeenOnboarding: boolean;
+  recentExpenseCategories: string[];
+  recentIncomeCategories: string[];
   markOnboardingSeen: () => Promise<void>;
+  trackRecentCategory: (categoryId: string, type: 'expense' | 'income') => void;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -20,6 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(true);
+  const [recentExpenseCategories, setRecentExpenseCategories] = useState<string[]>([]);
+  const [recentIncomeCategories, setRecentIncomeCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -27,10 +34,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (user) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
-          setHasSeenOnboarding(userDoc.data().hasSeenOnboarding ?? true);
+          const data = userDoc.data();
+          setHasSeenOnboarding(data.hasSeenOnboarding ?? true);
+          setRecentExpenseCategories(data.recentExpenseCategories ?? []);
+          setRecentIncomeCategories(data.recentIncomeCategories ?? []);
         }
       } else {
         setHasSeenOnboarding(true);
+        setRecentExpenseCategories([]);
+        setRecentIncomeCategories([]);
       }
       setLoading(false);
     });
@@ -42,6 +54,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     setHasSeenOnboarding(true);
     await setDoc(doc(db, 'users', user.uid), { hasSeenOnboarding: true }, { merge: true });
+  };
+
+  const trackRecentCategory = (categoryId: string, type: 'expense' | 'income') => {
+    if (!user) return;
+    const isExpense = type === 'expense';
+    const current = isExpense ? recentExpenseCategories : recentIncomeCategories;
+    const updated = [categoryId, ...current.filter(id => id !== categoryId)].slice(0, RECENT_MAX);
+
+    if (isExpense) {
+      setRecentExpenseCategories(updated);
+      setDoc(doc(db, 'users', user.uid), { recentExpenseCategories: updated }, { merge: true });
+    } else {
+      setRecentIncomeCategories(updated);
+      setDoc(doc(db, 'users', user.uid), { recentIncomeCategories: updated }, { merge: true });
+    }
   };
 
   const signInWithGoogle = async () => {
@@ -92,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, hasSeenOnboarding, markOnboardingSeen, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, hasSeenOnboarding, recentExpenseCategories, recentIncomeCategories, markOnboardingSeen, trackRecentCategory, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

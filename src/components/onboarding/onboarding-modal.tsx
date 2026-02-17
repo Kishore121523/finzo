@@ -66,6 +66,14 @@ const steps: Step[] = [
     image: '/calendarPage.png',
   },
   {
+    icon: Keyboard,
+    colorVar: '--teal',
+    title: 'Keyboard Shortcuts',
+    description:
+      'Navigate Finzo efficiently on desktop using keyboard shortcuts. Quickly add transactions, switch between months, and manage your view with greater speed and control.',
+    component: <ShortcutsList />,
+  },
+  {
     icon: RefreshCw,
     colorVar: '--teal',
     title: 'Recurring Transactions',
@@ -114,14 +122,6 @@ const steps: Step[] = [
     description:
       'Receive timely email notifications before payments are due. Finzo keeps you informed about upcoming bills and subscription renewals so you never miss a deadline.',
     image: '/email.png',
-  },
-  {
-    icon: Keyboard,
-    colorVar: '--teal',
-    title: 'Keyboard Shortcuts',
-    description:
-      'Navigate Finzo efficiently on desktop using keyboard shortcuts. Quickly add transactions, switch between months, and manage your view with greater speed and control.',
-    component: <ShortcutsList />,
   },
   {
     icon: Sun,

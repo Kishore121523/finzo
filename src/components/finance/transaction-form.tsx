@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 import { CategorySelect } from '@/components/ui/category-select';
+import { useAuth } from '@/components/providers/auth-provider';
 import {
   EXPENSE_CATEGORY_GROUPS,
   INCOME_CATEGORY_GROUPS,
@@ -42,6 +43,7 @@ export function TransactionForm({
   transaction,
   defaultDate,
 }: TransactionFormProps) {
+  const { recentExpenseCategories, recentIncomeCategories, trackRecentCategory } = useAuth();
   const [loading, setLoading] = useState(false);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
   const [dateValue, setDateValue] = useState('');
@@ -216,6 +218,8 @@ export function TransactionForm({
                   setValue('category', value);
                 }}
                 categoryGroups={transactionType === 'income' ? INCOME_CATEGORY_GROUPS : EXPENSE_CATEGORY_GROUPS}
+                recentCategoryIds={transactionType === 'income' ? recentIncomeCategories : recentExpenseCategories}
+                onCategoryUsed={(id) => trackRecentCategory(id, transactionType)}
                 placeholder="Select category"
               />
             </div>
