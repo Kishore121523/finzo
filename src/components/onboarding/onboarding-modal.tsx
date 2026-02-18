@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles, Keyboard } from 'lucide-react';
+import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles, Keyboard, Target } from 'lucide-react';
 import Image from 'next/image';
 import { on } from 'events';
 
@@ -106,6 +106,14 @@ const steps: Step[] = [
     description:
       'Visualize your spending with interactive donut charts that display category-wise percentages, transaction counts, and totals. Select or deselect categories to dynamically update the view and analyze your expenses.',
     image: '/insightsPie.png',
+  },
+  {
+    icon: Target,
+    colorVar: '--expense-color',
+    title: 'Budget Tracking',
+    description:
+      'Set monthly spending limits per category and track your progress with a visual bar chart. Instantly see which categories are over budget and how much you have left to spend.',
+    image: '/budgetTab.png',
   },
   {
     icon: TrendingDown,

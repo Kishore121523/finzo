@@ -16,6 +16,9 @@ import { TrendingDown, TrendingUp, ChevronLeft, ChevronRight, ArrowLeft, Check, 
 
 import { addMonths, subMonths, startOfMonth } from 'date-fns';
 import { DailySpendingChart } from './daily-spending-chart';
+import { BudgetView } from './budget-view';
+import { BudgetSettingsModal } from './budget-settings-modal';
+import { useBudgets } from '@/lib/hooks/use-budgets';
 
 // Bright color palette for categories - matching categories.ts
 const BRIGHT_EXPENSE_COLORS: Record<string, string> = {
@@ -103,7 +106,12 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
   const [enabledCategories, setEnabledCategories] = useState<Set<string>>(new Set());
+  const [insightsPage, setInsightsPage] = useState(0);
+  const [budgetSettingsOpen, setBudgetSettingsOpen] = useState(false);
+  const [focusCategoryId, setFocusCategoryId] = useState<string | null>(null);
+  const [focusCategoryAmount, setFocusCategoryAmount] = useState<number | undefined>(undefined);
   const { formatCurrency } = useCurrency();
+  const { budgets, saveBudgets } = useBudgets();
 
   // Ensure we are working with the start of the month for consistent logic
   const insightsDate = useMemo(() => startOfMonth(currentDate), [currentDate]);
@@ -258,6 +266,7 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   const handleViewTypeChange = (value: string) => {
     setSelectedCategory(null);
     setViewType(value as 'expense' | 'income');
+    if (value === 'income') setInsightsPage(0);
   };
 
   // Handle category click
@@ -320,292 +329,395 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center w-full lg:h-full lg:justify-evenly lg:px-4 lg:gap-8">
-            {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
-            <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32">
-              {/* Pie Chart */}
-              <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
-                <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 overflow-hidden">
-                  {/* Donut segments — circles with animated stroke-dasharray */}
-                  <g transform="rotate(-90 50 50)">
-                    {donutSegments.map((segment) => {
-                      const isHighlighted = selectedCategory === null
-                        ? (hoveredCategory === null || hoveredCategory === segment.category.id)
-                        : selectedCategory.id === segment.category.id;
-
-                      return (
-                        <motion.circle
-                          key={segment.category.id}
-                          cx="50"
-                          cy="50"
-                          r={DONUT_RADIUS}
-                          fill="none"
-                          stroke={segment.color}
-                          strokeWidth={DONUT_STROKE}
-                          initial={{
-                            strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
-                            strokeDashoffset: -segment.offset,
-                            opacity: segment.length < 0.01 ? 0 : (isHighlighted ? 1 : 0.3),
-                          }}
-                          animate={{
-                            strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
-                            strokeDashoffset: -segment.offset,
-                            opacity: segment.length < 0.01 ? 0 : (isHighlighted ? 1 : 0.3),
-                          }}
-                          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                          className="cursor-pointer"
-                          onMouseEnter={() => setHoveredCategory(segment.category.id)}
-                          onMouseLeave={() => setHoveredCategory(null)}
-                          onClick={() => handleCategoryClick(segment.category)}
-                        />
-                      );
-                    })}
-                  </g>
-
-                  {/* Center fill */}
-                  <circle cx="50" cy="50" r="25.5" fill="var(--app-bg)" />
-                </svg>
-
-                {/* Center content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-                  <span className="text-[10px] sm:text-base text-[var(--text-muted)] uppercase tracking-wider mb-0.5 sm:mb-1">
-                    Total
-                  </span>
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={`total-${monthKey}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-lg sm:text-4xl font-bold"
-                      style={{ color: `var(${themeColorVar})` }}
-                    >
-                      {formatCurrency(filteredCategoryData.total)}
-                    </motion.span>
-                  </AnimatePresence>
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={`count-${monthKey}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="text-[10px] sm:text-base text-[var(--text-muted)] mt-0.5 sm:mt-2 flex items-center gap-1"
-                    >
-                      <LucideReceiptText className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
-                      {filteredCategoryData.totalCount} TXN
-                    </motion.span>
-                  </AnimatePresence>
+            {/* View Switcher Tabs — mobile: above content, desktop: hidden here */}
+            {viewType === 'expense' && (
+              <div className="flex sm:hidden items-center justify-center py-2">
+                <div className="inline-flex items-center rounded-lg bg-[var(--surface)] p-1">
+                  {[
+                    { key: 0, label: 'Categories' },
+                    { key: 1, label: 'Budgets' },
+                  ].map(tab => {
+                    const isActive = insightsPage === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => setInsightsPage(tab.key)}
+                        className="relative px-3 py-1.5 text-[11px] font-medium cursor-pointer transition-colors rounded-md"
+                        style={{ color: isActive ? 'var(--expense-color)' : 'var(--text-muted)' }}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="insights-subtab-mobile"
+                            className="absolute inset-0 rounded-md"
+                            style={{
+                              backgroundColor: 'var(--expense-bg)',
+                              border: '1px solid var(--expense-border)',
+                            }}
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                          />
+                        )}
+                        <span className="relative z-10">{tab.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+            )}
 
-              {/* Categories Card */}
-              <div
-                className="w-[calc(100%-2rem)] max-w-full min-h-[280px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
-                style={{
-                  border: selectedCategory
-                    ? `1px solid ${selectedCategory.color}20`
-                    : `1px solid color-mix(in srgb, var(${themeColorVar}) 12%, transparent)`,
-                  boxShadow: selectedCategory
-                    ? `0 0 40px ${selectedCategory.color}10, inset 0 1px 0 ${selectedCategory.color}10`
-                    : `0 0 40px color-mix(in srgb, var(${themeColorVar}) 6%, transparent), inset 0 1px 0 color-mix(in srgb, var(${themeColorVar}) 6%, transparent)`
-                }}
-              >
-                {/* Subtle gradient overlay */}
-                <div
-                  className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl pointer-events-none transition-colors duration-300"
-                  style={{ background: selectedCategory ? selectedCategory.color : `var(${themeColorVar})` }}
-                />
+            {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
+            <AnimatePresence mode="wait">
+              {insightsPage === 0 ? (
+                <motion.div
+                  key="categories-page"
+                  initial={{ opacity: 0, x: -40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -40 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32"
+                >
+                  {/* Pie Chart */}
+                  <div className="relative w-80 h-80 sm:w-[420px] sm:h-[420px] lg:w-[500px] lg:h-[500px] shrink-0">
+                    <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 overflow-hidden">
+                      {/* Donut segments — circles with animated stroke-dasharray */}
+                      <g transform="rotate(-90 50 50)">
+                        {donutSegments.map((segment) => {
+                          const isHighlighted = selectedCategory === null
+                            ? (hoveredCategory === null || hoveredCategory === segment.category.id)
+                            : selectedCategory.id === segment.category.id;
 
-                <AnimatePresence mode="wait">
-                  {selectedCategory ? (
-                    /* Transaction Details View */
-                    <motion.div
-                      key="transactions"
-                      initial={{ opacity: 0, x: 30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -30 }}
-                      transition={{ duration: 0.25, ease: 'easeOut' }}
-                      className="flex flex-col h-full w-full min-w-0 overflow-hidden"
-                    >
-                      {/* Header with back button */}
-                      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 min-w-0">
-                        <button
-                          onClick={() => setSelectedCategory(null)}
-                          className="p-1.5 sm:p-2 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
+                          return (
+                            <motion.circle
+                              key={segment.category.id}
+                              cx="50"
+                              cy="50"
+                              r={DONUT_RADIUS}
+                              fill="none"
+                              stroke={segment.color}
+                              strokeWidth={DONUT_STROKE}
+                              initial={{
+                                strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
+                                strokeDashoffset: -segment.offset,
+                                opacity: segment.length < 0.01 ? 0 : (isHighlighted ? 1 : 0.3),
+                              }}
+                              animate={{
+                                strokeDasharray: `${segment.length} ${DONUT_CIRCUMFERENCE}`,
+                                strokeDashoffset: -segment.offset,
+                                opacity: segment.length < 0.01 ? 0 : (isHighlighted ? 1 : 0.3),
+                              }}
+                              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                              className="cursor-pointer"
+                              onMouseEnter={() => setHoveredCategory(segment.category.id)}
+                              onMouseLeave={() => setHoveredCategory(null)}
+                              onClick={() => handleCategoryClick(segment.category)}
+                            />
+                          );
+                        })}
+                      </g>
+
+                      {/* Center fill */}
+                      <circle cx="50" cy="50" r="25.5" fill="var(--app-bg)" />
+                    </svg>
+
+                    {/* Center content */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                      <span className="text-[10px] sm:text-base text-[var(--text-muted)] uppercase tracking-wider mb-0.5 sm:mb-1">
+                        Total
+                      </span>
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={`total-${monthKey}`}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-lg sm:text-4xl font-bold"
+                          style={{ color: `var(${themeColorVar})` }}
                         >
-                          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                        <div
-                          className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shrink-0"
-                          style={{
-                            backgroundColor: selectedCategory.color,
-                            boxShadow: `0 0 12px ${selectedCategory.color}`
-                          }}
-                        />
-                        <h3 className="text-base sm:text-xl font-semibold text-[var(--text-primary)] flex-1 min-w-0 truncate">{selectedCategory.label}</h3>
-                        <div className="text-right shrink-0">
-                          <div className="text-sm sm:text-lg font-bold" style={{ color: selectedCategory.color }}>
-                            {formatCurrency(selectedCategory.amount)}
-                          </div>
-                          <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{selectedCategory.count} txn</div>
-                        </div>
-                      </div>
+                          {formatCurrency(filteredCategoryData.total)}
+                        </motion.span>
+                      </AnimatePresence>
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={`count-${monthKey}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="text-[10px] sm:text-base text-[var(--text-muted)] mt-0.5 sm:mt-2 flex items-center gap-1"
+                        >
+                          <LucideReceiptText className="w-2.5 h-2.5 sm:w-4 sm:h-4" />
+                          {filteredCategoryData.totalCount} TXN
+                        </motion.span>
+                      </AnimatePresence>
+                    </div>
+                  </div>
 
-                      {/* Transaction List */}
-                      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-hide space-y-2 sm:space-y-3">
-                        {selectedCategoryTransactions.map((txn, index) => (
-                          <motion.div
-                            key={txn.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.04, duration: 0.2 }}
-                            className="rounded-lg sm:rounded-xl bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] p-3 sm:p-4 transition-colors"
-                          >
-                            <div className="flex items-center justify-between gap-2 sm:gap-3">
-                              <div className="flex-1 min-w-0 overflow-hidden">
-                                <p className="text-sm sm:text-base text-[var(--text-primary)] truncate">{txn.description}</p>
-                                <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5">
-                                  {txn.date.toDate().toLocaleDateString('en-US', {
-                                    weekday: 'short',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })}
-                                  {txn.isRecurring && (
-                                    <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[var(--fill-subtle)] text-[var(--text-primary)]/50 text-[8px] sm:text-[10px]">
-                                      Recurring
-                                    </span>
-                                  )}
-                                </p>
+                  {/* Categories Card */}
+                  <div
+                    className="w-[calc(100%-2rem)] max-w-full h-[360px] sm:w-[480px] lg:w-[560px] sm:h-[400px] lg:h-[540px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-6 lg:p-8 flex flex-col relative overflow-hidden"
+                    style={{
+                      border: selectedCategory
+                        ? `1px solid ${selectedCategory.color}20`
+                        : `1px solid color-mix(in srgb, var(${themeColorVar}) 12%, transparent)`,
+                      boxShadow: selectedCategory
+                        ? `0 0 40px ${selectedCategory.color}10, inset 0 1px 0 ${selectedCategory.color}10`
+                        : `0 0 40px color-mix(in srgb, var(${themeColorVar}) 6%, transparent), inset 0 1px 0 color-mix(in srgb, var(${themeColorVar}) 6%, transparent)`
+                    }}
+                  >
+                    {/* Subtle gradient overlay */}
+                    <div
+                      className="absolute top-0 right-0 w-32 h-32 opacity-10 blur-3xl pointer-events-none transition-colors duration-300"
+                      style={{ background: selectedCategory ? selectedCategory.color : `var(${themeColorVar})` }}
+                    />
+
+                    <AnimatePresence mode="wait">
+                      {selectedCategory ? (
+                        /* Transaction Details View */
+                        <motion.div
+                          key="transactions"
+                          initial={{ opacity: 0, x: 30 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -30 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                          className="flex flex-col h-full w-full min-w-0 overflow-hidden"
+                        >
+                          {/* Header with back button */}
+                          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5 min-w-0">
+                            <button
+                              onClick={() => setSelectedCategory(null)}
+                              className="p-1.5 sm:p-2 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
+                            >
+                              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                            <div
+                              className="w-3 h-3 sm:w-4 sm:h-4 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: selectedCategory.color,
+                                boxShadow: `0 0 12px ${selectedCategory.color}`
+                              }}
+                            />
+                            <h3 className="text-base sm:text-xl font-semibold text-[var(--text-primary)] flex-1 min-w-0 truncate">{selectedCategory.label}</h3>
+                            <div className="text-right shrink-0">
+                              <div className="text-sm sm:text-lg font-bold" style={{ color: selectedCategory.color }}>
+                                {formatCurrency(selectedCategory.amount)}
                               </div>
-                              <span
-                                className="text-sm sm:text-base font-semibold tabular-nums shrink-0"
-                                style={{ color: selectedCategory.color }}
-                              >
-                                {viewType === 'expense' ? '-' : '+'}{formatCurrency(Math.abs(txn.amount))}
-                              </span>
+                              <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{selectedCategory.count} txn</div>
                             </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  ) : (
-                    /* Categories List View */
-                    <motion.div
-                      key="categories"
-                      initial={{ opacity: 0, x: -30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 30 }}
-                      transition={{ duration: 0.25, ease: 'easeOut' }}
-                      className="flex flex-col h-full"
-                    >
-                      <div className="flex items-center justify-between mb-2 sm:mb-5">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)]">Categories</h3>
-                          <div className="flex items-center justify-center gap-1 mt-0">
-                            <button
-                              onClick={selectAllCategories}
-                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${allSelected ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)]'}`}
-                            >
-                              All
-                            </button>
-                            <button
-                              onClick={deselectAllCategories}
-                              className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${noneSelected ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)]'}`}
-                            >
-                              None
-                            </button>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={handlePreviousMonth}
-                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                          >
-                            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                          <span className="text-[10px] sm:text-base text-[var(--text-muted)]">
-                            {monthName}
-                          </span>
-                          <button
-                            onClick={handleNextMonth}
-                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                          >
-                            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                        </div>
-                      </div>
 
-                      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={`categories-${monthKey}`}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ duration: 0.2 }}
-                            className="space-y-1 sm:space-y-2"
-                          >
-                            {categoryData.data.map((cat, index) => (
+                          {/* Transaction List */}
+                          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-hide space-y-2 sm:space-y-3">
+                            {selectedCategoryTransactions.map((txn, index) => (
                               <motion.div
-                                key={cat.id}
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{
-                                  opacity: 1,
-                                  x: 0,
-                                  backgroundColor: hoveredCategory === cat.id ? 'var(--fill-subtle)' : 'transparent'
-                                }}
-                                transition={{ delay: index * 0.03, duration: 0.2 }}
-                                className="rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors"
-                                onMouseEnter={() => setHoveredCategory(cat.id)}
-                                onMouseLeave={() => setHoveredCategory(null)}
-                                onClick={() => handleCategoryClick(cat)}
+                                key={txn.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.04, duration: 0.2 }}
+                                className="rounded-lg sm:rounded-xl bg-[var(--fill-subtle)] hover:bg-[var(--fill-subtle-hover)] p-3 sm:p-4 transition-colors"
                               >
-                                <div className="flex items-center gap-2 sm:gap-4 mb-1 sm:mb-2">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleCategory(cat.id);
-                                    }}
-                                    className="w-4 h-4 sm:w-5 sm:h-5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all cursor-pointer"
-                                    style={{
-                                      borderColor: enabledCategories.has(cat.id) ? cat.color : 'var(--text-faint)',
-                                      backgroundColor: enabledCategories.has(cat.id) ? cat.color : 'transparent',
-                                    }}
+                                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                                  <div className="flex-1 min-w-0 overflow-hidden">
+                                    <p className="text-sm sm:text-base text-[var(--text-primary)] truncate">{txn.description}</p>
+                                    <p className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5">
+                                      {txn.date.toDate().toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
+                                      {txn.isRecurring && (
+                                        <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[var(--fill-subtle)] text-[var(--text-primary)]/50 text-[8px] sm:text-[10px]">
+                                          Recurring
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className="text-sm sm:text-base font-semibold tabular-nums shrink-0"
+                                    style={{ color: selectedCategory.color }}
                                   >
-                                    {enabledCategories.has(cat.id) && (
-                                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[var(--text-inverse)]" strokeWidth={3} />
-                                    )}
-                                  </button>
-                                  <span className="flex-1 text-[14px] sm:text-base text-[var(--text-primary)] truncate">{cat.label}</span>
-                                  <span className="px-1 sm:px-2 py-0.5 rounded-full bg-[var(--fill-subtle)] text-[8px] sm:text-[10px] text-[var(--text-primary)]/50 font-medium tabular-nums">
-                                    {cat.count} TXN
+                                    {viewType === 'expense' ? '-' : '+'}{formatCurrency(Math.abs(txn.amount))}
                                   </span>
-                                  <span className="text-[10px] sm:text-base text-[var(--text-muted)] tabular-nums">{cat.percentage.toFixed(0)}%</span>
-                                  <span className={`text-[10px] sm:text-base font-semibold tabular-nums`} style={{ color: `var(${themeColorVar})` }}>
-                                    {formatCurrency(cat.amount)}
-                                  </span>
-                                </div>
-                                {/* Progress bar */}
-                                <div className="h-1 sm:h-1.5 bg-[var(--fill-subtle)] rounded-full overflow-hidden ml-6 sm:ml-8">
-                                  <motion.div
-                                    className="h-full rounded-full"
-                                    style={{ backgroundColor: cat.color }}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${cat.percentage}%` }}
-                                    transition={{ delay: index * 0.05 + 0.2, duration: 0.5, ease: 'easeOut' }}
-                                  />
                                 </div>
                               </motion.div>
                             ))}
-                          </motion.div>
-                        </AnimatePresence>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        /* Categories List View */
+                        <motion.div
+                          key="categories"
+                          initial={{ opacity: 0, x: -30 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 30 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                          className="flex flex-col h-full"
+                        >
+                          <div className="flex items-center justify-between mb-2 sm:mb-5">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)]">Categories</h3>
+                              <div className="flex items-center justify-center gap-1 mt-1">
+                                <button
+                                  onClick={selectAllCategories}
+                                  className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${allSelected ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)]'}`}
+                                >
+                                  All
+                                </button>
+                                <button
+                                  onClick={deselectAllCategories}
+                                  className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium transition-colors cursor-pointer ${noneSelected ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)]'}`}
+                                >
+                                  None
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={handlePreviousMonth}
+                                className="p-1 sm:p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                              >
+                                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                              </button>
+                              <span className="text-[10px] sm:text-base text-[var(--text-muted)]">
+                                {monthName}
+                              </span>
+                              <button
+                                onClick={handleNextMonth}
+                                className="p-1 sm:p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                              >
+                                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                            <AnimatePresence mode="wait">
+                              <motion.div
+                                key={`categories-${monthKey}`}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.2 }}
+                                className="space-y-1 sm:space-y-2"
+                              >
+                                {categoryData.data.map((cat, index) => (
+                                  <motion.div
+                                    key={cat.id}
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{
+                                      opacity: 1,
+                                      x: 0,
+                                      backgroundColor: hoveredCategory === cat.id ? 'var(--fill-subtle)' : 'transparent'
+                                    }}
+                                    transition={{ delay: index * 0.03, duration: 0.2 }}
+                                    className="rounded-lg sm:rounded-xl p-2 sm:p-4 cursor-pointer transition-colors"
+                                    onMouseEnter={() => setHoveredCategory(cat.id)}
+                                    onMouseLeave={() => setHoveredCategory(null)}
+                                    onClick={() => handleCategoryClick(cat)}
+                                  >
+                                    <div className="flex items-center gap-2 sm:gap-4 mb-1 sm:mb-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleCategory(cat.id);
+                                        }}
+                                        className="w-4 h-4 sm:w-5 sm:h-5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all cursor-pointer"
+                                        style={{
+                                          borderColor: enabledCategories.has(cat.id) ? cat.color : 'var(--text-faint)',
+                                          backgroundColor: enabledCategories.has(cat.id) ? cat.color : 'transparent',
+                                        }}
+                                      >
+                                        {enabledCategories.has(cat.id) && (
+                                          <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[var(--text-inverse)]" strokeWidth={3} />
+                                        )}
+                                      </button>
+                                      <span className="flex-1 text-[14px] sm:text-base text-[var(--text-primary)] truncate">{cat.label}</span>
+                                      <span className="px-1 sm:px-2 py-0.5 rounded-full bg-[var(--fill-subtle)] text-[8px] sm:text-[10px] text-[var(--text-primary)]/50 font-medium tabular-nums">
+                                        {cat.count} TXN
+                                      </span>
+                                      <span className="text-[10px] sm:text-base text-[var(--text-muted)] tabular-nums">{cat.percentage.toFixed(0)}%</span>
+                                      <span className={`text-[10px] sm:text-base font-semibold tabular-nums`} style={{ color: `var(${themeColorVar})` }}>
+                                        {formatCurrency(cat.amount)}
+                                      </span>
+                                    </div>
+                                    {/* Progress bar */}
+                                    <div className="h-1 sm:h-1.5 bg-[var(--fill-subtle)] rounded-full overflow-hidden ml-6 sm:ml-8">
+                                      <motion.div
+                                        className="h-full rounded-full"
+                                        style={{ backgroundColor: cat.color }}
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${cat.percentage}%` }}
+                                        transition={{ delay: index * 0.05 + 0.2, duration: 0.5, ease: 'easeOut' }}
+                                      />
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </motion.div>
+                            </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="budget-page"
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 40 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32"
+                >
+                  <BudgetView
+                    categoryData={categoryData}
+                    currentDate={insightsDate}
+                    onDateChange={onDateChange}
+                    onOpenSettings={(catId, catAmount) => {
+                      setFocusCategoryId(catId ?? null);
+                      setFocusCategoryAmount(catAmount);
+                      setBudgetSettingsOpen(true);
+                    }}
+                    budgets={budgets}
+                    transactions={transactions}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* View Switcher Tabs — desktop only (mobile version is above) */}
+            {viewType === 'expense' && (
+              <div className="hidden sm:flex items-center justify-center py-3">
+                <div className="inline-flex items-center rounded-lg bg-[var(--surface)] p-1">
+                  {[
+                    { key: 0, label: 'Categories' },
+                    { key: 1, label: 'Budgets' },
+                  ].map(tab => {
+                    const isActive = insightsPage === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => setInsightsPage(tab.key)}
+                        className="relative px-4 py-1.5 text-xs font-medium cursor-pointer transition-colors rounded-md"
+                        style={{ color: isActive ? 'var(--expense-color)' : 'var(--text-muted)' }}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="insights-subtab"
+                            className="absolute inset-0 rounded-md"
+                            style={{
+                              backgroundColor: 'var(--expense-bg)',
+                              border: '1px solid var(--expense-border)',
+                            }}
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                          />
+                        )}
+                        <span className="relative z-10">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Daily Spending Chart */}
             <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 lg:mt-0 shrink-0 pb-0 sm:pb-8">
@@ -623,6 +735,21 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
           </div>
         )}
       </div>
+
+      <BudgetSettingsModal
+        open={budgetSettingsOpen}
+        onOpenChange={(open) => {
+          setBudgetSettingsOpen(open);
+          if (!open) {
+            setFocusCategoryId(null);
+            setFocusCategoryAmount(undefined);
+          }
+        }}
+        budgets={budgets}
+        onSave={saveBudgets}
+        focusCategoryId={focusCategoryId}
+        focusCategoryAmount={focusCategoryAmount}
+      />
     </div>
   );
 }
