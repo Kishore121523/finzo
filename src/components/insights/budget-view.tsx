@@ -433,7 +433,7 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
               className="flex flex-col h-full"
             >
               {/* Header */}
-              <div className="flex items-center justify-between mb-2 sm:mb-5">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-5">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)]">Budgets</h3>
                   <button
@@ -464,7 +464,7 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
               </div>
 
               {/* Budget list */}
-              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden scrollbar-hide">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={`budgets-${monthKey}`}
