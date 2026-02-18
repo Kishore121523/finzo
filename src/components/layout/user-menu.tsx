@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Bell, BellOff, Info, Sun, Moon } from 'lucide-react';
+import { LogOut, Bell, BellOff, Info, Sun, Moon, Target } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -12,9 +12,10 @@ interface UserMenuProps {
   user: User;
   onLogout: () => void;
   onOpenGuide?: () => void;
+  onNavigateBudget?: () => void;
 }
 
-export function UserMenu({ user, onLogout, onOpenGuide }: UserMenuProps) {
+export function UserMenu({ user, onLogout, onOpenGuide, onNavigateBudget }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notifLoading, setNotifLoading] = useState(true);
@@ -100,6 +101,20 @@ export function UserMenu({ user, onLogout, onOpenGuide }: UserMenuProps) {
               >
                 {notificationsEnabled ? <Bell className="w-4 h-4 text-[var(--teal)]" /> : <BellOff className="w-4 h-4" />}
                 <span className="text-sm">{notificationsEnabled ? 'Email reminders on' : 'Email reminders off'}</span>
+              </button>
+            )}
+
+            {/* Budgets shortcut */}
+            {onNavigateBudget && (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onNavigateBudget();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer text-[var(--text-secondary)]"
+              >
+                <Target className="w-4 h-4 text-[var(--teal)]" />
+                <span className="text-sm">Budgets</span>
               </button>
             )}
 

@@ -18,6 +18,7 @@ import { addMonths, subMonths, startOfMonth } from 'date-fns';
 import { DailySpendingChart } from './daily-spending-chart';
 import { BudgetView } from './budget-view';
 import { BudgetSettingsModal } from './budget-settings-modal';
+import { useMode } from '@/components/providers/mode-provider';
 import { useBudgets } from '@/lib/hooks/use-budgets';
 
 // Bright color palette for categories - matching categories.ts
@@ -112,6 +113,16 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   const [focusCategoryAmount, setFocusCategoryAmount] = useState<number | undefined>(undefined);
   const { formatCurrency } = useCurrency();
   const { budgets, saveBudgets } = useBudgets();
+  const { pendingSubPage, consumePendingSubPage } = useMode();
+
+  // Navigate to budget tab if requested from layout
+  useEffect(() => {
+    if (pendingSubPage === 'budget') {
+      consumePendingSubPage();
+      setViewType('expense');
+      setInsightsPage(1);
+    }
+  }, [pendingSubPage, consumePendingSubPage]);
 
   // Ensure we are working with the start of the month for consistent logic
   const insightsDate = useMemo(() => startOfMonth(currentDate), [currentDate]);

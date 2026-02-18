@@ -7,10 +7,10 @@ import { CurrencySelector } from '@/components/layout/currency-selector';
 import { NotificationToggle } from '@/components/layout/notification-toggle';
 import { BottomTabBar } from '@/components/layout/bottom-tab-bar';
 import { UserMenu } from '@/components/layout/user-menu';
-import { ModeProvider } from '@/components/providers/mode-provider';
+import { ModeProvider, useMode } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
-import { LogOut, Info, Sun, Moon } from 'lucide-react';
+import { LogOut, Info, Sun, Moon, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { FinzoLogo } from '@/components/layout/logo';
@@ -36,6 +36,7 @@ function DashboardNav() {
   const { user, logout, hasSeenOnboarding, markOnboardingSeen } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { navigateTo } = useMode();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -89,6 +90,17 @@ function DashboardNav() {
           </div>
           <div className="hidden md:block relative group">
             <button
+              onClick={() => navigateTo('insights', 'budget')}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+            >
+              <Target className="h-4 w-4" />
+            </button>
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              Budgets
+            </span>
+          </div>
+          <div className="hidden md:block relative group">
+            <button
               onClick={() => setShowOnboarding(true)}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
             >
@@ -126,7 +138,7 @@ function DashboardNav() {
 
           {/* Mobile: User menu dropdown (includes notification toggle + app guide) */}
           <div className="md:hidden">
-            {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} />}
+            {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} onNavigateBudget={() => navigateTo('insights', 'budget')} />}
           </div>
 
           {/* Desktop: User info + Logout */}

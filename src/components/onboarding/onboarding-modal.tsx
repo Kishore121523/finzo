@@ -18,11 +18,12 @@ interface Step {
 const ShortcutsList = () => {
   const shortcuts = [
     { keys: ['Shift', 'N'], label: 'New Transaction' },
+    { keys: ['Shift', 'C / P / I'], label: 'Switch Tabs' },
+    { keys: ['Shift', 'B'], label: 'Budgets Tab' },
     { keys: ['Shift', 'D'], label: 'Toggle Theme' },
     { keys: ['Shift', '1-31'], label: 'Jump to Date' },
     { keys: ['Shift', '← / →'], label: 'Navigate Months' },
     { keys: ['← / →'], label: 'Navigate Days' },
-    { keys: ['Esc'], label: 'Close Modals' },
   ];
 
   return (

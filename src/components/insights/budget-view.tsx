@@ -277,7 +277,7 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
               </div>
               {/* Stats row */}
               <div className="flex items-center gap-1.5 sm:gap-3">
-                <div className="text-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-[var(--fill-subtle)]">
+                <div className="flex justify-center items-center text-center px-2 sm:px-3 py-1 rounded-md bg-[var(--fill-subtle)]">
                   <span
                     className="text-[9px] sm:text-xs font-bold"
                     style={{ color: isOverBudget ? '#EF4444' : 'var(--teal)' }}
@@ -288,14 +288,14 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
                     {isOverBudget ? 'over' : 'left'}
                   </span>
                 </div>
-                <div className="text-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-[var(--fill-subtle)]">
+                <div className="flex justify-center items-center text-center px-2 sm:px-3 py-1 rounded-md bg-[var(--fill-subtle)]">
                   <span className="text-[9px] sm:text-xs font-bold text-[var(--text-primary)]">
                     {budgetedCategories.filter(c => !c.isAutoAdded).length}
                   </span>
-                  <span className="text-[7px] sm:text-[9px] text-[var(--text-muted)] ml-1">tracked</span>
+                  <span className="text-[7px] sm:text-[9px] text-[var(--text-muted)] ml-1 mt-0.5">tracked</span>
                 </div>
                 {overBudgetCount > 0 && (
-                  <div className="text-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-[var(--fill-subtle)]">
+                  <div className="flex justify-center items-center text-center px-2 sm:px-3 py-1 rounded-md bg-[var(--fill-subtle)]">
                     <span className="text-[9px] sm:text-xs font-bold text-[#EF4444]">
                       {overBudgetCount}
                     </span>

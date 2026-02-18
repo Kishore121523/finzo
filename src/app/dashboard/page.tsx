@@ -18,7 +18,7 @@ import { addMonths, subMonths, format } from 'date-fns';
 import { Transaction, TransactionFormData } from '@/lib/types/transaction';
 
 export default function DashboardPage() {
-  const { mode } = useMode();
+  const { mode, navigateTo } = useMode();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -191,11 +191,35 @@ export default function DashboardPage() {
         e.preventDefault();
         setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
       }
+
+      // Budgets: Shift + B
+      if (e.shiftKey && (e.key === 'B' || e.key === 'b')) {
+        e.preventDefault();
+        navigateTo('insights', 'budget');
+      }
+
+      // Calendar: Shift + C
+      if (e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+        e.preventDefault();
+        navigateTo('finance');
+      }
+
+      // Payments: Shift + P
+      if (e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+        e.preventDefault();
+        navigateTo('tasks');
+      }
+
+      // Insights: Shift + I
+      if (e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+        e.preventDefault();
+        navigateTo('insights');
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleAddTransaction, handlePreviousMonth, handleNextMonth, resolvedTheme, setTheme]);
+  }, [handleAddTransaction, handlePreviousMonth, handleNextMonth, resolvedTheme, setTheme, navigateTo]);
 
   return (
     <div className="flex h-[calc(100vh-57px-56px)] sm:h-[calc(100vh-57px-56px)] md:h-[calc(100vh-73px)] flex-col bg-[var(--app-bg)] overflow-hidden">

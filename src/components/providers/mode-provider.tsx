@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 type Mode = 'finance' | 'tasks' | 'insights';
 
@@ -8,12 +8,16 @@ interface ModeContextType {
   mode: Mode;
   setMode: (mode: Mode) => void;
   toggleMode: () => void;
+  pendingSubPage: string | null;
+  consumePendingSubPage: () => string | null;
+  navigateTo: (mode: Mode, subPage?: string) => void;
 }
 
 const ModeContext = createContext<ModeContextType | undefined>(undefined);
 
 export function ModeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<Mode>('finance');
+  const [pendingSubPage, setPendingSubPage] = useState<string | null>(null);
 
   useEffect(() => {
     // Load mode from localStorage on mount
@@ -36,8 +40,20 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
     setMode(modes[nextIndex]);
   };
 
+  const navigateTo = useCallback((newMode: Mode, subPage?: string) => {
+    if (subPage) setPendingSubPage(subPage);
+    setModeState(newMode);
+    localStorage.setItem('finzo-mode', newMode);
+  }, []);
+
+  const consumePendingSubPage = useCallback(() => {
+    const value = pendingSubPage;
+    setPendingSubPage(null);
+    return value;
+  }, [pendingSubPage]);
+
   return (
-    <ModeContext.Provider value={{ mode, setMode, toggleMode }}>
+    <ModeContext.Provider value={{ mode, setMode, toggleMode, pendingSubPage, consumePendingSubPage, navigateTo }}>
       {children}
     </ModeContext.Provider>
   );
