@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { addMonths, subMonths, format } from 'date-fns';
 import { Transaction, TransactionFormData } from '@/lib/types/transaction';
+import { TransactionSearch } from '@/components/search/transaction-search';
 
 export default function DashboardPage() {
   const { mode, navigateTo } = useMode();
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
   const [direction, setDirection] = useState(0);
   const [isMobileBottomSheetOpen, setIsMobileBottomSheetOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const { transactions, loading, balance, addTransaction, updateTransaction, deleteTransaction, deleteAllRecurring } =
     useTransactions(currentDate);
@@ -170,6 +172,13 @@ export default function DashboardPage() {
         return;
       }
 
+      // Search: Shift + Space
+      if (e.shiftKey && e.key === ' ') {
+        e.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+
       // New Transaction: Shift + N
       if (e.shiftKey && (e.key === 'N' || e.key === 'n')) {
         e.preventDefault();
@@ -220,6 +229,13 @@ export default function DashboardPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleAddTransaction, handlePreviousMonth, handleNextMonth, resolvedTheme, setTheme, navigateTo]);
+
+  // Listen for mobile search icon event
+  useEffect(() => {
+    const handler = () => setSearchOpen(true);
+    window.addEventListener('open-search', handler);
+    return () => window.removeEventListener('open-search', handler);
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-57px-56px)] sm:h-[calc(100vh-57px-56px)] md:h-[calc(100vh-73px)] flex-col bg-[var(--app-bg)] overflow-hidden">
@@ -361,6 +377,12 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <TransactionSearch
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSelect={handleEditTransaction}
+      />
     </div>
   );
 }

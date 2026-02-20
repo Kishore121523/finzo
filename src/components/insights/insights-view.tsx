@@ -130,6 +130,22 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   // Fetch transactions for the insights month
   const { transactions } = useTransactions(insightsDate);
 
+  // Fetch previous month's transactions for MoM comparison
+  const prevMonthDate = useMemo(() => subMonths(insightsDate, 1), [insightsDate]);
+  const { transactions: prevTransactions } = useTransactions(prevMonthDate);
+
+  // Compute previous month spending by category
+  const prevSpendingMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    prevTransactions
+      .filter(t => t.amount < 0)
+      .forEach(t => {
+        const cat = t.category || DEFAULT_EXPENSE_CATEGORY;
+        map[cat] = (map[cat] || 0) + Math.abs(t.amount);
+      });
+    return map;
+  }, [prevTransactions]);
+
   const handlePreviousMonth = () => {
     onDateChange(subMonths(insightsDate, 1));
   };
@@ -690,6 +706,7 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
                     }}
                     budgets={budgets}
                     transactions={transactions}
+                    prevSpending={prevSpendingMap}
                   />
                 </motion.div>
               )}

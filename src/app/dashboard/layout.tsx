@@ -10,7 +10,7 @@ import { UserMenu } from '@/components/layout/user-menu';
 import { ModeProvider, useMode } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
-import { LogOut, Info, Sun, Moon, Target } from 'lucide-react';
+import { LogOut, Info, Sun, Moon, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { FinzoLogo } from '@/components/layout/logo';
@@ -82,22 +82,28 @@ function DashboardNav() {
 
         {/* Right side controls */}
         <div className="flex items-center gap-3 md:gap-4">
-          {/* Currency & Notifications - visible on all sizes */}
+          {/* Currency - visible on all sizes */}
           <CurrencySelector />
+          {/* Desktop: Search icon */}
+          <div className="hidden md:block relative group">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-search'))}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex flex-col items-center gap-0.5">
+              <span>Search transactions</span>
+              <span className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1">
+                <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">Shift</kbd>
+                <span>+</span>
+                <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">Space</kbd>
+              </span>
+            </span>
+          </div>
           {/* Notification & Info & Theme - desktop only */}
           <div className="hidden md:block">
             <NotificationToggle />
-          </div>
-          <div className="hidden md:block relative group">
-            <button
-              onClick={() => navigateTo('insights', 'budget')}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
-            >
-              <Target className="h-4 w-4" />
-            </button>
-            <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Budgets
-            </span>
           </div>
           <div className="hidden md:block relative group">
             <button
@@ -135,6 +141,14 @@ function DashboardNav() {
               </span>
             </div>
           )}
+
+          {/* Mobile: Search icon */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-search'))}
+            className="md:hidden flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+          >
+            <Search className="h-4 w-4" />
+          </button>
 
           {/* Mobile: User menu dropdown (includes notification toggle + app guide) */}
           <div className="md:hidden">

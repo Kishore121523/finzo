@@ -45,9 +45,10 @@ interface BudgetViewProps {
   onOpenSettings: (focusCategoryId?: string, focusCategoryAmount?: number) => void;
   budgets: Budgets;
   transactions: Transaction[];
+  prevSpending?: Record<string, number>;
 }
 
-export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSettings, budgets, transactions }: BudgetViewProps) {
+export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSettings, budgets, transactions, prevSpending }: BudgetViewProps) {
   const { formatCurrency } = useCurrency();
   const [selectedCategory, setSelectedCategory] = useState<BudgetedCategory | null>(null);
 
@@ -167,6 +168,52 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
     setSelectedCategory(cat);
   };
 
+  // MoM helpers
+  const getMomChange = (catId: string, spent: number): number | null => {
+    if (!prevSpending) return null;
+    const prev = prevSpending[catId] || 0;
+    if (prev === 0) return null; // no previous data — skip
+    const pct = ((spent - prev) / prev) * 100;
+    return Math.abs(pct) > 1 ? pct : null; // suppress tiny fluctuations
+  };
+
+  const totalPrevSpending = useMemo(() => {
+    if (!prevSpending) return 0;
+    return Object.values(prevSpending).reduce((s, v) => s + v, 0);
+  }, [prevSpending]);
+
+  const totalMomChange = useMemo(() => {
+    if (!prevSpending || totalPrevSpending === 0) return null;
+    const pct = ((totalSpent - totalPrevSpending) / totalPrevSpending) * 100;
+    return Math.abs(pct) > 1 ? pct : null;
+  }, [prevSpending, totalPrevSpending, totalSpent]);
+
+  const MomBadge = ({ change, size = 'sm', showTooltip = false }: { change: number | null; size?: 'sm' | 'xs'; showTooltip?: boolean }) => {
+    if (change === null) return null;
+    const isUp = change > 0;
+    const absPct = Math.abs(Math.round(change));
+    // For spending: increase = bad (red), decrease = good (green)
+    const color = isUp ? '#EF4444' : '#10B981';
+    const bgColor = isUp ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)';
+    const arrow = isUp ? '\u2191' : '\u2193';
+    const sizeClass = size === 'xs'
+      ? 'text-[7px] sm:text-[8px] px-1 py-[1px]'
+      : 'text-[8px] sm:text-[9px] px-1.5 py-[1px]';
+    return (
+      <span
+        className={`${sizeClass} rounded-full font-semibold tabular-nums inline-flex items-center gap-[1px] shrink-0 relative group/mom`}
+        style={{ color, backgroundColor: bgColor }}
+      >
+        {arrow}{absPct}%
+        {showTooltip && (
+          <span className="absolute bottom-full right-0 mb-1.5 px-2.5 py-1.5 rounded-md bg-[var(--surface-elevated)] text-[9px] sm:text-[10px] text-[var(--text-secondary)] opacity-0 pointer-events-none group-hover/mom:opacity-100 transition-opacity shadow-lg border border-[var(--border)] z-40 font-normal whitespace-nowrap text-center leading-snug">
+            Spent {absPct}% {isUp ? 'more' : 'less'}<br />than last month
+          </span>
+        )}
+      </span>
+    );
+  };
+
   return (
     <>
       {/* Budget Summary */}
@@ -245,7 +292,14 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
                         <span className="text-[var(--text-primary)] font-medium">{cat.label}</span>
                         <br />
                         <span style={{ color: isOver ? '#EF4444' : cat.color }}>{formatCurrency(cat.spent)}</span>
-                        <span className="text-[var(--text-faint)]"> / {formatCurrency(cat.budget)}</span>
+                        <span className="text-[var(--text-secondary)]"> / {formatCurrency(cat.budget)}</span>
+                        {getMomChange(cat.id, cat.spent) !== null && (
+                          <>
+                            <br />
+                            <span className="text-[var(--text-muted)]">vs last mo </span>
+                            <MomBadge change={getMomChange(cat.id, cat.spent)} size="xs" />
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -294,6 +348,12 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
                   </span>
                   <span className="text-[7px] sm:text-[9px] text-[var(--text-muted)] ml-1 mt-0.5">tracked</span>
                 </div>
+                {totalMomChange !== null && (
+                  <div className="flex justify-center items-center text-center px-2 sm:px-3 py-1 rounded-md bg-[var(--fill-subtle)]">
+                    <MomBadge change={totalMomChange} size="xs" />
+                    <span className="text-[7px] sm:text-[9px] text-[var(--text-muted)] ml-1">vs last mo</span>
+                  </div>
+                )}
                 {overBudgetCount > 0 && (
                   <div className="flex justify-center items-center text-center px-2 sm:px-3 py-1 rounded-md bg-[var(--fill-subtle)]">
                     <span className="text-[9px] sm:text-xs font-bold text-[#EF4444]">
@@ -541,21 +601,23 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
                               )}
                               {/* Amount — hidden on mobile, shown on desktop */}
                               <span
-                                className="hidden sm:inline text-sm tabular-nums font-medium"
+                                className="hidden sm:inline-flex sm:items-center sm:gap-1.5 text-sm tabular-nums font-medium"
                                 style={{ color: isOver && !cat.isAutoAdded ? '#EF4444' : 'var(--text-secondary)' }}
                               >
                                 {formatCurrency(cat.spent)}
                                 <span className="text-[var(--text-faint)]"> / {formatCurrency(cat.budget)}</span>
+                                <MomBadge change={getMomChange(cat.id, cat.spent)} showTooltip />
                               </span>
                             </div>
                             {/* Amount — mobile only, on its own line */}
                             <div className="flex items-center justify-between ml-5 mb-1 sm:hidden">
                               <span
-                                className="text-[11px] tabular-nums font-medium"
+                                className="text-[11px] tabular-nums font-medium inline-flex items-center gap-1"
                                 style={{ color: isOver && !cat.isAutoAdded ? '#EF4444' : 'var(--text-secondary)' }}
                               >
                                 {formatCurrency(cat.spent)}
                                 <span className="text-[var(--text-faint)]"> / {formatCurrency(cat.budget)}</span>
+                                <MomBadge change={getMomChange(cat.id, cat.spent)} size="xs" showTooltip />
                               </span>
                             </div>
                             {/* Progress bar */}

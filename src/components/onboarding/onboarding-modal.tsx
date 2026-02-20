@@ -18,6 +18,7 @@ interface Step {
 const ShortcutsList = () => {
   const shortcuts = [
     { keys: ['Shift', 'N'], label: 'New Transaction' },
+    { keys: ['Shift', 'Space'], label: 'Search Transactions' },
     { keys: ['Shift', 'C / P / I'], label: 'Switch Tabs' },
     { keys: ['Shift', 'B'], label: 'Budgets Tab' },
     { keys: ['Shift', 'D'], label: 'Toggle Theme' },
@@ -27,14 +28,14 @@ const ShortcutsList = () => {
   ];
 
   return (
-    <div className="w-full h-full flex flex-col justify-center px-8 md:px-12 py-8 bg-[var(--app-bg)]">
-      <div className="space-y-4">
+    <div className="w-full h-full flex flex-col justify-center px-8 md:px-12 py-4 bg-[var(--app-bg)] overflow-y-auto scrollbar-hide">
+      <div className="space-y-3">
         {shortcuts.map((shortcut, i) => (
           <motion.div
             key={shortcut.label}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 + (i * 0.1), duration: 0.4 }}
+            transition={{ delay: 0.2 + (i * 0.08), duration: 0.4 }}
             className="flex items-center justify-between group"
           >
             <span className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
@@ -44,7 +45,7 @@ const ShortcutsList = () => {
               {shortcut.keys.map((key, k) => (
                 <span
                   key={k}
-                  className="min-w-[28px] h-7 px-2 flex items-center justify-center rounded-md bg-[var(--surface)] border border-[var(--border-main)] shadow-sm text-xs font-bold text-[var(--text-primary)] font-mono"
+                  className="min-w-[26px] h-6 px-1.5 flex items-center justify-center rounded-md bg-[var(--surface)] border border-[var(--border-main)] shadow-sm text-[11px] font-bold text-[var(--text-primary)] font-mono"
                 >
                   {key}
                 </span>
@@ -71,7 +72,7 @@ const steps: Step[] = [
     colorVar: '--teal',
     title: 'Keyboard Shortcuts',
     description:
-      'Navigate Finzo efficiently on desktop using keyboard shortcuts. Quickly add transactions, switch between months, and manage your view with greater speed and control.',
+      'Navigate Finzo efficiently on desktop using keyboard shortcuts. Quickly add transactions, search records, switch between months and tabs, jump to a specific date, and manage your view with greater speed and control.',
     component: <ShortcutsList />,
   },
   {
