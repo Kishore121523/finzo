@@ -4,6 +4,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  getDocs,
   query,
   where,
   orderBy,
@@ -51,4 +52,4 @@ export const firestoreHelpers = {
   fromDate: (date: Date) => Timestamp.fromDate(date),
 };
 
-export { collection, doc, query, where, orderBy, onSnapshot, Timestamp };
+export { collection, doc, getDocs, query, where, orderBy, onSnapshot, Timestamp };

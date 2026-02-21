@@ -24,6 +24,11 @@ export interface Transaction {
   createdAt: Timestamp;
   // Flag to indicate this is a virtual transaction (not saved in DB, computed for display)
   isVirtual?: boolean;
+  // Goal-fund transaction fields (amount=0, balance-neutral)
+  goalId?: string;
+  goalFundAmount?: number;
+  goalName?: string;
+  goalColor?: string;
 }
 
 export interface TransactionFormData {

@@ -382,6 +382,7 @@ export default function DashboardPage() {
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelect={handleEditTransaction}
+        currentDate={currentDate}
       />
     </div>
   );

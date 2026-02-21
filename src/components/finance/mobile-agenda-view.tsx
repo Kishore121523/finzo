@@ -15,7 +15,7 @@ import {
   isSameDay,
   isSameMonth,
 } from 'date-fns';
-import { Plus, TrendingUp, TrendingDown, RefreshCw, Edit, Trash2, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, RefreshCw, Edit, Trash2, AlertCircle, ChevronLeft, ChevronRight, X, PiggyBank } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useTasks } from '@/lib/hooks/use-tasks';
@@ -55,6 +55,9 @@ function DayListItem({
   onClick: () => void;
 }) {
   const hasTransactions = day.transactions.length > 0;
+  const realTransactions = day.transactions.filter(t => !t.goalId);
+  const hasGoals = day.transactions.some(t => !!t.goalId);
+  const hasRealActivity = realTransactions.length > 0;
   const netAmount = day.income - day.expense;
 
   return (
@@ -69,35 +72,42 @@ function DayListItem({
           ? 'opacity-30 cursor-default'
           : isTodayDate
             ? 'bg-[var(--teal-bg)] border border-[var(--teal-border)]'
-            : hasTransactions
+            : hasRealActivity
               ? 'bg-[var(--surface)] border border-[var(--border-main)] hover:border-[var(--teal-border)]'
-              : 'bg-[var(--surface)]/50 border border-[var(--border-main)]/50 hover:bg-[var(--surface)]'
+              : hasGoals
+                ? 'bg-[var(--surface)] border border-[var(--purple-color)]/25'
+                : 'bg-[var(--surface)]/50 border border-[var(--border-main)]/50 hover:bg-[var(--surface)]'
         }
       `}
     >
       {/* Left: Date */}
-      <div className={`
-        w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0
-        ${isTodayDate ? 'bg-[var(--teal-bg)]' : 'bg-[var(--surface-hover)]/50'}
-      `}>
-        <span className={`text-[10px] font-semibold uppercase tracking-wide leading-none ${
-          isTodayDate ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'
-        }`}>
-          {format(day.date, 'EEE')}
-        </span>
-        <span className={`text-xl font-bold leading-tight ${
-          isTodayDate
-            ? 'text-[var(--teal)]'
-            : day.isCurrentMonth
-              ? 'text-[var(--text-primary)]'
-              : 'text-[var(--text-muted)]'
-        }`}>
-          {format(day.date, 'd')}
-        </span>
+      <div className="flex items-center gap-3">
+        <div className={`
+          w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0
+          ${isTodayDate ? 'bg-[var(--teal-bg)]' : 'bg-[var(--surface-hover)]/50'}
+        `}>
+          <span className={`text-[10px] font-semibold uppercase tracking-wide leading-none ${
+            isTodayDate ? 'text-[var(--teal)]' : 'text-[var(--text-muted)]'
+          }`}>
+            {format(day.date, 'EEE')}
+          </span>
+          <span className={`text-xl font-bold leading-tight ${
+            isTodayDate
+              ? 'text-[var(--teal)]'
+              : day.isCurrentMonth
+                ? 'text-[var(--text-primary)]'
+                : 'text-[var(--text-muted)]'
+          }`}>
+            {format(day.date, 'd')}
+          </span>
+        </div>
+        {hasGoals && day.isCurrentMonth && (
+          <span className="w-2 h-2 rounded-full bg-[var(--purple-color)] shrink-0" />
+        )}
       </div>
 
       {/* Right: Amount or empty state */}
-      {hasTransactions && day.isCurrentMonth ? (
+      {hasRealActivity && day.isCurrentMonth ? (
         <div className="flex items-center gap-3">
           {day.hasOverdue && (
             <span className="w-2 h-2 rounded-full bg-[var(--error-color)] animate-pulse" />
@@ -110,6 +120,11 @@ function DayListItem({
           }`}>
             {netAmount >= 0 ? '+' : ''}{formatCurrency(netAmount, { compact: true })}
           </span>
+        </div>
+      ) : hasGoals && day.isCurrentMonth ? (
+        <div className="flex items-center gap-2">
+          <PiggyBank className="w-4 h-4 text-[var(--purple-color)]" />
+          <span className="text-xs text-[var(--purple-color)] font-medium">Goal fund</span>
         </div>
       ) : day.isCurrentMonth ? (
         <div className="flex items-center gap-2">
@@ -485,7 +500,8 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                     </p>
                     {selectedDay.transactions.map((transaction, index) => {
                       const isOverdue = isTransactionOverdue(transaction);
-                      const categoryInfo = transaction.category
+                      const isGoalFund = !!transaction.goalId;
+                      const categoryInfo = !isGoalFund && transaction.category
                         ? getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense')
                         : null;
 
@@ -495,23 +511,39 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.03 }}
+                          onClick={isGoalFund ? () => {
+                            setSelectedDay(null);
+                            window.dispatchEvent(new CustomEvent('open-goal-detail', { detail: { goalId: transaction.goalId } }));
+                          } : undefined}
                           className={`
                             flex items-center justify-between p-3 rounded-xl
+                            ${isGoalFund ? 'cursor-pointer' : ''}
                             ${isOverdue
                               ? 'bg-[var(--error-color)]/10 border border-[var(--error-color)]/30'
-                              : 'bg-[var(--surface-hover)]/50'
+                              : isGoalFund
+                                ? 'border'
+                                : 'bg-[var(--surface-hover)]/50'
                             }
                           `}
+                          style={isGoalFund ? {
+                            backgroundColor: 'color-mix(in srgb, var(--purple-color) 6%, transparent)',
+                            borderColor: 'color-mix(in srgb, var(--purple-color) 19%, transparent)',
+                          } : undefined}
                         >
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`
-                              w-9 h-9 rounded-lg flex items-center justify-center shrink-0
-                              ${isOverdue
-                                ? 'bg-[var(--error-color)]/20'
-                                : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
-                              }
-                            `}>
-                              {isOverdue ? (
+                            <div
+                              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                                isGoalFund
+                                  ? ''
+                                  : isOverdue
+                                    ? 'bg-[var(--error-color)]/20'
+                                    : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
+                              }`}
+                              style={isGoalFund ? { backgroundColor: 'color-mix(in srgb, var(--purple-color) 13%, transparent)' } : undefined}
+                            >
+                              {isGoalFund ? (
+                                <PiggyBank className="w-4 h-4 text-[var(--purple-color)]" />
+                              ) : isOverdue ? (
                                 <AlertCircle className="w-4 h-4 text-[var(--error-color)]" />
                               ) : transaction.isRecurring ? (
                                 <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
@@ -525,7 +557,14 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                               <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                                 {transaction.description}
                               </p>
-                              {categoryInfo && (
+                              {isGoalFund ? (
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-[var(--purple-color)]" />
+                                  <span className="text-[11px] text-[var(--text-secondary)] truncate">
+                                    {transaction.goalName}
+                                  </span>
+                                </div>
+                              ) : categoryInfo ? (
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                   <div
                                     className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -535,30 +574,36 @@ export const MobileAgendaView = memo(function MobileAgendaView({
                                     {categoryInfo.label}
                                   </span>
                                 </div>
-                              )}
+                              ) : null}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 ml-2">
-                            <span className={`text-sm font-semibold ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
-                              {transaction.amount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                          {isGoalFund ? (
+                            <span className="text-sm font-semibold whitespace-nowrap text-[var(--purple-color)] ml-2">
+                              {formatCurrency(transaction.goalFundAmount!)}
                             </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(transaction);
-                                setSelectedDay(null);
-                              }}
-                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] cursor-pointer"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => handleDeleteClick(transaction, e)}
-                              className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          ) : (
+                            <div className="flex items-center gap-1 ml-2">
+                              <span className={`text-sm font-semibold ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
+                                {transaction.amount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEdit(transaction);
+                                  setSelectedDay(null);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-muted)] cursor-pointer"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteClick(transaction, e)}
+                                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
                         </motion.div>
                       );
                     })}

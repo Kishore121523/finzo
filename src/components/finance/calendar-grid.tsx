@@ -14,7 +14,7 @@ import {
   startOfWeek,
   endOfWeek
 } from 'date-fns';
-import { Plus, ArrowUp, ArrowDown, TrendingUp, TrendingDown, RefreshCw, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, ArrowUp, ArrowDown, TrendingUp, TrendingDown, RefreshCw, Edit, Trash2, AlertCircle, PiggyBank } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/components/providers/currency-provider';
 import { useTasks } from '@/lib/hooks/use-tasks';
@@ -253,7 +253,12 @@ export const CalendarGrid = memo(function CalendarGrid({
         {/* Calendar grid */}
         <div className="grid grid-cols-7 gap-1.5 sm:gap-1 md:gap-2 flex-1 auto-rows-fr">
           {calendarDays.map((day, index) => {
+            const realTransactions = day.transactions.filter(t => !t.goalId);
+            const goalTransactions = day.transactions.filter(t => !!t.goalId);
             const hasActivity = day.transactions.length > 0;
+            const hasRealActivity = realTransactions.length > 0;
+            const hasOnlyGoals = goalTransactions.length > 0 && !hasRealActivity;
+            const hasGoals = goalTransactions.length > 0;
             const netAmount = day.income - day.expense;
             const total = day.income + day.expense;
             const incomePercent = total > 0 ? (day.income / total) * 100 : 0;
@@ -270,31 +275,38 @@ export const CalendarGrid = memo(function CalendarGrid({
                   flex flex-col items-center sm:items-start justify-between sm:justify-between overflow-hidden
                   transition-all duration-200 ease-out border
                   ${day.isCurrentMonth
-                    ? hasActivity
+                    ? hasRealActivity
                       ? netAmount >= 0
                         ? 'bg-[var(--surface)] cursor-pointer border-[var(--teal-border)]'
                         : 'bg-[var(--surface)] cursor-pointer border-[var(--expense-color)]/30'
-                      : 'bg-[var(--surface)] cursor-pointer border-[var(--border-main)]'
+                      : hasOnlyGoals
+                        ? 'bg-[var(--surface)] cursor-pointer border-[var(--purple-color)]/25'
+                        : 'bg-[var(--surface)] cursor-pointer border-[var(--border-main)]'
                     : 'bg-[var(--app-bg)]/50 cursor-default border-transparent'
                   }
                   ${''}
-                  ${hasActivity && day.isCurrentMonth ? 'sm:hover:scale-[1.01] hover:shadow-sm' : ''}
+                  ${hasRealActivity && day.isCurrentMonth ? 'sm:hover:scale-[1.01] hover:shadow-sm' : ''}
                 `}
               >
                 {/* Mobile: Compact layout with date and net amount */}
                 <div className="sm:hidden w-full h-full flex flex-col items-center justify-between py-0.5">
                   {/* Date at top */}
-                  <span className={`
-                    text-[11px] font-bold
-                    ${isToday(day.date) ? 'bg-[var(--teal)] text-[var(--text-inverse)] w-5 h-5 rounded-full flex items-center justify-center' : ''}
-                    ${!isToday(day.date) && day.isCurrentMonth ? 'text-[var(--text-primary)]' : ''}
-                    ${!isToday(day.date) && !day.isCurrentMonth ? 'text-[var(--text-faint)]' : ''}
-                  `}>
-                    {format(day.date, 'd')}
-                  </span>
+                  <div className="flex items-center gap-0.5">
+                    <span className={`
+                      text-[11px] font-bold
+                      ${isToday(day.date) ? 'bg-[var(--teal)] text-[var(--text-inverse)] w-5 h-5 rounded-full flex items-center justify-center' : ''}
+                      ${!isToday(day.date) && day.isCurrentMonth ? 'text-[var(--text-primary)]' : ''}
+                      ${!isToday(day.date) && !day.isCurrentMonth ? 'text-[var(--text-faint)]' : ''}
+                    `}>
+                      {format(day.date, 'd')}
+                    </span>
+                    {hasGoals && day.isCurrentMonth && (
+                      <span className="w-2 h-2 rounded-full bg-[var(--purple-color)] shrink-0" />
+                    )}
+                  </div>
 
-                  {/* Net amount at bottom */}
-                  {hasActivity && day.isCurrentMonth ? (
+                  {/* Net amount or goal indicator at bottom */}
+                  {hasRealActivity && day.isCurrentMonth ? (
                     <div className="flex flex-col items-center">
                       {day.hasOverdue && (
                         <span className="w-1.5 h-1.5 rounded-full bg-[var(--error-color)] animate-pulse mb-0.5" />
@@ -303,6 +315,8 @@ export const CalendarGrid = memo(function CalendarGrid({
                         {netAmount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(netAmount), { compact: true })}
                       </span>
                     </div>
+                  ) : hasOnlyGoals && day.isCurrentMonth ? (
+                    <PiggyBank className="w-3 h-3 text-[var(--purple-color)]" />
                   ) : (
                     <span className="text-[9px] text-transparent">-</span>
                   )}
@@ -321,6 +335,9 @@ export const CalendarGrid = memo(function CalendarGrid({
                       `}>
                         {format(day.date, 'd')}
                       </span>
+                      {hasGoals && day.isCurrentMonth && (
+                        <span className="w-2 h-2 rounded-full bg-[var(--purple-color)] shrink-0" />
+                      )}
                       {day.hasOverdue && day.isCurrentMonth && (
                         <span className="w-2 h-2 rounded-full bg-[var(--error-color)] animate-pulse" />
                       )}
@@ -333,7 +350,7 @@ export const CalendarGrid = memo(function CalendarGrid({
                   </div>
 
                   {/* Net amount — pushed down */}
-                  {hasActivity && day.isCurrentMonth ? (
+                  {hasRealActivity && day.isCurrentMonth ? (
                     <div className="flex-1 flex items-end justify-center">
                       <span className={`text-base md:text-lg font-bold ${netAmount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                         {netAmount >= 0 ? '+ ' : '- '}{formatCurrency(Math.abs(netAmount), { compact: true })}
@@ -433,30 +450,47 @@ export const CalendarGrid = memo(function CalendarGrid({
                   <div className="space-y-3">
                     {selectedDay.transactions.map((transaction, index) => {
                       const isOverdue = isTransactionOverdue(transaction);
+                      const isGoalFund = !!transaction.goalId;
                       return (
                         <motion.div
                           key={transaction.id}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}
+                          onClick={isGoalFund ? () => {
+                            setSelectedDay(null);
+                            window.dispatchEvent(new CustomEvent('open-goal-detail', { detail: { goalId: transaction.goalId } }));
+                          } : undefined}
                           className={`
                           relative flex items-center justify-between p-4 rounded-xl
                           group hover:bg-[var(--surface-hover)] transition-colors overflow-hidden
+                          ${isGoalFund ? 'cursor-pointer' : ''}
                           ${isOverdue
                               ? 'bg-[var(--error-color)]/10 border border-[var(--error-color)]/40'
-                              : 'bg-[var(--surface-hover)]/50 border border-[var(--border-secondary)]'
+                              : isGoalFund
+                                ? 'border'
+                                : 'bg-[var(--surface-hover)]/50 border border-[var(--border-secondary)]'
                             }
                         `}
+                          style={isGoalFund ? {
+                            backgroundColor: 'color-mix(in srgb, var(--purple-color) 6%, transparent)',
+                            borderColor: 'color-mix(in srgb, var(--purple-color) 19%, transparent)',
+                          } : undefined}
                         >
                           <div className="flex items-center gap-3 min-w-0 max-w-[65%]">
-                            <div className={`
-                            w-8 h-8 rounded-lg flex items-center justify-center shrink-0
-                            ${isOverdue
-                                ? 'bg-[var(--error-color)]/20'
-                                : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
-                              }
-                          `}>
-                              {isOverdue ? (
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                isGoalFund
+                                  ? ''
+                                  : isOverdue
+                                    ? 'bg-[var(--error-color)]/20'
+                                    : transaction.amount >= 0 ? 'bg-[var(--teal-bg)]' : 'bg-[var(--expense-color)]/10'
+                              }`}
+                              style={isGoalFund ? { backgroundColor: 'color-mix(in srgb, var(--purple-color) 13%, transparent)' } : undefined}
+                            >
+                              {isGoalFund ? (
+                                <PiggyBank className="w-4 h-4 text-[var(--purple-color)]" />
+                              ) : isOverdue ? (
                                 <AlertCircle className="w-4 h-4 text-[var(--error-color)]" />
                               ) : transaction.isRecurring ? (
                                 <RefreshCw className={`w-4 h-4 ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`} />
@@ -477,7 +511,16 @@ export const CalendarGrid = memo(function CalendarGrid({
                                   </span>
                                 )}
                               </div>
-                              {transaction.category && (
+                              {isGoalFund ? (
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <div
+                                    className="w-2 h-2 rounded-full shrink-0 bg-[var(--purple-color)]"
+                                  />
+                                  <span className="text-xs text-[var(--text-secondary)] truncate">
+                                    {transaction.goalName}
+                                  </span>
+                                </div>
+                              ) : transaction.category ? (
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                   <div
                                     className="w-2 h-2 rounded-full shrink-0"
@@ -487,35 +530,43 @@ export const CalendarGrid = memo(function CalendarGrid({
                                     {getCategoryInfo(transaction.category, transaction.amount >= 0 ? 'income' : 'expense').label}
                                   </span>
                                 </div>
-                              )}
+                              ) : null}
                             </div>
                           </div>
                           <div className="flex items-center gap-0 ml-auto">
-                            <span className={`
-                            text-sm font-semibold whitespace-nowrap transition-transform duration-200 ease-out
-                            group-hover:-translate-x-16
-                            ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}
-                          `}>
-                              {transaction.amount >= 0 ? '+ ' : '- '}
-                              {formatCurrency(Math.abs(transaction.amount))}
-                            </span>
-                            <div className="flex gap-1 absolute right-4 translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200 ease-out">
-                              <button
-                                onClick={() => {
-                                  onEdit(transaction);
-                                  setSelectedDay(null);
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(transaction)}
-                                className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] hover:text-[var(--expense-color)]/80 transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                            {isGoalFund ? (
+                              <span className="text-sm font-semibold whitespace-nowrap text-[var(--purple-color)]">
+                                {formatCurrency(transaction.goalFundAmount!)}
+                              </span>
+                            ) : (
+                              <>
+                                <span className={`
+                                text-sm font-semibold whitespace-nowrap transition-transform duration-200 ease-out
+                                group-hover:-translate-x-16
+                                ${transaction.amount >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}
+                              `}>
+                                  {transaction.amount >= 0 ? '+ ' : '- '}
+                                  {formatCurrency(Math.abs(transaction.amount))}
+                                </span>
+                                <div className="flex gap-1 absolute right-4 translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200 ease-out">
+                                  <button
+                                    onClick={() => {
+                                      onEdit(transaction);
+                                      setSelectedDay(null);
+                                    }}
+                                    className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteClick(transaction)}
+                                    className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--expense-color)] hover:text-[var(--expense-color)]/80 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </motion.div>
                       );

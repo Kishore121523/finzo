@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Tag } from 'lucide-react';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { Search, X, Tag, Globe } from 'lucide-react';
+import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useAuth } from '@/components/providers/auth-provider';
 import { useCurrency } from '@/components/providers/currency-provider';
@@ -14,17 +14,19 @@ import {
   getCategoryInfo,
   CategoryInfo,
 } from '@/lib/constants/categories';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, eachMonthOfInterval } from 'date-fns';
+import { formatYearMonth, isMonthOnOrAfter, getEffectiveAmount } from '@/lib/hooks/use-transactions';
 
 interface TransactionSearchProps {
   open: boolean;
   onClose: () => void;
   onSelect: (transaction: Transaction) => void;
+  currentDate: Date;
 }
 
 const ALL_CATEGORIES: CategoryInfo[] = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
-export function TransactionSearch({ open, onClose, onSelect }: TransactionSearchProps) {
+export function TransactionSearch({ open, onClose, onSelect, currentDate }: TransactionSearchProps) {
   const { user } = useAuth();
   const { formatCurrency } = useCurrency();
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,8 +36,13 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
   const containerRef = useRef<HTMLDivElement>(null);
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
-  const isCatMode = searchQuery.toLowerCase().startsWith('cat:');
-  const catInputValue = isCatMode ? searchQuery.slice(4) : searchQuery;
+  const lowerQuery = searchQuery.toLowerCase();
+  const isCatMode = lowerQuery.startsWith('cat:');
+  const isAllMode = lowerQuery.startsWith('all:');
+  const hasPrefix = isCatMode || isAllMode;
+  const inputValue = hasPrefix ? searchQuery.slice(4) : searchQuery;
+
+  const currentMonthLabel = format(currentDate, 'MMMM');
 
   // Fetch all transactions on open
   useEffect(() => {
@@ -97,6 +104,69 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
     return () => window.removeEventListener('keydown', handleKey, { capture: true });
   }, [open, onClose]);
 
+  // Expand recurring templates into virtual transactions for given months
+  const expandForMonths = useCallback((months: Date[], regularTxs: Transaction[], recurringTxs: Transaction[]) => {
+    const result: Transaction[] = [];
+
+    for (const month of months) {
+      const mStart = startOfMonth(month);
+      const mEnd = endOfMonth(month);
+      const yearMonth = formatYearMonth(month);
+      const year = month.getFullYear();
+      const mon = month.getMonth();
+      const lastDay = new Date(year, mon + 1, 0).getDate();
+
+      // Add regular transactions that fall in this month
+      for (const t of regularTxs) {
+        if (!t.date) continue;
+        const d = t.date.toDate();
+        if (d >= mStart && d <= mEnd) {
+          result.push(t);
+        }
+      }
+
+      // Expand recurring templates for this month
+      for (const template of recurringTxs) {
+        const templateDate = template.date.toDate();
+        const startMonth = template.recurringStartMonth || formatYearMonth(templateDate);
+        if (!isMonthOnOrAfter(yearMonth, startMonth)) continue;
+        if (template.excludedMonths?.includes(yearMonth)) continue;
+
+        const originalDay = templateDate.getDate();
+        const dayOfMonth = Math.min(originalDay, lastDay);
+        const virtualDate = new Date(year, mon, dayOfMonth);
+        virtualDate.setHours(templateDate.getHours(), templateDate.getMinutes(), templateDate.getSeconds());
+
+        const effectiveAmount = getEffectiveAmount(template.amount, template.amountHistory, yearMonth);
+
+        result.push({
+          ...template,
+          id: `${template.id}-${yearMonth}`,
+          date: Timestamp.fromDate(virtualDate),
+          amount: effectiveAmount,
+          isVirtual: true,
+        });
+      }
+    }
+
+    result.sort((a, b) => b.date.toDate().getTime() - a.date.toDate().getTime());
+    return result;
+  }, []);
+
+  // Build scoped transactions with virtual recurring expansion
+  const scopedTransactions = useMemo(() => {
+    const regular = allTransactions.filter((t) => !t.isRecurring);
+    const recurring = allTransactions.filter((t) => t.isRecurring);
+
+    if (isAllMode) {
+      const sixMonthsAgoDate = startOfMonth(subMonths(currentDate, 5));
+      const months = eachMonthOfInterval({ start: sixMonthsAgoDate, end: currentDate });
+      return expandForMonths(months, regular, recurring);
+    }
+
+    return expandForMonths([currentDate], regular, recurring);
+  }, [allTransactions, isAllMode, currentDate, expandForMonths]);
+
   // Filter results
   const results = useMemo(() => {
     if (!debouncedQuery.trim()) return [];
@@ -108,7 +178,6 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
     if (q.startsWith('cat:')) {
       const catQuery = q.slice(4).trim();
       if (!catQuery) return [];
-      // Match category IDs and labels
       const matchedCatIds = ALL_CATEGORIES
         .filter(
           (c) =>
@@ -117,18 +186,23 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
         )
         .map((c) => c.id);
 
-      filtered = allTransactions.filter(
+      filtered = scopedTransactions.filter(
         (t) => t.category && matchedCatIds.includes(t.category)
       );
+    } else if (q.startsWith('all:')) {
+      const textQuery = q.slice(4).trim();
+      if (!textQuery) return scopedTransactions.slice(0, 50);
+      filtered = scopedTransactions.filter((t) =>
+        t.description.toLowerCase().includes(textQuery)
+      );
     } else {
-      filtered = allTransactions.filter((t) =>
+      filtered = scopedTransactions.filter((t) =>
         t.description.toLowerCase().includes(q)
       );
     }
 
-    // Already sorted by date desc from Firestore, cap at 50
     return filtered.slice(0, 50);
-  }, [debouncedQuery, allTransactions]);
+  }, [debouncedQuery, scopedTransactions]);
 
   const handleSelect = useCallback(
     (tx: Transaction) => {
@@ -146,6 +220,12 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
     },
     [onClose]
   );
+
+  const placeholder = isCatMode
+    ? 'Type a category...'
+    : isAllMode
+      ? 'Search last 6 months...'
+      : `Search transactions for ${currentMonthLabel}...`;
 
   return (
     <AnimatePresence>
@@ -175,22 +255,29 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
                     <span className="text-xs font-semibold text-[var(--teal)]">cat</span>
                   </span>
                 )}
+                {isAllMode && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--purple-color) 15%, transparent)', border: '1px solid color-mix(in srgb, var(--purple-color) 30%, transparent)' }}>
+                    <Globe className="h-3 w-3 text-[var(--purple-color)]" />
+                    <span className="text-xs font-semibold text-[var(--purple-color)]">all</span>
+                  </span>
+                )}
                 <input
                   ref={inputRef}
                   type="text"
-                  value={catInputValue}
+                  value={inputValue}
                   onChange={(e) => {
                     const val = e.target.value;
-                    setSearchQuery(isCatMode ? 'cat:' + val : val);
+                    if (isCatMode) setSearchQuery('cat:' + val);
+                    else if (isAllMode) setSearchQuery('all:' + val);
+                    else setSearchQuery(val);
                   }}
                   onKeyDown={(e) => {
-                    // When in cat mode and input is empty, backspace removes the cat: prefix
-                    if (isCatMode && e.key === 'Backspace' && catInputValue === '') {
+                    if (hasPrefix && e.key === 'Backspace' && inputValue === '') {
                       e.preventDefault();
                       setSearchQuery('');
                     }
                   }}
-                  placeholder={isCatMode ? 'Type a category...' : 'Search transactions...'}
+                  placeholder={placeholder}
                   className="flex-1 bg-transparent text-[var(--text-primary)] text-base placeholder:text-[var(--text-faint)] outline-none"
                 />
                 {searchQuery && (
@@ -299,7 +386,13 @@ export function TransactionSearch({ open, onClose, onSelect }: TransactionSearch
                     <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border-main)] text-[10px] font-mono text-[var(--text-primary)]">
                       cat:
                     </kbd>
-                    filter by category
+                    by category
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 rounded bg-[var(--surface)] border border-[var(--border-main)] text-[10px] font-mono text-[var(--text-primary)]">
+                      all:
+                    </kbd>
+                    last 6 months
                   </span>
                 </div>
               )}

@@ -778,6 +778,7 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
         focusCategoryId={focusCategoryId}
         focusCategoryAmount={focusCategoryAmount}
       />
+
     </div>
   );
 }
