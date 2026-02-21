@@ -19,6 +19,8 @@ export type ExpenseCategory =
   | 'shopping'
   | 'travel'
   | 'dining'
+  | 'electronics'
+  | 'sports'
   // Health & Education
   | 'health'
   | 'fitness'
@@ -107,6 +109,7 @@ export const EXPENSE_CATEGORY_GROUPS: CategoryGroup[] = [
       { id: 'shopping', label: 'Shopping', color: '#F472B6' },
       { id: 'travel', label: 'Travel', color: '#14B8A6' },
       { id: 'dining', label: 'Restaurants & Cafe', color: '#FB923C' },
+      { id: 'electronics', label: 'Electronics & Gadgets', color: '#64748B' },
     ],
   },
   {
@@ -114,6 +117,7 @@ export const EXPENSE_CATEGORY_GROUPS: CategoryGroup[] = [
     categories: [
       { id: 'health', label: 'Health & Medical', color: '#EF4444' },
       { id: 'fitness', label: 'Fitness & Gym', color: '#10B981' },
+      { id: 'sports', label: 'Sports & Turf', color: '#22C55E' },
       { id: 'education', label: 'Education', color: '#6366F1' },
     ],
   },

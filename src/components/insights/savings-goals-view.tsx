@@ -294,7 +294,7 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
 
       {/* Goals List Card */}
       <div
-        className="w-[calc(100%-2rem)] max-w-full max-h-[40vh] sm:max-h-none sm:w-[480px] lg:w-[560px] sm:min-h-[440px] sm:h-[440px] lg:h-[560px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-5 lg:p-6 flex flex-col relative"
+        className="w-[calc(100%-2rem)] max-w-full max-h-[40vh] sm:max-h-none sm:w-[480px] lg:w-[560px] sm:min-h-[440px] sm:h-[440px] lg:h-[560px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-5 lg:p-6 flex flex-col relative overflow-hidden"
         style={{
           border: selectedGoal
             ? `1px solid ${selectedGoal.color}20`
