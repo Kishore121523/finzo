@@ -199,7 +199,7 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
             </div>
 
             {/* Vertical bar chart */}
-            <div className="w-full flex items-end justify-center gap-6 sm:gap-10 h-[300px] sm:h-[320px] mb-5 sm:mb-0">
+            <div className="w-full flex items-end justify-center gap-6 sm:gap-10 h-[300px] sm:h-[340px] mb-5 sm:mb-0">
               {activeGoals.slice(0, 4).map((goal, index) => {
                 const { fraction, remaining, daysLeft, monthlyNeeded } = getGoalDetails(goal);
                 const GoalIcon = ICON_MAP[goal.icon] || PiggyBank;
@@ -260,17 +260,17 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
 
                     {/* Label + Amounts */}
                     <div className="flex flex-col items-center mt-2.5 sm:mt-3 gap-1 w-full">
-                      <span className="text-[10px] sm:text-xs text-[var(--text-primary)] font-semibold text-center leading-tight max-w-[80px] truncate">
+                      <span className="text-[10px] sm:text-[14px] text-[var(--text-primary)] font-semibold text-center leading-tight max-w-[80px] truncate">
                         {goal.name}
                       </span>
-                      <span className="text-[6px] sm:text-[10px] text-[var(--text-primary)] tabular-nums text-center leading-tight">
+                      <span className="text-[6px] sm:text-[14px] text-[var(--text-primary)] tabular-nums text-center leading-tight">
                         {formatCurrency(goal.savedAmount, { compact: true })}<span className="text-[var(--text-secondary)]"> / {formatCurrency(goal.targetAmount, { compact: true })}</span>
                       </span>
                       <div
-                        className="w-8 h-8 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300"
+                        className="w-8 h-8 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 sm:mt-1"
                         style={{ backgroundColor: `${goal.color}1A` }}
                       >
-                        <GoalIcon className="w-4 h-4" style={{ color: goal.color }} />
+                        <GoalIcon className="w-4 h-4 " style={{ color: goal.color }} />
                       </div>
                     </div>
                   </motion.div>
@@ -344,21 +344,6 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
                       <h3 className="text-base sm:text-xl font-semibold text-[var(--text-primary)] flex-1 min-w-0 truncate">
                         {selectedGoal.name}
                       </h3>
-                      {/* Mobile: edit/delete in header */}
-                      <div className="flex gap-1.5 sm:hidden shrink-0">
-                        <button
-                          onClick={() => onEditGoal(selectedGoal)}
-                          className="p-1.5 rounded-lg bg-[var(--fill-subtle)] text-[var(--text-secondary)] cursor-pointer"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteGoalConfirm(selectedGoal)}
-                          className="p-1.5 rounded-lg bg-[var(--fill-subtle)] text-[#CF6679] cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
                     </div>
 
                     {/* Progress section — same on mobile and desktop, just sized differently */}
@@ -493,27 +478,14 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
                       </div>
                     )}
 
-                    {/* Actions — mobile: just Add Funds full-width, desktop: full set */}
-                    <div className="flex gap-2 mt-auto">
+                    {/* Add Funds */}
+                    <div className="mt-auto">
                       <button
                         onClick={() => onAddFunds(selectedGoal)}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium bg-[var(--purple-color)] text-[var(--app-bg)] hover:opacity-90 transition-opacity cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium bg-[var(--purple-color)] text-[var(--app-bg)] hover:opacity-90 transition-opacity cursor-pointer"
                       >
                         <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Add Funds
-                      </button>
-                      {/* Desktop: edit/delete buttons (mobile ones are in header) */}
-                      <button
-                        onClick={() => onEditGoal(selectedGoal)}
-                        className="hidden sm:block px-3 py-3 rounded-xl text-sm font-medium bg-[var(--fill-subtle)] text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)] transition-colors cursor-pointer"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteGoalConfirm(selectedGoal)}
-                        className="hidden sm:block px-3 py-3 rounded-xl text-sm font-medium bg-[var(--fill-subtle)] text-[#CF6679] hover:bg-[#CF6679]/10 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </>
@@ -568,7 +540,7 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
                           initial={{ opacity: 0, x: 10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03, duration: 0.2 }}
-                          className="rounded-lg sm:rounded-xl p-2 sm:p-4 hover:bg-[var(--fill-subtle)] transition-colors cursor-pointer"
+                          className="group relative rounded-lg sm:rounded-xl p-2 sm:p-4 hover:bg-[var(--fill-subtle)] transition-colors cursor-pointer overflow-hidden"
                           onClick={() => setSelectedGoalId(goal.id)}
                         >
                           <div className="flex items-center gap-2 mb-1 sm:mb-2">
@@ -581,18 +553,36 @@ export function SavingsGoalsView({ goals, onCreateGoal, onEditGoal, onDeleteGoal
                             <span className="flex-1 text-[13px] sm:text-base text-[var(--text-primary)] truncate">
                               {goal.name}
                             </span>
-                            <span className="text-[10px] sm:text-xs text-[var(--text-muted)] tabular-nums shrink-0">
-                              {daysLeft}d left
-                            </span>
-                            <span className="hidden sm:inline text-sm tabular-nums font-medium text-[var(--text-secondary)]">
-                              {formatCurrency(goal.savedAmount)}
-                              <span className="text-[var(--text-faint)]"> / {formatCurrency(goal.targetAmount)}</span>
-                            </span>
+                            <div className="flex items-center gap-0 relative">
+                              <span className="text-[10px] sm:text-xs text-[var(--text-secondary)] tabular-nums shrink-0 transition-transform duration-200 ease-out sm:group-hover:-translate-x-18">
+                                {daysLeft}d left
+                              </span>
+                              <div className="hidden sm:flex gap-1 absolute right-0 translate-x-full opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-200 ease-out">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); onEditGoal(goal); }}
+                                  className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setDeleteGoalConfirm(goal); }}
+                                  className="p-1.5 rounded-lg hover:bg-[var(--fill-subtle-hover)] text-[#CF6679] hover:text-[#CF6679]/80 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between ml-8 mb-1 sm:hidden">
+                          <div className="flex items-center justify-between ml-8 sm:hidden mb-1">
                             <span className="text-[11px] tabular-nums font-medium text-[var(--text-secondary)]">
                               {formatCurrency(goal.savedAmount)}
-                              <span className="text-[var(--text-faint)]"> / {formatCurrency(goal.targetAmount)}</span>
+                              <span className="text-[var(--text-secondary)]"> / {formatCurrency(goal.targetAmount)}</span>
+                            </span>
+                          </div>
+                          <div className="hidden sm:flex items-center justify-between ml-9 mb-1">
+                            <span className="text-sm tabular-nums font-medium text-[var(--text-primary)]">
+                              {formatCurrency(goal.savedAmount)}
+                              <span className="text-[var(--text-secondary)]"> / {formatCurrency(goal.targetAmount)}</span>
                             </span>
                           </div>
                           <div className="h-1 sm:h-1.5 bg-[var(--fill-subtle)] rounded-full overflow-hidden ml-8 sm:ml-9">

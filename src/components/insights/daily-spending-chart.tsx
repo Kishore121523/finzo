@@ -181,7 +181,7 @@ export function DailySpendingChart({ transactions, currentDate, viewType }: Dail
 
   return (
     <div
-      className="w-[calc(100%-2rem)] max-w-full sm:w-[480px] lg:w-[1188px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-6 lg:p-8 relative overflow-hidden mt-0 md:mt-4"
+      className="w-[calc(100%-2rem)] max-w-full sm:w-[480px] lg:w-[1188px] rounded-xl sm:rounded-2xl bg-[var(--surface)] p-3 sm:p-6 lg:p-8 relative overflow-hidden mt-0 md:mt-1"
       style={{
         border: `1px solid color-mix(in srgb, var(${accentColorVar}) 12%, transparent)`,
         boxShadow: `0 0 40px color-mix(in srgb, var(${accentColorVar}) 6%, transparent), inset 0 1px 0 color-mix(in srgb, var(${accentColorVar}) 6%, transparent)`,

@@ -81,7 +81,7 @@ export function AddFundsModal({ open, onOpenChange, goal, onAddFunds }: AddFunds
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 placeholder="0"
-                className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 pl-3 text-sm border border-transparent focus:border-[var(--purple-color)] focus:outline-none transition-colors placeholder:text-[var(--text-faint)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 pl-3 text-sm border border-[var(--border-secondary)] focus:border-[var(--text-faint)] focus:outline-none transition-colors placeholder:text-[var(--text-faint)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>

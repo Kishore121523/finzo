@@ -108,57 +108,57 @@ export function GoalFormModal({ open, onOpenChange, onSave, editingGoal }: GoalF
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-2 scrollbar-hide space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-2 scrollbar-hide space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Goal Name</label>
+            <label className="block text-sm sm:text-base font-medium text-[var(--text-secondary)] mb-1.5">Goal Name</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Trip to Japan"
-              className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-[var(--purple-color)] focus:outline-none transition-colors placeholder:text-[var(--text-faint)]"
+              className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-3 text-sm sm:text-base border border-[var(--border-secondary)] focus:border-[var(--text-faint)] focus:outline-none transition-colors placeholder:text-[var(--text-faint)]"
             />
-            {errors.name && <p className="text-[11px] text-[#CF6679] mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-xs text-[#CF6679] mt-1">{errors.name}</p>}
           </div>
 
           {/* Target Amount */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Target Amount</label>
+            <label className="block text-sm sm:text-base font-medium text-[var(--text-secondary)] mb-1.5">Target Amount</label>
             <div className="relative">
               <input
                 type="number"
                 value={targetAmount}
                 onChange={e => setTargetAmount(e.target.value)}
                 placeholder="e.g. 200000"
-                className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-[var(--purple-color)] focus:outline-none transition-colors placeholder:text-[var(--text-faint)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-3 text-sm sm:text-base border border-[var(--border-secondary)] focus:border-[var(--text-faint)] focus:outline-none transition-colors placeholder:text-[var(--text-faint)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
-            {errors.targetAmount && <p className="text-[11px] text-[#CF6679] mt-1">{errors.targetAmount}</p>}
+            {errors.targetAmount && <p className="text-xs text-[#CF6679] mt-1">{errors.targetAmount}</p>}
           </div>
 
           {/* Deadline */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">Deadline</label>
+            <label className="block text-sm sm:text-base font-medium text-[var(--text-secondary)] mb-1.5">Deadline</label>
             <input
               type="date"
               value={deadline}
               onChange={e => setDeadline(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-2.5 text-sm border border-transparent focus:border-[var(--purple-color)] focus:outline-none transition-colors [color-scheme:dark]"
+              className="w-full bg-[var(--fill-subtle)] text-[var(--text-primary)] rounded-lg px-3 py-3 text-sm sm:text-base border border-[var(--border-secondary)] focus:border-[var(--text-faint)] focus:outline-none transition-colors [color-scheme:dark]"
             />
-            {errors.deadline && <p className="text-[11px] text-[#CF6679] mt-1">{errors.deadline}</p>}
+            {errors.deadline && <p className="text-xs text-[#CF6679] mt-1">{errors.deadline}</p>}
           </div>
 
           {/* Color */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Color</label>
-            <div className="flex flex-wrap gap-2">
+            <label className="block text-sm sm:text-base font-medium text-[var(--text-secondary)] mb-2">Color</label>
+            <div className="flex flex-wrap gap-2.5">
               {PRESET_COLORS.map(c => (
                 <button
                   key={c.hex}
                   onClick={() => setColor(c.hex)}
-                  className="w-7 h-7 rounded-full transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full transition-all cursor-pointer"
                   style={{
                     backgroundColor: c.hex,
                     boxShadow: color === c.hex ? `0 0 0 2px var(--surface), 0 0 0 4px ${c.hex}` : 'none',
@@ -171,19 +171,19 @@ export function GoalFormModal({ open, onOpenChange, onSave, editingGoal }: GoalF
 
           {/* Icon */}
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Icon</label>
-            <div className="flex flex-wrap gap-2">
+            <label className="block text-sm sm:text-base font-medium text-[var(--text-secondary)] mb-2">Icon</label>
+            <div className="flex flex-wrap gap-2.5">
               {PRESET_ICONS.map(({ key, Icon }) => (
                 <button
                   key={key}
                   onClick={() => setIcon(key)}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                  className="w-10 h-10 rounded-lg flex items-center justify-center transition-all cursor-pointer"
                   style={{
                     backgroundColor: icon === key ? `${color}20` : 'var(--fill-subtle)',
                     border: icon === key ? `1.5px solid ${color}` : '1.5px solid transparent',
                   }}
                 >
-                  <Icon className="w-4 h-4" style={{ color: icon === key ? color : 'var(--text-muted)' }} />
+                  <Icon className="w-5 h-5" style={{ color: icon === key ? color : 'var(--text-muted)' }} />
                 </button>
               ))}
             </div>
@@ -194,13 +194,13 @@ export function GoalFormModal({ open, onOpenChange, onSave, editingGoal }: GoalF
         <div className="flex items-center justify-end gap-3 p-4 sm:p-6 pt-3 sm:pt-4 border-t border-[var(--border)]">
           <button
             onClick={() => onOpenChange(false)}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)] transition-colors cursor-pointer"
+            className="px-5 py-2.5 rounded-lg text-sm sm:text-base font-medium text-[var(--text-secondary)] hover:bg-[var(--fill-subtle-hover)] transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--purple-color)] text-[var(--app-bg)] hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
+            className="px-5 py-2.5 rounded-lg text-sm sm:text-base font-medium bg-[var(--purple-color)] text-[var(--app-bg)] hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
           >
             {editingGoal ? 'Update' : 'Create'}
           </button>

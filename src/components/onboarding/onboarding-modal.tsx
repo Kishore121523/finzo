@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles, Keyboard, Target } from 'lucide-react';
+import { Wallet, Bell, PieChart, ChevronLeft, ChevronRight, ArrowRight, CalendarDays, TrendingDown, RefreshCw, CreditCard, Mail, Sun, X, Sparkles, Keyboard, Target, PiggyBank } from 'lucide-react';
 import Image from 'next/image';
 import { on } from 'events';
 
@@ -69,7 +69,7 @@ const steps: Step[] = [
   },
   {
     icon: Keyboard,
-    colorVar: '--teal',
+    colorVar: '--primary',
     title: 'Keyboard Shortcuts',
     description:
       'Navigate Finzo efficiently on desktop using keyboard shortcuts. Quickly add transactions, search records, switch between months and tabs, jump to a specific date, and manage your view with greater speed and control.',
@@ -77,7 +77,7 @@ const steps: Step[] = [
   },
   {
     icon: RefreshCw,
-    colorVar: '--teal',
+    colorVar: '--purple-color',
     title: 'Recurring Transactions',
     description:
       "Set up EMIs, SIPs, subscriptions, and utility bills once. They'll automatically populate each month, helping you stay on top of recurring payments and never miss a due date.",
@@ -85,7 +85,7 @@ const steps: Step[] = [
   },
   {
     icon: CreditCard,
-    colorVar: '--purple-color',
+    colorVar: '--expense-color',
     title: 'Payment Tracker',
     description: (
       <>
@@ -103,15 +103,23 @@ const steps: Step[] = [
   },
   {
     icon: PieChart,
-    colorVar: '--purple-color',
+    colorVar: '--warning-color',
     title: 'Category Breakdown',
     description:
       'Visualize your spending with interactive donut charts that display category-wise percentages, transaction counts, and totals. Select or deselect categories to dynamically update the view and analyze your expenses.',
     image: '/insightsPie.png',
   },
   {
+    icon: PiggyBank,
+    colorVar: '--teal',
+    title: 'Savings Goals',
+    description:
+      'Set custom savings goals and visually track your progress. Log funds and monitor your remaining needs so that you can easily afford future plans, gadgets, and trips.',
+    image: '/goals.png',
+  },
+  {
     icon: Target,
-    colorVar: '--expense-color',
+    colorVar: '--warning-color',
     title: 'Budget Tracking',
     description:
       'Set monthly spending limits per category and track your progress with a visual bar chart. Instantly see which categories are over budget and how much you have left to spend.',
@@ -119,7 +127,7 @@ const steps: Step[] = [
   },
   {
     icon: TrendingDown,
-    colorVar: '--expense-color',
+    colorVar: '--purple-color',
     title: 'Spending Trends',
     description:
       'Monitor your daily spending with a smooth line chart that highlights peak expense days, monthly averages, and overall progress giving you a clear view of your financial patterns at a glance.',
@@ -127,7 +135,7 @@ const steps: Step[] = [
   },
   {
     icon: Mail,
-    colorVar: '--warning-color',
+    colorVar: '--expense-color',
     title: 'Email Reminders',
     description:
       'Receive timely email notifications before payments are due. Finzo keeps you informed about upcoming bills and subscription renewals so you never miss a deadline.',
