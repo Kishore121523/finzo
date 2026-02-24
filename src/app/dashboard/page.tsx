@@ -33,38 +33,41 @@ export default function DashboardPage() {
     useTransactions(currentDate);
   const { syncTasksFromRecurringExpenses } = useTasks();
 
-  // Track which transaction IDs we've synced to avoid duplicate syncs
-  const syncedTransactionIdsRef = useRef<Set<string>>(new Set());
+  // Track which month+transaction IDs we've synced to avoid duplicate syncs
+  const syncedKeyRef = useRef<string>('');
 
-  // Sync tasks when recurring expenses change
+  // Sync tasks when recurring expenses change OR when month changes
   useEffect(() => {
     if (loading) return;
 
-    // Get today's month
-    const todayMonth = format(new Date(), 'yyyy-MM');
+    // Use the selected month (so navigating to March resets tasks)
+    const selectedMonth = format(currentDate, 'yyyy-MM');
 
     // Get recurring expenses (negative amounts with isRecurring)
     const recurringExpenses = transactions.filter(
       t => t.isRecurring && t.amount < 0
     );
 
-    // Check if there are any new recurring expenses we haven't synced yet
-    const newExpenses = recurringExpenses.filter(t => {
-      const baseId = t.id.includes('-202') ? t.id.split('-202')[0] : t.id;
-      return !syncedTransactionIdsRef.current.has(baseId);
-    });
+    if (recurringExpenses.length === 0) return;
 
-    if (newExpenses.length > 0 || recurringExpenses.length > 0) {
-      // Mark all as synced
-      recurringExpenses.forEach(t => {
-        const baseId = t.id.includes('-202') ? t.id.split('-202')[0] : t.id;
-        syncedTransactionIdsRef.current.add(baseId);
-      });
+    // Build a key from month + transaction IDs to detect changes
+    const baseIds = recurringExpenses.map(t => {
+      return t.id.includes('-202') ? t.id.split('-202')[0] : t.id;
+    }).sort().join(',');
+    const syncKey = `${selectedMonth}:${baseIds}`;
 
-      // Sync (this will create new tasks or reset existing ones for the month)
-      syncTasksFromRecurringExpenses(recurringExpenses, todayMonth);
-    }
-  }, [transactions, loading, syncTasksFromRecurringExpenses]);
+    // Skip if we've already synced this exact combination
+    if (syncKey === syncedKeyRef.current) return;
+    syncedKeyRef.current = syncKey;
+
+    // Sync (this will create new tasks or reset existing ones for the month)
+    syncTasksFromRecurringExpenses(recurringExpenses, selectedMonth);
+  }, [transactions, loading, currentDate, syncTasksFromRecurringExpenses]);
+
+  // Sync calendar date with overview overlay
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('calendar-date-changed', { detail: { date: currentDate } }));
+  }, [currentDate]);
 
   // Calculate income and expense totals
   const { income, expense } = useMemo(() => {

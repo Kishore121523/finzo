@@ -2,37 +2,46 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Bell, BellOff, Info, Sun, Moon, Target } from 'lucide-react';
+import { LogOut, Bell, BellOff, Info, Sun, Moon, ChevronRight, Check } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { useCurrency, CURRENCIES, Currency } from '@/components/providers/currency-provider';
 
 interface UserMenuProps {
   user: User;
   onLogout: () => void;
   onOpenGuide?: () => void;
-  onNavigateBudget?: () => void;
+  showCurrency?: boolean;
 }
 
-export function UserMenu({ user, onLogout, onOpenGuide, onNavigateBudget }: UserMenuProps) {
+export function UserMenu({ user, onLogout, onOpenGuide, showCurrency }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [notifLoading, setNotifLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
+  const { currency, setCurrency } = useCurrency();
 
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setCurrencyOpen(false);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Reset currency sub-menu when main menu closes
+  useEffect(() => {
+    if (!isOpen) setCurrencyOpen(false);
+  }, [isOpen]);
 
   // Fetch notification preference
   useEffect(() => {
@@ -66,6 +75,11 @@ export function UserMenu({ user, onLogout, onOpenGuide, onNavigateBudget }: User
     }
   };
 
+  const handleSelectCurrency = (c: Currency) => {
+    setCurrency(c);
+    setCurrencyOpen(false);
+  };
+
   const initials = user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || '?';
 
   return (
@@ -93,6 +107,48 @@ export function UserMenu({ user, onLogout, onOpenGuide, onNavigateBudget }: User
               <p className="text-sm font-medium text-[var(--text-primary)] truncate">{user.displayName || 'User'}</p>
             </div>
 
+            {/* Currency selector (inline sub-menu) */}
+            {showCurrency && (
+              <div className="relative">
+                <button
+                  onClick={() => setCurrencyOpen(!currencyOpen)}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer text-[var(--text-secondary)]"
+                >
+                  <span className="w-4 h-4 flex items-center justify-center text-sm font-medium text-[var(--teal)]">{currency.symbol}</span>
+                  <span className="text-sm flex-1 text-left">{currency.code}</span>
+                  <ChevronRight className={`w-3.5 h-3.5 transition-transform ${currencyOpen ? 'rotate-90' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {currencyOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="overflow-hidden bg-[var(--surface-hover)]"
+                    >
+                      {CURRENCIES.map((c) => (
+                        <button
+                          key={c.code}
+                          onClick={() => handleSelectCurrency(c)}
+                          className="w-full flex items-center justify-between px-6 py-2 hover:bg-[var(--fill-subtle)] transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-sm font-medium text-[var(--teal)]">{c.symbol}</span>
+                            <span className="text-xs text-[var(--text-secondary)]">{c.code}</span>
+                          </div>
+                          {currency.code === c.code && (
+                            <Check className="w-3.5 h-3.5 text-[var(--teal)]" />
+                          )}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
             {/* Email reminders toggle */}
             {!notifLoading && (
               <button
@@ -101,20 +157,6 @@ export function UserMenu({ user, onLogout, onOpenGuide, onNavigateBudget }: User
               >
                 {notificationsEnabled ? <Bell className="w-4 h-4 text-[var(--teal)]" /> : <BellOff className="w-4 h-4" />}
                 <span className="text-sm">{notificationsEnabled ? 'Email reminders on' : 'Email reminders off'}</span>
-              </button>
-            )}
-
-            {/* Budgets shortcut */}
-            {onNavigateBudget && (
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  onNavigateBudget();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer text-[var(--text-secondary)]"
-              >
-                <Target className="w-4 h-4 text-[var(--teal)]" />
-                <span className="text-sm">Budgets</span>
               </button>
             )}
 

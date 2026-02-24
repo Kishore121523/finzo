@@ -40,6 +40,16 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
     useTasks();
   const { addTransaction } = useTransactions(viewedDate);
 
+  // Format the viewed month for filtering (e.g., "2026-02")
+  const viewedMonth = `${viewedDate.getFullYear()}-${String(viewedDate.getMonth() + 1).padStart(2, '0')}`;
+
+  // Filter tasks to only show ones for the currently viewed month
+  // Manual tasks (no linkedMonth) are always shown
+  const getMonthFilteredTasks = useCallback((status: TaskStatus) => {
+    return getTasksByStatus(status).filter(t =>
+      !t.linkedMonth || t.linkedMonth === viewedMonth
+    );
+  }, [getTasksByStatus, viewedMonth]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -274,18 +284,17 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
             {/* Tab Bar */}
             <div className="flex gap-1 p-1 bg-[var(--surface)] rounded-xl border border-[var(--border-main)] mb-3 shrink-0">
               {mobileTabConfig.map((tab) => {
-                const count = getTasksByStatus(tab.status).length;
+                const count = getMonthFilteredTasks(tab.status).length;
                 const isActive = activeTab === tab.status;
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.status}
                     onClick={() => handleTabChange(tab.status)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all ${
-                      isActive
-                        ? `${tab.activeBg} ${tab.activeText}`
-                        : 'text-[var(--text-muted)]'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-medium transition-all ${isActive
+                      ? `${tab.activeBg} ${tab.activeText}`
+                      : 'text-[var(--text-muted)]'
+                      }`}
                   >
                     <Icon
                       className="h-3.5 w-3.5"
@@ -293,9 +302,8 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                     />
                     <span>{tab.label}</span>
                     <span
-                      className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                        isActive ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-faint)]'
-                      }`}
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] ${isActive ? 'bg-[var(--fill-subtle)] text-[var(--text-secondary)]' : 'text-[var(--text-faint)]'
+                        }`}
                     >
                       {count}
                     </span>
@@ -323,7 +331,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                   <KanbanColumn
                     title={mobileTabConfig.find((t) => t.status === activeTab)!.label}
                     status={activeTab}
-                    tasks={getTasksByStatus(activeTab)}
+                    tasks={getMonthFilteredTasks(activeTab)}
                     onAddTask={handleAddTask}
                     onEditTask={handleEditTask}
                     onDeleteTask={handleDeleteClick}
@@ -348,7 +356,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
               <KanbanColumn
                 title="To Pay"
                 status="todo"
-                tasks={getTasksByStatus('todo')}
+                tasks={getMonthFilteredTasks('todo')}
                 onAddTask={handleAddTask}
                 onEditTask={handleEditTask}
                 onDeleteTask={handleDeleteClick}
@@ -358,7 +366,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
               <KanbanColumn
                 title="Processing"
                 status="in-progress"
-                tasks={getTasksByStatus('in-progress')}
+                tasks={getMonthFilteredTasks('in-progress')}
                 onAddTask={handleAddTask}
                 onEditTask={handleEditTask}
                 onDeleteTask={handleDeleteClick}
@@ -368,7 +376,7 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
               <KanbanColumn
                 title="Paid"
                 status="done"
-                tasks={getTasksByStatus('done')}
+                tasks={getMonthFilteredTasks('done')}
                 onAddTask={handleAddTask}
                 onEditTask={handleEditTask}
                 onDeleteTask={handleDeleteClick}
@@ -382,8 +390,8 @@ export function KanbanBoard({ viewedDate, onAddTransaction }: KanbanBoardProps) 
                 <div className="rotate-2 scale-105">
                   <TaskCard
                     task={activeTask}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
+                    onEdit={() => { }}
+                    onDelete={() => { }}
                     isDragOverlay
                     viewedDate={viewedDate}
                   />

@@ -4,18 +4,17 @@ import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '@/components/layout/protected-route';
 import { ModeToggle } from '@/components/layout/mode-toggle';
 import { CurrencySelector } from '@/components/layout/currency-selector';
-import { NotificationToggle } from '@/components/layout/notification-toggle';
+
 import { BottomTabBar } from '@/components/layout/bottom-tab-bar';
 import { UserMenu } from '@/components/layout/user-menu';
 import { ModeProvider, useMode } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
-import { LogOut, Info, Sun, Moon, Search, Target } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from 'next-themes';
+import { Search, Target, LayoutDashboard, PieChart } from 'lucide-react';
 import { FinzoLogo } from '@/components/layout/logo';
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal';
 import { SavingsGoalsOverlay } from '@/components/goals/savings-goals-overlay';
+import { DashboardOverviewOverlay } from '@/components/dashboard/dashboard-overview-overlay';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,6 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <DashboardNav />
             <main className="flex-1 pb-16 md:pb-0">{children}</main>
             <BottomTabBar />
+            <DashboardOverviewOverlay />
             <SavingsGoalsOverlay />
           </div>
         </ModeProvider>
@@ -37,11 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 function DashboardNav() {
   const { user, logout, hasSeenOnboarding, markOnboardingSeen } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { theme, setTheme } = useTheme();
   const { navigateTo } = useMode();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!hasSeenOnboarding) {
@@ -64,8 +60,6 @@ function DashboardNav() {
     }
   };
 
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
-
   return (
     <>
       <nav className="border-b border-[var(--border-main)] bg-[var(--surface)]">
@@ -83,16 +77,20 @@ function DashboardNav() {
           </div>
 
           {/* Right side controls */}
-          <div className="flex items-center gap-3 md:gap-4">
-            {/* Currency - visible on all sizes */}
-            <CurrencySelector />
-            {/* Desktop: Search icon */}
+          <div className="flex items-center gap-3 md:gap-3">
+            {/* Mobile only: Currency selector */}
+            <div className="md:hidden">
+              <CurrencySelector />
+            </div>
+
+            {/* Desktop: Search bar pill */}
             <div className="hidden md:block relative group">
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('open-search'))}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+                className="flex items-center gap-2.5 h-8 pl-3 pr-4 rounded-lg border border-[var(--border-secondary)] bg-[var(--surface-hover)] hover:bg-[var(--fill-subtle)] hover:border-[var(--teal-border)] transition-all cursor-pointer group"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-3.5 w-3.5 text-[var(--text-muted)] group-hover:text-[var(--teal)] transition-colors" />
+                <span className="text-[13px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">Search...</span>
               </button>
               <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex flex-col items-center gap-0.5">
                 <span>Search transactions</span>
@@ -103,24 +101,53 @@ function DashboardNav() {
                 </span>
               </span>
             </div>
-            {/* Notification & Info & Theme - desktop only */}
-            <div className="hidden md:block">
-              <NotificationToggle />
-            </div>
-            <div className="hidden md:block relative group">
+
+            {/* Mobile: Search icon */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-search'))}
+              className="md:hidden flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+
+            {/* Overview CTA */}
+            <div className="relative group">
               <button
-                onClick={() => setShowOnboarding(true)}
+                onClick={() => window.dispatchEvent(new CustomEvent('open-overview'))}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
               >
-                <Info className="h-4 w-4" />
+                <LayoutDashboard className="h-4 w-4" />
               </button>
-              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                App guide
+              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:flex flex-col items-center gap-0.5">
+                <span>Overview</span>
+                <span className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">Shift</kbd>
+                  <span>+</span>
+                  <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">O</kbd>
+                </span>
               </span>
             </div>
 
-            {/* Desktop: Goals CTA */}
-            <div className="hidden md:block relative group">
+            {/* Budgets CTA */}
+            <div className="relative group">
+              <button
+                onClick={() => navigateTo('insights', 'budget')}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+              >
+                <PieChart className="h-4 w-4" />
+              </button>
+              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:flex flex-col items-center gap-0.5">
+                <span>Budgets</span>
+                <span className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1">
+                  <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">Shift</kbd>
+                  <span>+</span>
+                  <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">B</kbd>
+                </span>
+              </span>
+            </div>
+
+            {/* Goals CTA */}
+            <div className="relative group">
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('open-goals'))}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--purple-color)] transition-colors cursor-pointer"
@@ -130,7 +157,7 @@ function DashboardNav() {
               >
                 <Target className="h-4 w-4" />
               </button>
-              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex flex-col items-center gap-0.5">
+              <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:flex flex-col items-center gap-0.5">
                 <span>Goals</span>
                 <span className="text-[10px] text-[var(--text-secondary)] flex items-center gap-1">
                   <kbd className="px-1 py-0.5 rounded bg-[var(--fill-subtle)] border border-[var(--border-secondary)] text-[9px] font-mono text-[var(--text-primary)]">Shift</kbd>
@@ -139,80 +166,13 @@ function DashboardNav() {
                 </span>
               </span>
             </div>
-            {/* Theme toggle - desktop only */}
-            {mounted && (
-              <div className="hidden md:block relative group">
-                <button
-                  onClick={toggleTheme}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--fill-subtle)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--fill-subtle-hover)] hover:text-[var(--text-primary)] cursor-pointer overflow-hidden"
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.span
-                      key={theme}
-                      initial={{ y: -20, opacity: 0, rotate: -90 }}
-                      animate={{ y: 0, opacity: 1, rotate: 0 }}
-                      exit={{ y: 20, opacity: 0, rotate: 90 }}
-                      transition={{ duration: 0.25, ease: 'easeInOut' }}
-                      className="flex items-center justify-center"
-                    >
-                      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    </motion.span>
-                  </AnimatePresence>
-                </button>
-                <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-                </span>
-              </div>
-            )}
 
-
-
-            {/* Mobile: Search icon */}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('open-search'))}
-              className="md:hidden flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-            {/* Mobile: Goals CTA */}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('open-goals'))}
-              className="md:hidden flex h-8 w-8 items-center justify-center rounded-full text-[var(--purple-color)] transition-colors cursor-pointer"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--purple-color) 15%, transparent)' }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--purple-color) 25%, transparent)'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--purple-color) 15%, transparent)'}
-            >
-              <Target className="h-4 w-4" />
-            </button>
-
-            {/* Mobile: User menu dropdown (includes notification toggle + app guide) */}
+            {/* User menu avatar */}
             <div className="md:hidden">
-              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} onNavigateBudget={() => navigateTo('insights', 'budget')} />}
+              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} />}
             </div>
-
-            {/* Desktop: User info + Logout */}
-            <div className="hidden md:flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-hover)] border border-[var(--border-secondary)]">
-                {user && (
-                  <div className="w-5 h-5 rounded-full bg-[var(--teal-bg)] flex items-center justify-center">
-                    <span className="text-xs font-semibold text-[var(--teal)]">
-                      {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <span className="text-[13px] text-[var(--text-primary)]">{user?.displayName}</span>
-              </div>
-              <div className="relative group">
-                <button
-                  onClick={handleSignOut}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--border-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-                <span className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-[var(--text-primary)] bg-[var(--surface-hover)] rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Sign out
-                </span>
-              </div>
+            <div className="hidden md:block">
+              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} showCurrency />}
             </div>
           </div>
         </div>

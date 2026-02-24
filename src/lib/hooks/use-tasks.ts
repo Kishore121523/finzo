@@ -251,8 +251,8 @@ export function useTasks() {
     return !linkedTask || linkedTask.status !== 'done';
   }, [tasks]);
 
-  // Sync tasks from recurring expenses - creates ONE task per recurring expense (not per month)
-  // Also resets tasks to "To Do" at the start of each new month
+  // Sync tasks from recurring expenses — creates one task per recurring expense PER MONTH
+  // Each month gets its own task record, so marking Feb as "done" won't reset when viewing March
   const syncTasksFromRecurringExpenses = useCallback(async (
     recurringExpenses: Transaction[],
     currentMonth: string
@@ -267,12 +267,13 @@ export function useTasks() {
     );
     const existingTasksSnapshot = await getDocs(existingTasksQuery);
 
-    // Map of linkedTransactionId -> task doc
+    // Map of "linkedTransactionId:linkedMonth" -> task doc
     const existingTasksMap = new Map<string, { id: string; data: any }>();
     existingTasksSnapshot.docs.forEach(doc => {
       const data = doc.data();
-      if (data.linkedTransactionId) {
-        existingTasksMap.set(data.linkedTransactionId, { id: doc.id, data });
+      if (data.linkedTransactionId && data.linkedMonth) {
+        const key = `${data.linkedTransactionId}:${data.linkedMonth}`;
+        existingTasksMap.set(key, { id: doc.id, data });
       }
     });
 
@@ -310,29 +311,26 @@ export function useTasks() {
       const dayOfMonth = Math.min(expenseDate.getDate(), lastDayOfMonth);
       const dueDate = new Date(year, month - 1, dayOfMonth);
 
-      const existingTask = existingTasksMap.get(baseTransactionId);
+      const compositeKey = `${baseTransactionId}:${currentMonth}`;
+      const existingTask = existingTasksMap.get(compositeKey);
 
       if (existingTask) {
-        // Task exists - check if we need to reset for new month or update amount
-        const taskMonth = existingTask.data.linkedMonth;
+        // Task exists for this month — only update amount/title if changed, NEVER reset status
         const currentAmount = existingTask.data.amount || 0;
         const newAmount = Math.abs(expense.amount);
 
-        if (taskMonth !== currentMonth || currentAmount !== newAmount) {
-          // New month or amount changed - reset task and update details
+        if (currentAmount !== newAmount || existingTask.data.title !== expense.description) {
           const taskRef = doc(db, 'tasks', existingTask.id);
           batch.update(taskRef, {
-            status: taskMonth !== currentMonth ? 'todo' : existingTask.data.status,
-            linkedMonth: currentMonth,
-            dueDate: Timestamp.fromDate(dueDate),
             amount: newAmount,
             title: expense.description,
+            dueDate: Timestamp.fromDate(dueDate),
             updatedAt: firestoreHelpers.now(),
           });
           changes++;
         }
       } else {
-        // Create new task (first time for this recurring expense)
+        // No task for this transaction + month — create a new one as "todo"
         const taskRef = doc(collection(db, 'tasks'));
         const taskData: any = {
           userId: user.uid,
