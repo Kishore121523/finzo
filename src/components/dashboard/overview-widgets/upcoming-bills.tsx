@@ -29,10 +29,11 @@ function formatDue(date: Date | undefined): string {
   const due = new Date(date);
   due.setHours(0, 0, 0, 0);
   const diff = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return `${Math.abs(diff)}d overdue`;
-  if (diff === 0) return 'Due today';
-  if (diff === 1) return 'Tomorrow';
-  return `In ${diff}d`;
+  const dateStr = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  if (diff < 0) return `${dateStr} · ${Math.abs(diff)}d overdue`;
+  if (diff === 0) return `${dateStr} · Due today`;
+  if (diff === 1) return `${dateStr} · Tomorrow`;
+  return `${dateStr} · In ${diff}d`;
 }
 
 export function UpcomingBills({ bills, formatCurrency }: UpcomingBillsProps) {

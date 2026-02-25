@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, TrendingDown, Target, CalendarClock, BarChart3, X, Zap, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { ArrowLeft, TrendingDown, Target, CalendarClock, BarChart3, Zap } from 'lucide-react';
 import { useTransactions } from '@/lib/hooks/use-transactions';
 import { useTasks } from '@/lib/hooks/use-tasks';
 import { useBudgets } from '@/lib/hooks/use-budgets';
@@ -79,7 +79,7 @@ export function DashboardOverviewOverlay() {
   }, [open]);
 
   // Derived data
-  const { totalIncome, totalExpenses, topCategories, upcomingBills, budgetUtilization, avgDailySpend, biggestDayNum, biggestDayAmt, totalTxnCount, expenseTxnCount, savingsRate, categoryCount, largestSingleTxn, activeDays, monthlyPace } = useMemo(() => {
+  const { totalIncome, totalExpenses, topCategories, upcomingBills, budgetUtilization, effectiveBudget, avgDailySpend, biggestDayNum, biggestDayAmt, totalTxnCount, expenseTxnCount, savingsRate, largestSingleTxn, monthlyPace, budgetRemaining } = useMemo(() => {
     let income = 0;
     let expenses = 0;
     const catMap = new Map<string, { amount: number; category: string }>();
@@ -136,7 +136,6 @@ export function DashboardOverviewOverlay() {
     const totalTxnCount = transactions.length;
     const expenseTxnCount = transactions.filter(t => t.amount < 0).length;
     const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
-    const categoryCount = sortedCats.length;
     const largestSingleTxn = transactions.reduce((max, t) => t.amount < 0 && Math.abs(t.amount) > max ? Math.abs(t.amount) : max, 0);
     const activeDays = Array.from(dailyMap.values()).filter(v => v > 0).length;
     const avgDailySpend = activeDays > 0 ? expenses / activeDays : 0;
@@ -161,9 +160,16 @@ export function DashboardOverviewOverlay() {
       })
       .slice(0, 5);
 
-    // Budget utilization
-    const budgetUtil = budgets.totalMonthly
-      ? (expenses / budgets.totalMonthly) * 100
+    // Budget utilization — use totalMonthly if set, otherwise sum of category budgets
+    const effectiveBudget = budgets.totalMonthly
+      ?? (Object.values(budgets.categories).reduce((sum, v) => sum + v, 0) || null);
+
+    const budgetUtil = effectiveBudget
+      ? (expenses / effectiveBudget) * 100
+      : null;
+
+    const budgetRemaining = effectiveBudget
+      ? Math.max(effectiveBudget - expenses, 0)
       : null;
 
     return {
@@ -172,16 +178,16 @@ export function DashboardOverviewOverlay() {
       topCategories: sortedCats,
       upcomingBills: bills,
       budgetUtilization: budgetUtil,
+      effectiveBudget,
       avgDailySpend,
       biggestDayNum,
       biggestDayAmt,
       totalTxnCount,
       expenseTxnCount,
       savingsRate,
-      categoryCount,
       largestSingleTxn,
-      activeDays,
       monthlyPace,
+      budgetRemaining,
     };
   }, [transactions, tasks, budgets, currentDate]);
 
@@ -250,7 +256,7 @@ export function DashboardOverviewOverlay() {
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <h1 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)]">
+              <h1 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)] -ml-2 sm:ml-0">
                 {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </h1>
             </div>
@@ -286,6 +292,7 @@ export function DashboardOverviewOverlay() {
                       totalIncome={totalIncome}
                       totalExpenses={totalExpenses}
                       budgetUtilization={budgetUtilization}
+                      effectiveBudget={effectiveBudget}
                       formatCurrency={formatCurrency}
                     />
                   </OverviewCard>
@@ -331,7 +338,9 @@ export function DashboardOverviewOverlay() {
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Peak Day</span>
                           <span className="text-sm font-bold text-[var(--expense-color)] tabular-nums">
-                            {biggestDayAmt > 0 ? `Day ${biggestDayNum}` : '—'}
+                            {biggestDayAmt > 0
+                              ? new Date(currentDate.getFullYear(), currentDate.getMonth(), biggestDayNum).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                              : '—'}
                           </span>
                         </div>
                         <div className="flex flex-col gap-0.5">
@@ -339,22 +348,24 @@ export function DashboardOverviewOverlay() {
                           <span className="text-sm font-bold text-[var(--expense-color)] tabular-nums">{biggestDayAmt > 0 ? formatCurrency(biggestDayAmt, { compact: true }) : '—'}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Transactions</span>
-                          <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums">{totalTxnCount}</span>
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Active Days</span>
-                          <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums">{activeDays}</span>
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Categories</span>
-                          <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums">{categoryCount}</span>
-                        </div>
-                        <div className="flex flex-col gap-0.5">
                           <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Savings Rate</span>
                           <span className={`text-sm font-bold tabular-nums ${savingsRate >= 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]'}`}>
                             {savingsRate.toFixed(0)}%
                           </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Largest Txn</span>
+                          <span className="text-sm font-bold text-[var(--expense-color)] tabular-nums">{largestSingleTxn > 0 ? formatCurrency(largestSingleTxn, { compact: true }) : '—'}</span>
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Budget Left</span>
+                          <span className={`text-sm font-bold tabular-nums ${budgetRemaining !== null ? (budgetRemaining > 0 ? 'text-[var(--teal)]' : 'text-[var(--expense-color)]') : 'text-[var(--text-muted)]'}`}>
+                            {budgetRemaining !== null ? formatCurrency(budgetRemaining, { compact: true }) : 'No budget'}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Transactions</span>
+                          <span className="text-sm font-bold text-[var(--text-primary)] tabular-nums">{totalTxnCount}</span>
                         </div>
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Avg / Txn</span>

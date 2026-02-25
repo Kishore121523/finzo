@@ -78,10 +78,6 @@ function DashboardNav() {
 
           {/* Right side controls */}
           <div className="flex items-center gap-3 md:gap-3">
-            {/* Mobile only: Currency selector */}
-            <div className="md:hidden">
-              <CurrencySelector />
-            </div>
 
             {/* Desktop: Search bar pill */}
             <div className="hidden md:block relative group">
@@ -129,7 +125,7 @@ function DashboardNav() {
             </div>
 
             {/* Budgets CTA */}
-            <div className="relative group">
+            <div className="hidden md:block relative group">
               <button
                 onClick={() => navigateTo('insights', 'budget')}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
@@ -147,7 +143,7 @@ function DashboardNav() {
             </div>
 
             {/* Goals CTA */}
-            <div className="relative group">
+            <div className="hidden md:block relative group">
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('open-goals'))}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--purple-color)] transition-colors cursor-pointer"
@@ -169,7 +165,7 @@ function DashboardNav() {
 
             {/* User menu avatar */}
             <div className="md:hidden">
-              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} />}
+              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} showCurrency onNavigateToBudgets={() => navigateTo('insights', 'budget')} onNavigateToGoals={() => window.dispatchEvent(new CustomEvent('open-goals'))} />}
             </div>
             <div className="hidden md:block">
               {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} showCurrency />}

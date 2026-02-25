@@ -27,13 +27,11 @@ export function TopSpendingCategories({
   }
 
   const maxAmount = Math.max(...categories.map(c => c.amount));
-  const totalAmount = categories.reduce((s, c) => s + c.amount, 0);
 
   return (
-    <div className="flex flex-col gap-3.5 h-full">
+    <div className="flex flex-col gap-2 h-full">
       {categories.map((cat, i) => {
         const pct = maxAmount > 0 ? (cat.amount / maxAmount) * 100 : 0;
-        const share = totalAmount > 0 ? (cat.amount / totalAmount) * 100 : 0;
 
         return (
           <motion.div
@@ -41,29 +39,21 @@ export function TopSpendingCategories({
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-            className="group"
+            className="flex items-center gap-3"
           >
-            {/* Label row */}
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: cat.color }}
-                />
-                <span className="text-xs sm:text-sm text-[var(--text-primary)] font-medium truncate">
-                  {cat.label}
-                </span>
-                <span className="text-[10px] sm:text-xs text-[var(--text-muted)] tabular-nums flex-shrink-0">
-                  {share.toFixed(0)}%
-                </span>
-              </div>
-              <span className="text-xs sm:text-sm text-[var(--text-secondary)] font-semibold tabular-nums flex-shrink-0 ml-3">
-                {formatCurrency(cat.amount, { compact: true })}
-              </span>
-            </div>
+            {/* Color dot */}
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: cat.color }}
+            />
 
-            {/* Proportional bar */}
-            <div className="h-2 rounded-full bg-[var(--fill-subtle)] overflow-hidden">
+            {/* Label */}
+            <span className="w-[100px] sm:w-[120px] flex-shrink-0 text-xs sm:text-sm text-[var(--text-primary)] font-medium truncate">
+              {cat.label}
+            </span>
+
+            {/* Inline bar */}
+            <div className="flex-1 h-[6px] rounded-full bg-[var(--fill-subtle)] overflow-hidden">
               <motion.div
                 className="h-full rounded-full"
                 style={{ backgroundColor: cat.color }}
@@ -72,6 +62,11 @@ export function TopSpendingCategories({
                 transition={{ duration: 0.9, delay: 0.2 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
               />
             </div>
+
+            {/* Amount */}
+            <span className="w-[60px] sm:w-[70px] text-right text-xs sm:text-sm text-[var(--text-secondary)] font-semibold tabular-nums flex-shrink-0">
+              {formatCurrency(cat.amount, { compact: true })}
+            </span>
           </motion.div>
         );
       })}

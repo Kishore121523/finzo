@@ -1,13 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Wallet, TrendingUp, TrendingDown, PieChart } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, PieChart } from 'lucide-react';
 
 interface FinancialSummaryProps {
   balance: number;
   totalIncome: number;
   totalExpenses: number;
-  budgetUtilization: number | null; // null = no budget set
+  budgetUtilization: number | null;
+  effectiveBudget: number | null;
   formatCurrency: (amount: number, options?: { compact?: boolean }) => string;
 }
 
@@ -21,82 +22,81 @@ export function FinancialSummary({
   totalIncome,
   totalExpenses,
   budgetUtilization,
+  effectiveBudget,
   formatCurrency,
 }: FinancialSummaryProps) {
-  const stats = [
-    {
-      label: 'Balance',
-      value: formatCurrency(balance, { compact: true }),
-      icon: Wallet,
-      colorVar: '--teal',
-      bgVar: '--teal-bg',
-    },
-    {
-      label: 'Income',
-      value: formatCurrency(totalIncome, { compact: true }),
-      icon: TrendingUp,
-      colorVar: '--teal',
-      bgVar: '--teal-bg',
-    },
-    {
-      label: 'Expenses',
-      value: formatCurrency(totalExpenses, { compact: true }),
-      icon: TrendingDown,
-      colorVar: '--expense-color',
-      bgVar: '--expense-bg',
-    },
-  ];
-
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <motion.div
-              key={stat.label}
-              variants={cardItem}
-              className="flex flex-col items-center gap-2 rounded-xl bg-[var(--surface-hover)] p-3 sm:p-4 border border-[var(--border-secondary)]"
-            >
-              <div
-                className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full"
-                style={{ backgroundColor: `var(${stat.bgVar})` }}
-              >
-                <Icon className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: `var(${stat.colorVar})` }} />
-              </div>
-              <span className="text-[10px] sm:text-xs text-[var(--text-secondary)]">{stat.label}</span>
-              <span
-                className="text-sm sm:text-lg font-bold tabular-nums"
-                style={{ color: `var(${stat.colorVar})` }}
-              >
-                {stat.value}
+    <motion.div variants={cardItem} className="flex flex-col gap-3">
+      {/* Compact horizontal layout */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        {/* Balance */}
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] sm:text-xs text-[var(--text-muted)] uppercase tracking-wider font-medium">Balance</span>
+          <span className="text-lg sm:text-2xl font-bold text-[var(--teal)] tabular-nums">
+            {formatCurrency(balance, { compact: true })}
+          </span>
+        </div>
+
+        {/* Income + Expenses side by side */}
+        <div className="flex items-center gap-5 sm:gap-8">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--teal-bg)]">
+              <ArrowUpRight className="h-3 w-3 text-[var(--teal)]" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] sm:text-[10px] text-[var(--text-muted)] uppercase tracking-wider leading-none">Income</span>
+              <span className="text-sm sm:text-base font-semibold text-[var(--teal)] tabular-nums">
+                {formatCurrency(totalIncome, { compact: true })}
               </span>
-            </motion.div>
-          );
-        })}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--expense-bg)]">
+              <ArrowDownRight className="h-3 w-3 text-[var(--expense-color)]" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] sm:text-[10px] text-[var(--text-muted)] uppercase tracking-wider leading-none">Expenses</span>
+              <span className="text-sm sm:text-base font-semibold text-[var(--expense-color)] tabular-nums">
+                {formatCurrency(totalExpenses, { compact: true })}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
+      {/* Budget bar */}
       {budgetUtilization !== null && (
-        <motion.div variants={cardItem} className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[var(--text-secondary)]">
             <div className="flex items-center gap-1.5">
-              <PieChart className="h-3.5 w-3.5" />
+              <PieChart className="h-3 w-3" />
               <span>Budget used</span>
             </div>
-            <span
-              className="font-medium tabular-nums"
-              style={{
-                color: budgetUtilization > 100
-                  ? 'var(--expense-color)'
-                  : budgetUtilization > 80
-                    ? '#FBBF24'
-                    : 'var(--teal)',
-              }}
-            >
-              {budgetUtilization.toFixed(0)}%
-            </span>
+            <div className="flex items-center tabular-nums">
+              <span className="font-medium text-[var(--text-primary)]">
+                {formatCurrency(totalExpenses, { compact: true })}
+              </span>
+              <span className="text-[var(--text-muted)] px-[2px]">/</span>
+              <span className="font-medium text-[var(--text-secondary)]">
+                {effectiveBudget ? formatCurrency(effectiveBudget, { compact: true }) : '—'}
+              </span>
+              <span className="text-[var(--text-muted)] opacity-40 px-2">|</span>
+              <span
+                className="font-medium"
+                style={{
+                  color: budgetUtilization > 100
+                    ? 'var(--expense-color)'
+                    : budgetUtilization > 80
+                      ? '#FBBF24'
+                      : 'var(--teal)',
+                }}
+              >
+                {budgetUtilization.toFixed(0)}%
+              </span>
+            </div>
           </div>
-          <div className="h-2 rounded-full bg-[var(--fill-subtle)] overflow-hidden">
+          <div className="h-1.5 rounded-full bg-[var(--fill-subtle)] overflow-hidden">
             <motion.div
               className="h-full rounded-full"
               style={{
@@ -111,8 +111,8 @@ export function FinancialSummary({
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
             />
           </div>
-        </motion.div>
+        </div>
       )}
-    </div>
+    </motion.div>
   );
 }
