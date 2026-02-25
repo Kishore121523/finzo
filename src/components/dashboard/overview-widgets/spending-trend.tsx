@@ -81,7 +81,7 @@ export function SpendingTrend({ transactions, currentDate }: SpendingTrendProps)
               transition={{ duration: 0.1 }}
               className="flex items-center gap-2"
             >
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)] tracking-wider font-medium">
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)] font-medium">
                 Total Expense
               </span>
               <span className="text-xs sm:text-sm font-semibold text-[var(--expense-color)] tabular-nums">

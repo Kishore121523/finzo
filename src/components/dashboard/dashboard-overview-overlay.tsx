@@ -141,24 +141,26 @@ export function DashboardOverviewOverlay() {
     const avgDailySpend = activeDays > 0 ? expenses / activeDays : 0;
     const monthlyPace = daysSoFar > 0 ? (expenses / daysSoFar) * daysInMonth : 0;
 
-    // Upcoming bills: todo/in-progress tasks
+    // Monthly payments: all tasks for the viewed month
+    const viewedMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     const bills = tasks
-      .filter((t) => t.status !== 'done')
+      .filter((t) => t.linkedMonth === viewedMonth)
       .map((t) => ({
         id: t.id,
         title: t.title,
         amount: t.amount,
         dueDate: t.dueDate ? t.dueDate.toDate() : undefined,
         status: t.status,
-        isOverdue: t.dueDate ? new Date() > t.dueDate.toDate() : false,
+        isPaid: t.status === 'done',
+        isOverdue: t.status !== 'done' && t.dueDate ? new Date() > t.dueDate.toDate() : false,
       }))
       .sort((a, b) => {
-        // Overdue first, then by due date ascending
+        // Overdue first, then pending, then paid
         if (a.isOverdue !== b.isOverdue) return a.isOverdue ? -1 : 1;
+        if (a.isPaid !== b.isPaid) return a.isPaid ? 1 : -1;
         if (a.dueDate && b.dueDate) return a.dueDate.getTime() - b.dueDate.getTime();
         return 0;
-      })
-      .slice(0, 5);
+      });
 
     // Budget utilization — use totalMonthly if set, otherwise sum of category budgets
     const effectiveBudget = budgets.totalMonthly
@@ -303,7 +305,7 @@ export function DashboardOverviewOverlay() {
                       className="lg:w-1/2 flex flex-col min-h-[280px] max-h-[300px] lg:max-h-none lg:min-h-0"
                       title="Top Spending"
                       icon={<TrendingDown className="h-4 w-4 text-[var(--expense-color)]" />}
-                      contentClassName="flex-1 overflow-y-auto scrollbar-hide pr-1"
+                      contentClassName="flex-1 overflow-y-auto scrollbar-hide pr-2 mt-1"
                     >
                       <TopSpendingCategories
                         categories={topCategories}
@@ -416,10 +418,10 @@ export function DashboardOverviewOverlay() {
                       <GoalsProgress goals={goals} formatCurrency={formatCurrency} />
                     </OverviewCard>
 
-                    {/* Upcoming Bills */}
+                    {/* Monthly Payments */}
                     <OverviewCard
                       className="lg:w-[30%] flex flex-col min-h-0 max-h-[280px]"
-                      title="Upcoming Bills"
+                      title="Monthly Payments"
                       icon={<CalendarClock className="h-4 w-4 text-[var(--teal)]" />}
                       contentClassName="flex-1 overflow-y-auto scrollbar-hide pr-1"
                     >
