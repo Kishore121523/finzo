@@ -498,7 +498,7 @@ export function BudgetView({ categoryData, currentDate, onDateChange, onOpenSett
                   <h3 className="text-lg sm:text-xl font-semibold text-[var(--text-primary)]">Budgets</h3>
                   <button
                     onClick={() => onOpenSettings()}
-                    className="px-1 sm:px-1 py-0.5 rounded text-[10px] sm:text-xs font-medium text-[var(--text-muted)] hover:text-[var(--teal)] hover:bg-[var(--fill-subtle-hover)] transition-colors cursor-pointer flex items-center gap-1 mt-1 -ml-1"
+                    className="px-2 sm:px-2 py-1 rounded text-[10px] sm:text-xs font-medium text-[var(--text-muted)] hover:text-[var(--teal)] hover:bg-[var(--fill-subtle-hover)] transition-colors cursor-pointer flex items-center gap-1 mt-1 sm:mt-1.5 -ml-1"
                   >
                     <Pencil className="w-3 h-3" />
                     <span className="hidden sm:inline">Edit</span>

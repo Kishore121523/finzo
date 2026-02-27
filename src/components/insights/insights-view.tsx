@@ -16,10 +16,6 @@ import { TrendingDown, TrendingUp, ChevronLeft, ChevronRight, ArrowLeft, Check, 
 
 import { addMonths, subMonths, startOfMonth } from 'date-fns';
 import { DailySpendingChart } from './daily-spending-chart';
-import { BudgetView } from './budget-view';
-import { BudgetSettingsModal } from './budget-settings-modal';
-import { useMode } from '@/components/providers/mode-provider';
-import { useBudgets } from '@/lib/hooks/use-budgets';
 
 // Bright color palette for categories - matching categories.ts
 const BRIGHT_EXPENSE_COLORS: Record<string, string> = {
@@ -107,44 +103,13 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryData | null>(null);
   const [enabledCategories, setEnabledCategories] = useState<Set<string>>(new Set());
-  const [insightsPage, setInsightsPage] = useState(0);
-  const [budgetSettingsOpen, setBudgetSettingsOpen] = useState(false);
-  const [focusCategoryId, setFocusCategoryId] = useState<string | null>(null);
-  const [focusCategoryAmount, setFocusCategoryAmount] = useState<number | undefined>(undefined);
   const { formatCurrency } = useCurrency();
-  const { budgets, saveBudgets } = useBudgets();
-  const { pendingSubPage, consumePendingSubPage } = useMode();
-
-  // Navigate to budget tab if requested from layout
-  useEffect(() => {
-    if (pendingSubPage === 'budget') {
-      consumePendingSubPage();
-      setViewType('expense');
-      setInsightsPage(1);
-    }
-  }, [pendingSubPage, consumePendingSubPage]);
 
   // Ensure we are working with the start of the month for consistent logic
   const insightsDate = useMemo(() => startOfMonth(currentDate), [currentDate]);
 
   // Fetch transactions for the insights month
   const { transactions } = useTransactions(insightsDate);
-
-  // Fetch previous month's transactions for MoM comparison
-  const prevMonthDate = useMemo(() => subMonths(insightsDate, 1), [insightsDate]);
-  const { transactions: prevTransactions } = useTransactions(prevMonthDate);
-
-  // Compute previous month spending by category
-  const prevSpendingMap = useMemo(() => {
-    const map: Record<string, number> = {};
-    prevTransactions
-      .filter(t => t.amount < 0)
-      .forEach(t => {
-        const cat = t.category || DEFAULT_EXPENSE_CATEGORY;
-        map[cat] = (map[cat] || 0) + Math.abs(t.amount);
-      });
-    return map;
-  }, [prevTransactions]);
 
   const handlePreviousMonth = () => {
     onDateChange(subMonths(insightsDate, 1));
@@ -293,7 +258,6 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
   const handleViewTypeChange = (value: string) => {
     setSelectedCategory(null);
     setViewType(value as 'expense' | 'income');
-    if (value === 'income') setInsightsPage(0);
   };
 
   // Handle category click
@@ -356,44 +320,9 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center w-full lg:h-full lg:justify-evenly lg:px-4 lg:gap-8">
-            {/* View Switcher Tabs — mobile: above content, desktop: hidden here */}
-            {viewType === 'expense' && (
-              <div className="flex sm:hidden items-center justify-center py-2">
-                <div className="inline-flex items-center rounded-lg bg-[var(--surface)] p-1">
-                  {[
-                    { key: 0, label: 'Categories' },
-                    { key: 1, label: 'Budgets' },
-                  ].map(tab => {
-                    const isActive = insightsPage === tab.key;
-                    return (
-                      <button
-                        key={tab.key}
-                        onClick={() => setInsightsPage(tab.key)}
-                        className="relative px-3 py-1.5 text-[11px] font-medium cursor-pointer transition-colors rounded-md"
-                        style={{ color: isActive ? 'var(--expense-color)' : 'var(--text-muted)' }}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="insights-subtab-mobile"
-                            className="absolute inset-0 rounded-md"
-                            style={{
-                              backgroundColor: 'var(--expense-bg)',
-                              border: '1px solid var(--expense-border)',
-                            }}
-                            transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                          />
-                        )}
-                        <span className="relative z-10">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Mobile: Column layout scrollable | Desktop: Row layout centered */}
             <AnimatePresence mode="wait">
-              {insightsPage === 0 ? (
+              {(
                 <motion.div
                   key="categories-page"
                   initial={{ opacity: 0, x: -40 }}
@@ -686,66 +615,8 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
                     </AnimatePresence>
                   </div>
                 </motion.div>
-              ) : (
-                <motion.div
-                  key="budget-page"
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 40 }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
-                  className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32"
-                >
-                  <BudgetView
-                    categoryData={categoryData}
-                    currentDate={insightsDate}
-                    onDateChange={onDateChange}
-                    onOpenSettings={(catId, catAmount) => {
-                      setFocusCategoryId(catId ?? null);
-                      setFocusCategoryAmount(catAmount);
-                      setBudgetSettingsOpen(true);
-                    }}
-                    budgets={budgets}
-                    transactions={transactions}
-                    prevSpending={prevSpendingMap}
-                  />
-                </motion.div>
               )}
             </AnimatePresence>
-
-            {/* View Switcher Tabs — desktop only (mobile version is above) */}
-            {viewType === 'expense' && (
-              <div className="hidden sm:flex items-center justify-center py-3">
-                <div className="inline-flex items-center rounded-lg bg-[var(--surface)] p-1">
-                  {[
-                    { key: 0, label: 'Categories' },
-                    { key: 1, label: 'Budgets' },
-                  ].map(tab => {
-                    const isActive = insightsPage === tab.key;
-                    return (
-                      <button
-                        key={tab.key}
-                        onClick={() => setInsightsPage(tab.key)}
-                        className="relative px-4 py-1.5 text-xs font-medium cursor-pointer transition-colors rounded-md"
-                        style={{ color: isActive ? 'var(--expense-color)' : 'var(--text-muted)' }}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="insights-subtab"
-                            className="absolute inset-0 rounded-md"
-                            style={{
-                              backgroundColor: 'var(--expense-bg)',
-                              border: '1px solid var(--expense-border)',
-                            }}
-                            transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-                          />
-                        )}
-                        <span className="relative z-10">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* Daily Spending Chart */}
             <div className="flex flex-col w-full lg:w-auto lg:flex-row items-center gap-6 sm:gap-12 lg:gap-32 mt-6 lg:mt-0 shrink-0 pb-0 sm:pb-8">
@@ -763,21 +634,6 @@ export function InsightsView({ currentDate, onDateChange }: InsightsViewProps) {
           </div>
         )}
       </div>
-
-      <BudgetSettingsModal
-        open={budgetSettingsOpen}
-        onOpenChange={(open) => {
-          setBudgetSettingsOpen(open);
-          if (!open) {
-            setFocusCategoryId(null);
-            setFocusCategoryAmount(undefined);
-          }
-        }}
-        budgets={budgets}
-        onSave={saveBudgets}
-        focusCategoryId={focusCategoryId}
-        focusCategoryAmount={focusCategoryAmount}
-      />
 
     </div>
   );

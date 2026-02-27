@@ -103,7 +103,7 @@ export function BudgetSettingsModal({ open, onOpenChange, budgets, onSave, focus
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="bg-[var(--surface)] border-[var(--border)] text-[var(--text-primary)] max-h-[85vh] flex flex-col p-0 gap-0 w-[calc(100%-2rem)] sm:max-w-md"
+        className="bg-[var(--surface)] border-[var(--border)] text-[var(--text-primary)] max-h-[60vh] flex flex-col p-0 gap-0 w-[calc(100%-4rem)] sm:max-w-[32rem]"
       >
         <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4">
           <DialogTitle className="text-lg sm:text-xl text-[var(--text-primary)]">Budget Settings</DialogTitle>
@@ -157,7 +157,7 @@ export function BudgetSettingsModal({ open, onOpenChange, budgets, onSave, focus
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: cat.color }}
                           />
-                          <span className="flex-1 text-sm text-[var(--text-primary)] truncate">
+                          <span className="flex-1 text-xs sm:text-[15px] text-[var(--text-primary)] truncate">
                             {cat.label}
                           </span>
                           {hasBudget ? (

@@ -7,7 +7,7 @@ import { CurrencySelector } from '@/components/layout/currency-selector';
 
 import { BottomTabBar } from '@/components/layout/bottom-tab-bar';
 import { UserMenu } from '@/components/layout/user-menu';
-import { ModeProvider, useMode } from '@/components/providers/mode-provider';
+import { ModeProvider } from '@/components/providers/mode-provider';
 import { CurrencyProvider } from '@/components/providers/currency-provider';
 import { useAuth } from '@/components/providers/auth-provider';
 import { Search, Target, LayoutDashboard, PieChart } from 'lucide-react';
@@ -15,6 +15,7 @@ import { FinzoLogo } from '@/components/layout/logo';
 import { OnboardingModal } from '@/components/onboarding/onboarding-modal';
 import { SavingsGoalsOverlay } from '@/components/goals/savings-goals-overlay';
 import { DashboardOverviewOverlay } from '@/components/dashboard/dashboard-overview-overlay';
+import { BudgetOverlay } from '@/components/budget/budget-overlay';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,6 +28,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <BottomTabBar />
             <DashboardOverviewOverlay />
             <SavingsGoalsOverlay />
+            <BudgetOverlay />
           </div>
         </ModeProvider>
       </CurrencyProvider>
@@ -37,7 +39,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 function DashboardNav() {
   const { user, logout, hasSeenOnboarding, markOnboardingSeen } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { navigateTo } = useMode();
 
   useEffect(() => {
     if (!hasSeenOnboarding) {
@@ -110,7 +111,10 @@ function DashboardNav() {
             <div className="relative group">
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('open-overview'))}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-[#F59E0B] transition-colors cursor-pointer"
+                style={{ backgroundColor: 'color-mix(in srgb, #F59E0B 15%, transparent)' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, #F59E0B 25%, transparent)'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, #F59E0B 15%, transparent)'}
               >
                 <LayoutDashboard className="h-4 w-4" />
               </button>
@@ -127,8 +131,11 @@ function DashboardNav() {
             {/* Budgets CTA */}
             <div className="hidden md:block relative group">
               <button
-                onClick={() => navigateTo('insights', 'budget')}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--teal-bg)] text-[var(--teal)] transition-colors hover:bg-[var(--teal-border)] cursor-pointer"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-budget'))}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--expense-color)] transition-colors cursor-pointer"
+                style={{ backgroundColor: 'color-mix(in srgb, var(--expense-color) 15%, transparent)' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--expense-color) 25%, transparent)'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--expense-color) 15%, transparent)'}
               >
                 <PieChart className="h-4 w-4" />
               </button>
@@ -165,7 +172,7 @@ function DashboardNav() {
 
             {/* User menu avatar */}
             <div className="md:hidden">
-              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} showCurrency onNavigateToBudgets={() => navigateTo('insights', 'budget')} onNavigateToGoals={() => window.dispatchEvent(new CustomEvent('open-goals'))} />}
+              {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} showCurrency onNavigateToBudgets={() => window.dispatchEvent(new CustomEvent('open-budget'))} onNavigateToGoals={() => window.dispatchEvent(new CustomEvent('open-goals'))} />}
             </div>
             <div className="hidden md:block">
               {user && <UserMenu user={user} onLogout={handleSignOut} onOpenGuide={() => setShowOnboarding(true)} showCurrency />}

@@ -171,7 +171,7 @@ export function UserMenu({ user, onLogout, onOpenGuide, showCurrency, onNavigate
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors cursor-pointer text-[var(--text-secondary)]"
               >
-                <PieChart className="w-4 h-4 text-[var(--teal)]" />
+                <PieChart className="w-4 h-4 text-[var(--expense-color)]" />
                 <span className="text-sm">Budgets</span>
               </button>
             )}

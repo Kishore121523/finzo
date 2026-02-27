@@ -204,11 +204,8 @@ export default function DashboardPage() {
         setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
       }
 
-      // Budgets: Shift + B
-      if (e.shiftKey && (e.key === 'B' || e.key === 'b')) {
-        e.preventDefault();
-        navigateTo('insights', 'budget');
-      }
+      // Budgets: Shift + B — handled by BudgetOverlay
+      // (overlay listens for Shift+B directly)
 
       // Calendar: Shift + C
       if (e.shiftKey && (e.key === 'C' || e.key === 'c')) {

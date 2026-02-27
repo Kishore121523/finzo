@@ -230,7 +230,7 @@ export function DashboardOverviewOverlay() {
               }
             }}
           >
-            <h2 className="text-4xl sm:text-6xl font-bold tracking-[0.2em] text-[var(--teal)] uppercase">
+            <h2 className="text-4xl sm:text-6xl font-bold tracking-[0.2em] text-[#F59E0B] uppercase">
               Overview
             </h2>
           </motion.div>
